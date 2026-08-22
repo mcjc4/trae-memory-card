@@ -33,6 +33,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .miniCard h4{font-size:12px;color:var(--mut);margin-bottom:6px}
 .miniCard b{font-size:16px}
 .distractionAlert{background:#fdeceb;border:2px solid var(--bad);border-radius:10px;padding:10px;margin-bottom:10px;animation:shake .5s}
+.focusStatus{border-radius:10px;padding:8px 14px;margin-bottom:10px;font-size:13px;text-align:center;font-weight:500}
+.focusStatus.on{background:#e8f5e9;color:var(--ok);border:1px solid var(--ok)}
+.focusStatus.off{background:#f3f4f6;color:var(--mut);border:1px solid var(--line)}
 @keyframes shake{10%,90%{transform:translateX(-2px)}20%,80%{transform:translateX(4px)}30%,50%,70%{transform:translateX(-6px)}40%,60%{transform:translateX(6px)}}
 .distractionAlert b{color:var(--bad);font-size:14px}
 .distractionAlert small{color:var(--bad);font-size:11px;display:block;margin-top:4px}
@@ -150,10 +153,27 @@ function renderPerson(){
   }
   var d = p.data;
   var today = todayStats(d);
-  var distractionLog = d.distractionLog || [];
-  var latestDistraction = distractionLog.length? distractionLog[0] : null;
+  var distractionLog = d.distractionLog || {};
+  var distArray = [];
+  for(var k in distractionLog){ if(distractionLog[k] && distractionLog[k].ts) distArray.push(distractionLog[k]); }
+  distArray.sort(function(a,b){ return (b.ts||0)-(a.ts||0); });
+  var latestDistraction = distArray.length? distArray[0] : null;
+  var todayTime = d.timeToday || {};
   var totalMin = 0;
-  for(var n in (d.subjectTime||{})) totalMin += (d.subjectTime[n]||0);
+  for(var n in todayTime) totalMin += (todayTime[n]||0);
+  var totalMinFmt = fmtDur(totalMin);
+
+  // 专注模式状态（智能判断：focusEnabled=true 或 30分钟内有分心记录 → 已开启/刚结束）
+  var focusOn = d.focusEnabled || false;
+  var recentDistraction = distArray.length && (nowTs()-distArray[0].ts) < 30*60*1000;
+  var focusHtml = '';
+  if(focusOn){
+    focusHtml = '<div class="focusStatus on">🎯 专注模式：已开启</div>';
+  } else if(recentDistraction){
+    focusHtml = '<div class="focusStatus on" style="background:#fff8e1;border-color:#ffb300;color:#e65100">🎯 专注模式：刚结束 · 30分钟内有训练记录</div>';
+  } else {
+    focusHtml = '<div class="focusStatus off">🎯 专注模式：未开启</div>';
+  }
 
   // 分心告警
   var alertHtml = '';
@@ -164,18 +184,19 @@ function renderPerson(){
 
   box.innerHTML =
     alertHtml +
+    focusHtml +
     '<div class="statRow">'+
-      '<div class="statCard"><b>'+totalMin+'</b><small>今日总分钟</small></div>'+
+      '<div class="statCard"><b>'+totalMinFmt+'</b><small>今日投入</small></div>'+
       '<div class="statCard"><b>'+today.streak+'</b><small>连续打卡天</small></div>'+
       '<div class="statCard"><b>'+today.todayCount+'</b><small>今日完成</small></div>'+
       '<div class="statCard"><b>'+today.todayGoal+'</b><small>今日目标</small></div>'+
       '<div class="statCard"><b>'+today.totalMastered+'</b><small>已掌握</small></div>'+
-      '<div class="statCard"><b>'+distractionLog.length+'</b><small>分心次数</small></div>'+
+      '<div class="statCard"><b>'+distArray.length+'</b><small>分心次数</small></div>'+
     '</div>'+
     '<div class="personSection">'+
       '<h3><span class="liveDot '+(p.updated_at && nowTs()-p.updated_at<120000?'':'off')+'"></span>'+PERSONS[curPerson]+' · 实时数据</h3>'+
       '<div class="grid2">'+
-        '<div class="miniCard"><h4>各科今日投入</h4>'+renderSubjectTime(d.subjectTime)+'</div>'+
+        '<div class="miniCard"><h4>各科今日投入</h4>'+renderSubjectTime(todayTime)+'</div>'+
         '<div class="miniCard"><h4>今日打卡目标进度</h4>'+renderGoalProgress(d)+'</div>'+
       '</div>'+
     '</div>'+
@@ -183,7 +204,7 @@ function renderPerson(){
       '<h3>📋 今日训练详情</h3>'+renderTodayDetails(d)+
     '</div>'+
     '<div class="personSection">'+
-      '<h3>⚠ 分心日志（最近）</h3>'+renderDistractionLog(distractionLog)+
+      '<h3>⚠ 分心日志（最近）</h3>'+renderDistractionLog(distArray)+
     '</div>'+
     '<div class="personSection">'+
       '<h3>📖 最近浏览历史</h3>'+renderBrowseHistory(d.browseHistory)+

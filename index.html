@@ -418,7 +418,7 @@ var DEFAULT_PUSH = {
   enabled:true, wechatOn:true, dingOn:true,
   token:'445f103035b642bf9063688feea05c2b',
   topic:'chen-study',
-  webhook:'https://oapi.dingtalk.com/robot/send?access_token=f18b56e9a0a5e0b0b0c0d1e2f3a4b5c6',
+  webhook:'https://oapi.dingtalk.com/robot/send?access_token=20b2c845ee30d22e35c3435302645bb6bc68fa3d8d025de31df458d2883bf528',
   keyword:'打卡',
   proxy:'https://young-hat-353c.mcjc4.workers.dev/',
   pushInterval:10, idleTimeout:10
@@ -448,15 +448,15 @@ var DEFAULT_CLOUD = {
 
 // TTS 默认配置
 var DEFAULT_TTS = {
-  enabled:false, enAuto:true, otherAuto:false, rate:'normal', voice:'Emma'
+  enabled:false, enAuto:true, otherAuto:false, rate:'normal', voice:'Aria'
 };
-var TTS_VOICES = ['Emma','Aria','Jenny','Guy','晓晓','云希'];
+var TTS_VOICES = ['Aria','Jenny','Guy','Christopher','晓晓','云希'];
 var TTS_TOKEN = '6A5AA1D4EAFF4E9FB37E23D68491D6F4';
 var TTS_GEC = '1-143.0.3650.75';
 
 // 专注模式（防分心）默认配置
 var DEFAULT_FOCUS = {
-  enabled:false,        // 专注模式总开关
+  enabled:true,        // 专注模式总开关
   warnThreshold:5,      // 轻度告警阈值（秒）
   penalizeThreshold:30, // 惩罚阈值（秒）
   autoFullscreen:false, // 进入训练时自动全屏
@@ -472,6 +472,7 @@ var ALL_SUBJECTS = {};         // 合并后科目（渲染用）
 var queue = [];                // 训练队列
 var qPos = -1;                 // 队列位置
 var browseMode = false;
+var isTraining = false;        // 是否在训练中（点击"开始训练"后为 true）
 var busy = false;
 var combo = 0;
 var retryOrder = [];           // 待重练 FIFO
@@ -481,6 +482,7 @@ var onlyWeak = false;
 var randMode = false;
 var sessionMode='', sessionSeen=0, sessionCorrect=0, sessionTimeBase=0, sessionStartTs=0;
 var idlePaused = false, idleTimer = null, lastIdleTs = Date.now();
+var _timeTickTimer = null;
 var ttsCache = {};
 var cloudTimer = null;
 var audioCtx = null;
@@ -510,11 +512,31 @@ var SEED_IMPORTED = {
 
 // ---------- 工具函数 ----------
 function clone(o){ return JSON.parse(JSON.stringify(o)); }
+// 智能合并：saved 中的空值不覆盖 defaults
+function smartMerge(def, saved){
+  var result = clone(def);
+  if(!saved || typeof saved!=='object') return result;
+  for(var k in saved){
+    var v = saved[k];
+    if(v === undefined || v === null || v === '') continue; // 空值跳过
+    if(typeof v === 'object' && !Array.isArray(v) && v !== null){
+      if(typeof result[k] === 'object' && result[k] !== null){
+        result[k] = Object.assign({}, result[k], v);
+      } else {
+        result[k] = v;
+      }
+    } else {
+      result[k] = v;
+    }
+  }
+  return result;
+}
 function $(id){ return document.getElementById(id); }
 function el(tag,cls,html){ var e=document.createElement(tag); if(cls)e.className=cls; if(html!=null)e.innerHTML=html; return e; }
 function todayStr(){ var d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 function esc(s){ return (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function nowTs(){ return Date.now(); }
+function isoTs(){ return new Date().toISOString(); }
 
 function lsGet(key,def){
   try{ var v=localStorage.getItem(key); if(v==null) return def; return JSON.parse(v); }catch(e){ return def; }
@@ -524,7 +546,7 @@ function lsRaw(key,def){ var v=localStorage.getItem(key); return v==null?def:v; 
 
 // ---------- 持久化：person ----------
 function emptyPerson(){
-  return { state:{}, today:{}, goal:{}, best:{}, streak:[], pos:{}, lastView:{view:'dash',subject:''}, lastRes:{}, tasks:[], browseHistory:[], browseMeta:{}, trainCount:{}, subjectTime:{}, distractionLog:[] };
+  return { state:{}, today:{}, goal:{}, best:{}, streak:[], pos:{}, lastView:{view:'dash',subject:''}, lastRes:{}, tasks:[], browseHistory:[], browseMeta:{}, trainCount:{}, subjectTime:{}, timeToday:{}, distractionLog:{}, focusEnabled:false };
 }
 function getPerson(){
   var p = lsGet(K.person, null);
@@ -547,7 +569,9 @@ function getPerson(){
     obj[k].browseMeta=obj[k].browseMeta||{};
     obj[k].trainCount=obj[k].trainCount||{};
     obj[k].subjectTime=obj[k].subjectTime||{};
-    obj[k].distractionLog=Array.isArray(obj[k].distractionLog)?obj[k].distractionLog:[];
+    obj[k].timeToday=obj[k].timeToday||{};
+    obj[k].distractionLog=obj[k].distractionLog||{};
+    obj[k].focusEnabled = (obj[k].focusEnabled!==undefined) ? obj[k].focusEnabled : focusCfg.enabled;
   }
   return obj;
 }
@@ -708,12 +732,17 @@ function renderTexEsc(text){
 
 // ---------- 启动 ----------
 function init(){
-  // 配置加载
-  fxCfg = Object.assign(clone(DEFAULT_FX), lsGet(K.fx, {}));
-  pushCfg = Object.assign(clone(DEFAULT_PUSH), lsGet(K.push, {}));
-  ttsCfg = Object.assign(clone(DEFAULT_TTS), lsGet(K.tts, {}));
-  focusCfg = Object.assign(clone(DEFAULT_FOCUS), lsGet(K.focus, {}));
-  cloudCfg = Object.assign(clone(DEFAULT_CLOUD), lsGet(K.cloud, {}));
+  // 配置加载 —— 智能合并：空值不覆盖默认值
+  pushCfg = smartMerge(clone(DEFAULT_PUSH), lsGet(K.push, {}));
+  fxCfg = smartMerge(clone(DEFAULT_FX), lsGet(K.fx, {}));
+  ttsCfg = smartMerge(clone(DEFAULT_TTS), lsGet(K.tts, {}));
+  focusCfg = smartMerge(clone(DEFAULT_FOCUS), lsGet(K.focus, {}));
+  cloudCfg = smartMerge(clone(DEFAULT_CLOUD), lsGet(K.cloud, {}));
+  // 关键安全网：确保推送配置必填字段不为空
+  if(!pushCfg.token) pushCfg.token = DEFAULT_PUSH.token;
+  if(!pushCfg.webhook) pushCfg.webhook = DEFAULT_PUSH.webhook;
+  if(!pushCfg.keyword) pushCfg.keyword = DEFAULT_PUSH.keyword;
+  if(!pushCfg.proxy) pushCfg.proxy = DEFAULT_PUSH.proxy;
   curPerson = lsRaw(K.active,'chenxinyan'); if(!PERSONS[curPerson]) curPerson='chenxinyan';
 
   // 若无 IMPORTED，注入构建种子（仅首次）
@@ -849,11 +878,44 @@ function closeModeModal(){ closeModal('modeModal'); }
 function doEnterSubject(mode){
   closeModeModal();
   browseMode = (mode==='browse');
+  isTraining = (mode==='train');
+  // 训练模式：同步 focusEnabled 到云（以 focusCfg.enabled 为准）
+  if(isTraining){
+    var p = curP();
+    p.focusEnabled = (focusCfg && focusCfg.enabled!==undefined) ? focusCfg.enabled : (p.focusEnabled||false);
+    lsSet(K.person, personData);
+    cloudPush();
+  }
   // 切换科目
   setTheme(cur);
   // 重置会话统计
   sessionMode = mode; sessionSeen=0; sessionCorrect=0; sessionTimeBase = subjTime(cur); sessionStartTs = nowTs();
   idlePaused = false; lastIdleTs = nowTs();
+  // 启动时间累积计时器（每30秒记一次）
+  if(_timeTickTimer) clearInterval(_timeTickTimer);
+  _timeTickTimer = setInterval(function(){
+    if(idlePaused || document.hidden) return;
+    if(!cur || browseMode) return;
+    var d = new Date();
+    var curDate = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    var ms = 30000; // 30秒
+    var p = curP();
+    p.subjectTime[cur] = (p.subjectTime[cur]||0) + ms;
+    // 检查日期是否变更
+    if(!p._timeDate || p._timeDate!==curDate){
+      p.timeToday = {}; // 新的一天，重置
+      p._timeDate = curDate;
+    }
+    p.timeToday[cur] = (p.timeToday[cur]||0) + ms;
+    // 每5分钟持久化一次
+    if(!p._timeAccum) p._timeAccum = 0;
+    p._timeAccum += ms;
+    if(p._timeAccum >= 300000){ // 5分钟
+      p._timeAccum = 0;
+      savePerson();
+      renderTimeRing();
+    }
+  }, 30000);
   // 构建队列
   buildQueue();
   qPos = -1;
@@ -869,10 +931,13 @@ function doEnterSubject(mode){
   resetIdle();
 }
 function exitTrain(){
+  // 停止时间计时器
+  if(_timeTickTimer){ clearInterval(_timeTickTimer); _timeTickTimer=null; }
   // 周期成果推送（仅训练模式）
   if(!browseMode){ pushTrainResult(true); }
   curP().lastView = { view:'dash', subject:'' };
   savePerson();
+  isTraining = false;
   cur=''; showView('dash'); renderDash();
 }
 
@@ -1215,7 +1280,16 @@ function fallbackSpeech(text, btn){
   try{
     if(!window.speechSynthesis) return;
     var u = new SpeechSynthesisUtterance(text);
-    u.lang = cur==='英语'?'en-US':'zh-CN';
+    var isEn = cur==='英语';
+    u.lang = isEn?'en-US':'zh-CN';
+    // 尝试匹配浏览器中可用的神经音色
+    var voices = speechSynthesis.getVoices();
+    if(voices && voices.length){
+      var prefix = isEn?'en-US':'zh-CN';
+      var enV = voices.filter(function(v){ return v.lang===prefix && /neural|edge|samantha|zira|yunxi|xiaoxiao|xiaoyi/i.test(v.name); });
+      if(enV.length) u.voice = enV[0];
+      else { var anyEn = voices.filter(function(v){ return v.lang===prefix; }); if(anyEn.length) u.voice = anyEn[0]; }
+    }
     u.rate = ttsCfg.rate==='slow'?0.7 : ttsCfg.rate==='fast'?1.3 : 1;
     u.onend = function(){ if(btn) btn.classList.remove('playing'); };
     speechSynthesis.speak(u);
@@ -1226,10 +1300,16 @@ function edgeTTS(text){
     if(!text || text.length>1500){ resolve(null); return; }
     var key = text.slice(0,80);
     if(ttsCache[key]){ resolve(ttsCache[key]); return; }
-    var voiceMap = { 'Emma':'zh-CN-XiaoxiaoNeural','Aria':'zh-CN-XiaoyiNeural','Jenny':'en-US-JennyNeural','Guy':'en-US-GuyNeural','晓晓':'zh-CN-XiaoxiaoNeural','云希':'zh-CN-YunxiNeural' };
-    var voice = voiceMap[ttsCfg.voice] || 'zh-CN-XiaoxiaoNeural';
-    var rate = ttsCfg.rate==='slow'?'-15%':ttsCfg.rate==='fast'?'+25%':'+0%';
     var lang = cur==='英语'?'en-US':'zh-CN';
+    // 英语科目 → 英语神经音色；中文科目 → 中文神经音色
+    var voiceMap;
+    if(lang==='en-US'){
+      voiceMap = { 'Aria':'en-US-AriaNeural','Jenny':'en-US-JennyNeural','Guy':'en-US-GuyNeural','Christopher':'en-US-ChristopherNeural','晓晓':'en-US-AriaNeural','云希':'en-US-GuyNeural' };
+    } else {
+      voiceMap = { 'Aria':'zh-CN-XiaoyiNeural','Jenny':'zh-CN-XiaoxiaoNeural','Guy':'zh-CN-YunxiNeural','Christopher':'zh-CN-YunjianNeural','晓晓':'zh-CN-XiaoxiaoNeural','云希':'zh-CN-YunxiNeural' };
+    }
+    var voice = voiceMap[ttsCfg.voice] || (lang==='en-US'?'en-US-AriaNeural':'zh-CN-XiaoxiaoNeural');
+    var rate = ttsCfg.rate==='slow'?'-15%':ttsCfg.rate==='fast'?'+25%':'+0%';
     var ssml = '<speak version=\"1.0\" xml:lang=\"'+lang+'\"><voice name=\"'+voice+'\"><prosody rate=\"'+rate+'\">'+text.replace(/[<>&]/g,function(c){return {'<':'&lt;','>':'&gt;','&':'&amp;'}[c];})+'</prosody></voice></speak>';
     // 快速超时：离线/受限网络下 4s 内失败即降级，避免长时间挂起
     var done=false;
@@ -1301,23 +1381,39 @@ function dedupPush(key, fn){
 }
 function sendPush(title, content){
   var person = PERSONS[curPerson].name;
-  // 微信 PushPlus
-  if(pushCfg.wechatOn){
+  var isVercel = /vercel\.app/i.test(location.hostname);
+  var proxyBase = isVercel ? '/api/push' : 'https://trae-memory-card.vercel.app/api/push';
+
+  // 微信 PushPlus —— 统一走 Vercel 代理（解决 GitHub Pages CORS 问题）
+  if(pushCfg.enabled && pushCfg.wechatOn){
     try{
-      fetch('http://www.pushplus.plus/send',{
-        method:'POST',headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ token:pushCfg.token, topic:pushCfg.topic, title:title, content:content })
-      }).catch(function(){});
-    }catch(e){}
+      var ppBody = JSON.stringify({ token:pushCfg.token, topic:pushCfg.topic, title:title, content:content });
+      fetch(proxyBase + '?type=pushplus',{
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: ppBody
+      }).then(function(r){
+        if(r.ok) console.log('[PushPlus] 推送成功');
+        else console.warn('[PushPlus] HTTP '+r.status);
+      }).catch(function(e){ console.warn('[PushPlus] 推送失败:', e.message); });
+    }catch(e){ console.warn('[PushPlus] 异常:', e.message); }
   }
-  // 钉钉经 CF 代理
-  if(pushCfg.dingOn){
-    var body = JSON.stringify({ msgtype:'text', text:{ content: (title+'\n'+content+'\n'+pushCfg.keyword) } });
-    try{
-      fetch(pushCfg.proxy + pushCfg.webhook.replace(/^https?:\/\//,''),{
-        method:'POST', headers:{'Content-Type':'application/json'}, body: body
-      }).catch(function(){});
-    }catch(e){}
+
+  // 钉钉推送 —— 统一走 Vercel 代理
+  if(pushCfg.enabled && pushCfg.dingOn){
+    var tokenMatch = pushCfg.webhook.match(/access_token=([^&]+)/);
+    var token = tokenMatch ? tokenMatch[1] : '';
+    if(token){
+      try{
+        var dtBody = JSON.stringify({ msgtype:'text', text:{ content: (title+'\n'+content+'\n'+pushCfg.keyword) } });
+        fetch(proxyBase + '?type=dingtalk&access_token='+encodeURIComponent(token),{
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: dtBody
+        }).then(function(r){
+          if(r.ok) console.log('[DingTalk] 推送成功');
+          else console.warn('[DingTalk] HTTP '+r.status);
+        }).catch(function(e){ console.warn('[DingTalk] 推送失败:', e.message); });
+      }catch(e){ console.warn('[DingTalk] 异常:', e.message); }
+    }
   }
 }
 function initPushLoop(){
@@ -1344,13 +1440,13 @@ function initIdle(){
   });
   // 窗口失焦（切到其他 App / 浏览器窗口）
   window.addEventListener('blur', function(){
-    if(focusCfg.enabled && cur && !browseMode){
+    if(focusCfg.enabled && isTraining && !browseMode){
       onWindowHidden();
     }
   });
   window.addEventListener('focus', function(){
     if(document.hidden) return; // visibilitychange 已处理
-    if(focusCfg.enabled && _hiddenStartTs>0){
+    if(focusCfg.enabled && isTraining && _hiddenStartTs>0){
       onWindowVisible();
     }
   });
@@ -1362,7 +1458,7 @@ function initIdle(){
   });
 }
 function onWindowHidden(){
-  if(!focusCfg.enabled || !cur || browseMode) return;
+  if(!focusCfg.enabled || !isTraining || browseMode) return;
   if(_hiddenStartTs===0){ _hiddenStartTs = nowTs(); }
   // 启动检查定时器
   if(!_focusCheckTimer){
@@ -1371,10 +1467,17 @@ function onWindowHidden(){
 }
 function onWindowVisible(){
   if(!focusCfg.enabled){ _hiddenStartTs=0; return; }
+  if(!isTraining){ _hiddenStartTs=0; if(_focusCheckTimer){clearInterval(_focusCheckTimer);_focusCheckTimer=null;} return; }
   var duration = _hiddenStartTs>0 ? (nowTs()-_hiddenStartTs)/1000 : 0;
   if(duration >= focusCfg.warnThreshold){
     // 回来时如果切走时间超过告警阈值，记录一次分心事件
     logDistraction(duration, 'return');
+    // 推送给家长：训练恢复通知
+    if(focusCfg.pushAlert && pushCfg.enabled){
+      var personName = PERSONS[curPerson]?PERSONS[curPerson].name:curPerson;
+      var subjName = ALL_SUBJECTS[cur]?ALL_SUBJECTS[cur].display:cur;
+      sendPush('✅ '+personName+' 已返回训练', personName+'已返回训练\n科目：'+subjName+'\n离开时长：'+Math.round(duration)+'秒\n专注模式：'+(focusCfg.enabled?'已开启':'已关闭'));
+    }
   }
   _hiddenStartTs = 0;
   if(_focusCheckTimer){ clearInterval(_focusCheckTimer); _focusCheckTimer=null; }
@@ -1392,7 +1495,7 @@ function checkDistraction(){
     return;
   }
   var dur = _hiddenStartTs>0 ? (nowTs()-_hiddenStartTs)/1000 : 0;
-  if(dur >= focusCfg.penalizeThreshold && cur && !browseMode){
+  if(dur >= focusCfg.penalizeThreshold && isTraining && !browseMode){
     // 达到惩罚阈值：暂停计时 + 推送给家长
     idlePaused = true;
     sessionTimeBase = subjTime(cur); // 不累计分心期间
@@ -1450,13 +1553,15 @@ function initCloud(){
 }
 function cloudPayload(){
   var p = curP();
+  // 同步 focusEnabled：以 focusCfg.enabled 为准（防止 cloudPull 覆盖导致不同步）
+  p.focusEnabled = (focusCfg && focusCfg.enabled!==undefined) ? focusCfg.enabled : (p.focusEnabled||false);
   return {
     v:1,
     custom: getCustom(), imported: getImported(),
     state:p.state, today:p.today, goal:p.goal, best:p.best, streak:p.streak,
     browseHistory:p.browseHistory, browseMeta:p.browseMeta, lastRes:p.lastRes,
-    pos:p.pos, trainCount:p.trainCount, subjectTime:p.subjectTime,
-    distractionLog:p.distractionLog||[]
+    pos:p.pos, trainCount:p.trainCount, subjectTime:p.subjectTime, timeToday:p.timeToday, focusEnabled:p.focusEnabled,
+    distractionLog:p.distractionLog||{}
   };
 }
 var cloudSyncPending = null;
@@ -1468,7 +1573,7 @@ function schedulePush(){
 function cloudPush(){
   try{
     var url = cloudCfg.url + '/rest/v1/'+cloudCfg.table;
-    var body = { id: cloudDocId(), data: cloudPayload(), updated_at: nowTs() };
+    var body = { id: cloudDocId(), data: cloudPayload(), updated_at: isoTs() };
     fetch(url, {
       method:'POST',
       headers:{ 'apikey':cloudCfg.key, 'Authorization':'Bearer '+cloudCfg.key, 'Content-Type':'application/json', 'Prefer':'resolution=merge-duplicates' },
@@ -1491,9 +1596,10 @@ function mergeCloud(remote, remoteTs){
   if(remoteTs && remoteTs<=localTs) return; // 本地更新
   var p = curP();
   // 对象按 key 级合并
-  ['state','today','goal','best','pos','lastRes','trainCount','subjectTime','browseMeta'].forEach(function(f){
+  ['state','today','goal','best','pos','lastRes','trainCount','subjectTime','timeToday','browseMeta'].forEach(function(f){
     p[f] = Object.assign({}, p[f]||{}, remote[f]||{});
   });
+  if(remote.focusEnabled!==undefined) p.focusEnabled = remote.focusEnabled;
   p.lastView = Object.assign({}, p.lastView||{}, remote.lastView||{});
   // streak 合并去重
   var s = (p.streak||[]).concat(remote.streak||[]);
@@ -1604,6 +1710,17 @@ function toggleFocusByData(el){
       if(_focusCheckTimer){ clearInterval(_focusCheckTimer); _focusCheckTimer=null; }
     }
     toast(focusCfg.enabled?'专注模式已开启':'专注模式已关闭');
+    // 推送通知家长
+    if(pushCfg.enabled){
+      var personName = PERSONS[curPerson]?PERSONS[curPerson].name:curPerson;
+      var status = focusCfg.enabled?'已开启专注模式':'已关闭专注模式';
+      sendPush('🎯 '+personName+' '+status, personName+(focusCfg.enabled?'已开启专注模式，分心将自动暂停并通知':'已关闭专注模式'));
+    }
+    // 云端同步专注模式状态 —— 立即推送，不走防抖
+    var p = curP();
+    p.focusEnabled = focusCfg.enabled;
+    lsSet(K.person, personData);
+    cloudPush();
   }
 }
 function switchPerson(key){
