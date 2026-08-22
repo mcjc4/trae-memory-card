@@ -421,7 +421,8 @@ var DEFAULT_PUSH = {
   webhook:'https://oapi.dingtalk.com/robot/send?access_token=20b2c845ee30d22e35c3435302645bb6bc68fa3d8d025de31df458d2883bf528',
   keyword:'打卡',
   proxy:'https://young-hat-353c.mcjc4.workers.dev/',
-  pushInterval:10, idleTimeout:10
+  pushInterval:10, idleTimeout:10,
+  debugMode:false      // 调试模式：推送消息前加"测试推送"前缀
 };
 
 // 动效默认配置
@@ -1384,6 +1385,13 @@ function sendPush(title, content){
   var isVercel = /vercel\.app/i.test(location.hostname);
   var proxyBase = isVercel ? '/api/push' : 'https://trae-memory-card.vercel.app/api/push';
 
+  // 调试模式：消息前加测试前缀
+  if(pushCfg.debugMode){
+    var prefix = '以下为测试推送，不代表真实情况\n';
+    title = '🧪 ' + title;
+    content = prefix + content;
+  }
+
   // 微信 PushPlus —— 统一走 Vercel 代理（解决 GitHub Pages CORS 问题）
   if(pushCfg.enabled && pushCfg.wechatOn){
     try{
@@ -1669,6 +1677,7 @@ function openSettings(){
       '<div class="row"><label>Webhook</label><input value="'+esc(pushCfg.webhook)+'" oninput="pushCfg.webhook=this.value"></div>'+
       '<div class="row"><label>安全关键字</label><input value="'+esc(pushCfg.keyword)+'" oninput="pushCfg.keyword=this.value"></div>'+
       '<div class="row"><label>CF 代理</label><input value="'+esc(pushCfg.proxy)+'" oninput="pushCfg.proxy=this.value"></div>'+
+      '<div class="row"><label>🧪 调试模式</label><div class="toggle '+(pushCfg.debugMode?'on':'')+'" onclick="this.classList.toggle(\'on\');pushCfg.debugMode=this.classList.contains(\'on\');lsSet(K.push,pushCfg)"></div></div>'+
       '<div class="btns"><button class="btn" onclick="sendPush(\'测试推送\',\'这是一条测试消息\');toast(\'已发送\')">发送测试</button><button class="btn p" onclick="lsSet(K.push,pushCfg);toast(\'已保存\')">保存</button></div></div>'+
     '<div class="setGroup"><h4>⏱ 推送频率</h4>'+
       '<div class="row"><label>成果推送间隔(分)</label><input type="number" min="1" max="120" value="'+pushCfg.pushInterval+'" oninput="pushCfg.pushInterval=+this.value"></div>'+
