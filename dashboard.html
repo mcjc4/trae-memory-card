@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>记忆卡 · 家长看板</title>
+<style>
+:root{--c:#185FA5;--bg:#f4f6fb;--card:#fff;--ink:#1f2937;--mut:#6b7280;--ok:#3B6D11;--bad:#D85A30;--half:#BA7517;--line:#e5e7eb;--shadow:0 2px 10px rgba(0,0,0,.08)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--ink);line-height:1.5;font-size:14px}
+#app{max-width:1200px;margin:0 auto;padding:14px}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.topbar h1{font-size:18px;color:var(--c)}
+.tbtn{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer;box-shadow:var(--shadow)}
+.tbtn:hover{background:#eef2f9}
+.tbtn.primary{background:var(--c);color:#fff;border-color:var(--c)}
+.tbtn.danger{color:var(--bad);border-color:var(--bad)}
+.tabs{display:flex;gap:8px;margin-bottom:14px}
+.tab{padding:8px 16px;border-radius:10px;background:var(--card);border:1px solid var(--line);cursor:pointer;font-size:13px}
+.tab.on{background:var(--c);color:#fff;border-color:var(--c)}
+.statRow{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:14px}
+.statCard{background:var(--card);border-radius:12px;padding:12px;box-shadow:var(--shadow);text-align:center}
+.statCard b{font-size:24px;color:var(--c);display:block}
+.statCard small{color:var(--mut);font-size:11px}
+.personSection{background:var(--card);border-radius:14px;padding:14px;margin-bottom:14px;box-shadow:var(--shadow)}
+.personSection h3{color:var(--c);margin-bottom:10px;font-size:16px;display:flex;align-items:center;gap:8px}
+.personSection .liveDot{width:8px;height:8px;border-radius:50%;background:var(--ok);animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.personSection .liveDot.off{background:var(--mut);animation:none}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:700px){.grid2{grid-template-columns:1fr}}
+.miniCard{background:#fafbff;border-radius:10px;padding:10px;border:1px solid var(--line)}
+.miniCard h4{font-size:12px;color:var(--mut);margin-bottom:6px}
+.miniCard b{font-size:16px}
+.distractionAlert{background:#fdeceb;border:2px solid var(--bad);border-radius:10px;padding:10px;margin-bottom:10px;animation:shake .5s}
+@keyframes shake{10%,90%{transform:translateX(-2px)}20%,80%{transform:translateX(4px)}30%,50%,70%{transform:translateX(-6px)}40%,60%{transform:translateX(6px)}}
+.distractionAlert b{color:var(--bad);font-size:14px}
+.distractionAlert small{color:var(--bad);font-size:11px;display:block;margin-top:4px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left}
+th{color:var(--mut);font-weight:600;font-size:11px}
+.badge{display:inline-block;padding:1px 6px;border-radius:6px;font-size:10px;background:#eef2f9;color:var(--c)}
+.badge.ok{background:#eef6e4;color:var(--ok)}.badge.warn{background:#fdf3e1;color:var(--half)}.badge.bad{background:#fdeceb;color:var(--bad)}
+.conic-box{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.conic-time{width:100px;height:100px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;position:relative}
+.conic-time::after{content:"";position:absolute;inset:10px;border-radius:50%;background:var(--card)}
+.conic-time span{position:relative;z-index:1;text-align:center}
+.progress-bar{height:6px;background:#e9edf5;border-radius:3px;overflow:hidden;margin:4px 0}
+.progress-bar>i{display:block;height:100%;background:var(--c)}
+.refreshBtn{font-size:11px;color:var(--c);cursor:pointer;text-decoration:underline}
+.foot{text-align:center;color:var(--mut);font-size:11px;padding:14px}
+.empty{color:var(--mut);text-align:center;padding:20px}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="topbar">
+    <h1>📊 记忆卡 · 家长看板</h1>
+    <div>
+      <button class="tbtn" onclick="refreshAll()">🔄 刷新</button>
+      <button class="tbtn" onclick="showSettings()">⚙ 配置</button>
+    </div>
+  </div>
+  <div class="tabs" id="personTabs">
+    <div class="tab on" id="tab-chenxinyan" onclick="switchPerson('chenxinyan')">陈昕言</div>
+    <div class="tab" id="tab-chenzihan" onclick="switchPerson('chenzihan')">陈梓涵</div>
+    <select id="personSelect" onchange="switchPerson(this.value)" style="margin-left:auto;padding:6px 10px;border-radius:8px;border:1px solid var(--line);background:#fff;font-size:13px">
+      <option value="chenxinyan">陈昕言</option>
+      <option value="chenzihan">陈梓涵</option>
+    </select>
+  </div>
+  <div id="dashboard"></div>
+  <div class="foot">记忆卡系统 · 家长实时看板</div>
+</div>
+
+<script>
+"use strict";
+// ---------- 配置 ----------
+var PERSONS = { chenxinyan:'陈昕言', chenzihan:'陈梓涵' };
+var DEFAULT_CLOUD = {
+  url:'https://vajgltnfpdjpnsoknoma.supabase.co',
+  key:'sb_publishable_WkudOiZ5UwD0VhwquRsUBA_LkBhSyoN',
+  table:'gaokao_state'
+};
+var REFRESH_MS = 5000;
+
+// ---------- 状态 ----------
+var cloudCfg = clone(DEFAULT_CLOUD);
+var curPerson = 'chenxinyan';
+var dataCache = {};
+var refreshTimer = null;
+
+function clone(o){ return JSON.parse(JSON.stringify(o)); }
+function $(id){ return document.getElementById(id); }
+function esc(s){ return (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function nowTs(){ return Date.now(); }
+function fmtTime(ts){ if(!ts) return '-'; var d=new Date(ts); return d.getMonth()+1+'/'+d.getDate()+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')+':'+String(d.getSeconds()).padStart(2,'0'); }
+function fmtDur(ms){ if(!ms) return '0分'; var m=Math.round(ms/60000); if(m<60) return m+'分'; return Math.floor(m/60)+'时'+(m%60)+'分'; }
+
+// ---------- Supabase 拉取 ----------
+function docId(key){ return 'jikaka-'+key; }
+function fetchPerson(key){
+  var url = cloudCfg.url + '/rest/v1/'+cloudCfg.table+'?id=eq.'+docId(key)+'&select=*';
+  return fetch(url, { headers:{ 'apikey':cloudCfg.key, 'Authorization':'Bearer '+cloudCfg.key } })
+    .then(function(r){ return r.json(); })
+    .then(function(arr){ return arr && arr.length ? arr[0] : null; })
+    .catch(function(e){ console.error('fetchPerson fail', key, e); return null; });
+}
+
+function refreshAll(){
+  Promise.all(Object.keys(PERSONS).map(function(k){ return fetchPerson(k); }))
+    .then(function(results){
+      results.forEach(function(r,i){
+        if(r){ dataCache[Object.keys(PERSONS)[i]] = { data:r.data, updated_at:r.updated_at }; }
+      });
+      render();
+    });
+}
+
+// ---------- 渲染 ----------
+function render(){
+  renderTabs();
+  renderPerson();
+}
+
+function renderTabs(){
+  Object.keys(PERSONS).forEach(function(k){
+    var tab = $('tab-'+k);
+    if(tab){
+      tab.className = 'tab'+(k===curPerson?' on':'');
+      var live = dataCache[k];
+      tab.textContent = PERSONS[k] + (live?' · 在线':'');
+    }
+  });
+  var sel = $('personSelect');
+  if(sel && sel.value!==curPerson) sel.value = curPerson;
+}
+function switchPerson(k){
+  curPerson = k;
+  renderTabs();
+  renderPerson();
+}
+
+function renderPerson(){
+  var box = $('dashboard');
+  var p = dataCache[curPerson];
+  if(!p || !p.data){
+    box.innerHTML = '<div class="empty">暂无数据，请确认孩子端已开始训练且云端同步正常</div>';
+    return;
+  }
+  var d = p.data;
+  var today = todayStats(d);
+  var distractionLog = d.distractionLog || [];
+  var latestDistraction = distractionLog.length? distractionLog[0] : null;
+  var totalMin = 0;
+  for(var n in (d.subjectTime||{})) totalMin += (d.subjectTime[n]||0);
+
+  // 分心告警
+  var alertHtml = '';
+  if(latestDistraction && (nowTs()-latestDistraction.ts) < 10*60*1000){
+    var dSec = Math.round((nowTs()-latestDistraction.ts)/1000);
+    alertHtml = '<div class="distractionAlert"><b>⚠ 最近分心：'+Math.round(latestDistraction.dur)+' 秒前</b><small>检测于 '+fmtTime(latestDistraction.ts)+' · 科目 '+esc(latestDistraction.subject||'-')+' · '+dSec+' 秒前</small></div>';
+  }
+
+  box.innerHTML =
+    alertHtml +
+    '<div class="statRow">'+
+      '<div class="statCard"><b>'+totalMin+'</b><small>今日总分钟</small></div>'+
+      '<div class="statCard"><b>'+today.streak+'</b><small>连续打卡天</small></div>'+
+      '<div class="statCard"><b>'+today.todayCount+'</b><small>今日完成</small></div>'+
+      '<div class="statCard"><b>'+today.todayGoal+'</b><small>今日目标</small></div>'+
+      '<div class="statCard"><b>'+today.totalMastered+'</b><small>已掌握</small></div>'+
+      '<div class="statCard"><b>'+distractionLog.length+'</b><small>分心次数</small></div>'+
+    '</div>'+
+    '<div class="personSection">'+
+      '<h3><span class="liveDot '+(p.updated_at && nowTs()-p.updated_at<120000?'':'off')+'"></span>'+PERSONS[curPerson]+' · 实时数据</h3>'+
+      '<div class="grid2">'+
+        '<div class="miniCard"><h4>各科今日投入</h4>'+renderSubjectTime(d.subjectTime)+'</div>'+
+        '<div class="miniCard"><h4>今日打卡目标进度</h4>'+renderGoalProgress(d)+'</div>'+
+      '</div>'+
+    '</div>'+
+    '<div class="personSection">'+
+      '<h3>📋 今日训练详情</h3>'+renderTodayDetails(d)+
+    '</div>'+
+    '<div class="personSection">'+
+      '<h3>⚠ 分心日志（最近）</h3>'+renderDistractionLog(distractionLog)+
+    '</div>'+
+    '<div class="personSection">'+
+      '<h3>📖 最近浏览历史</h3>'+renderBrowseHistory(d.browseHistory)+
+    '</div>'+
+    '<div style="text-align:center;margin-top:10px">'+
+      '<span class="refreshBtn" onclick="refreshAll()">手动刷新</span>'+
+      '<span style="color:var(--mut);font-size:11px;margin-left:10px">自动刷新：每 5 秒</span>'+
+    '</div>';
+}
+
+function todayStats(d){
+  var today = new Date();
+  var ts = today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
+  var todayCount=0, todayGoal=0, totalMastered=0, streak=0;
+  for(var n in (d.today||{})){
+    if(d.today[n].date===ts) todayCount += d.today[n].count||0;
+  }
+  for(var n in (d.goal||{})) todayGoal += d.goal[n]||0;
+  for(var n in (d.state||{})){
+    var st = d.state[n]||{};
+    for(var id in st) if(st[id]===1) totalMastered++;
+  }
+  var s = d.streak||[];
+  if(s.length){
+    // 简单计数：从今天/昨天往前
+    function ds(dd){ return dd.getFullYear()+'-'+String(dd.getMonth()+1).padStart(2,'0')+'-'+String(dd.getDate()).padStart(2,'0'); }
+    var d2 = new Date();
+    if(s.indexOf(ds(d2))<0) d2.setDate(d2.getDate()-1);
+    while(s.indexOf(ds(d2))>=0){ streak++; d2.setDate(d2.getDate()-1); }
+  }
+  return { todayCount:todayCount, todayGoal:todayGoal, totalMastered:totalMastered, streak:streak };
+}
+
+function renderSubjectTime(subjectTime){
+  var items = [];
+  var total = 0;
+  var colors = { '语文':'#8B5A2B','数学':'#0C7C59','英语':'#7A1F8A','物理':'#185FA5','化学':'#B0481C','政治':'#534AB7' };
+  for(var n in (subjectTime||{})){
+    var ms = subjectTime[n]||0;
+    total += ms;
+    if(ms>0) items.push({ n:n, ms:ms, c:colors[n]||'#999' });
+  }
+  if(!items.length) return '<div class="empty">暂无训练记录</div>';
+  // conic-gradient
+  var stops = [];
+  var acc = 0;
+  items.forEach(function(it){
+    var frac = it.ms/total;
+    stops.push(it.c+' '+acc.toFixed(3)+'turn '+((acc+frac)).toFixed(3)+'turn');
+    acc += frac;
+  });
+  var bg = 'conic-gradient('+stops.join(',')+', #e9edf5 '+acc.toFixed(3)+'turn)';
+  var rows = items.map(function(it){
+    return '<div style="display:flex;justify-content:space-between;font-size:12px;margin:2px 0"><span style="color:'+it.c+'">● '+esc(it.n)+'</span><span>'+fmtDur(it.ms)+'</span></div>';
+  }).join('');
+  return '<div class="conic-box"><div class="conic-time" style="background:'+bg+'"><span><b>'+fmtDur(total)+'</b><small style="font-size:9px">今日</small></span></div><div>'+rows+'</div></div>';
+}
+
+function renderGoalProgress(d){
+  var items = [];
+  var totalGoal=0, totalDone=0;
+  for(var n in (d.goal||{})){
+    var goal = d.goal[n]||0;
+    var cnt = (d.today&&d.today[n]&&d.today[n].date===todayStr())?d.today[n].count:0;
+    totalGoal += goal; totalDone += cnt;
+    var pct = goal>0? Math.min(100, Math.round(cnt*100/goal)):0;
+    items.push({ n:n, goal:goal, cnt:cnt, pct:pct });
+  }
+  if(!items.length) return '<div class="empty">无目标设置</div>';
+  var overallPct = totalGoal>0? Math.min(100, Math.round(totalDone*100/totalGoal)):0;
+  var rows = items.map(function(it){
+    return '<div style="margin:4px 0"><div style="display:flex;justify-content:space-between;font-size:11px"><span>'+esc(it.n)+'</span><span>'+it.cnt+'/'+it.goal+'</span></div><div class="progress-bar"><i style="width:'+it.pct+'%;background:var(--ok)"></i></div></div>';
+  }).join('');
+  return '<div style="font-size:12px;margin-bottom:6px">总进度：'+totalDone+'/'+totalGoal+' ('+overallPct+'%)</div>'+rows;
+}
+
+function renderTodayDetails(d){
+  var today = todayStr();
+  var sections = [];
+  // 今日各科目统计
+  for(var n in (d.today||{})){
+    var t = d.today[n];
+    if(t.date===today){
+      var goal = (d.goal&&d.goal[n])||300;
+      var mastered = 0, weak = 0;
+      var st = (d.state||{})[n]||{};
+      for(var id in st){ if(st[id]===1) mastered++; else if(st[id]===2||st[id]===3) weak++; }
+      sections.push('<div class="miniCard" style="margin-bottom:8px"><div style="display:flex;justify-content:space-between"><b>'+esc(n)+'</b><span class="badge">'+t.count+'/'+goal+'</span></div><div style="font-size:11px;color:var(--mut)">已掌握 '+mastered+' · 待重练 '+weak+'</div><div class="progress-bar"><i style="width:'+(goal>0?Math.min(100,Math.round(t.count*100/goal)):0)+'%"></i></div></div>');
+    }
+  }
+  if(!sections.length) return '<div class="empty">今日暂无训练记录</div>';
+  return sections.join('');
+}
+
+function renderDistractionLog(log){
+  if(!log || !log.length) return '<div class="empty">近期无分心记录 ✅</div>';
+  var rows = log.slice(0,10).map(function(e){
+    var levelBadge = e.level==='penalize'?'<span class="badge bad">严重</span>':'<span class="badge warn">轻度</span>';
+    return '<tr><td>'+fmtTime(e.ts)+'</td><td>'+Math.round(e.dur)+'秒</td><td>'+esc(e.subject||'-')+'</td><td>'+levelBadge+'</td></tr>';
+  }).join('');
+  return '<table><thead><tr><th>时间</th><th>时长</th><th>科目</th><th>等级</th></tr></thead><tbody>'+rows+'</tbody></table>';
+}
+
+function renderBrowseHistory(h){
+  if(!h || !h.length) return '<div class="empty">暂无浏览历史</div>';
+  var rows = h.slice(0,15).map(function(r){
+    return '<tr><td>'+fmtTime(r.ts)+'</td><td>'+esc(r.subject||'-')+'</td><td><span class="badge '+(r.mode==='train'?'ok':'warn')+'">'+(r.mode==='train'?'训练':'审核')+'</span></td><td>'+esc(r.id||'-')+'</td></tr>';
+  }).join('');
+  return '<table><thead><tr><th>时间</th><th>科目</th><th>模式</th><th>卡片ID</th></tr></thead><tbody>'+rows+'</tbody></table>';
+}
+
+function todayStr(){
+  var d=new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+
+// ---------- 设置 ----------
+function showSettings(){
+  var html = '<div style="position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:flex;align-items:center;justify-content:center;padding:16px"><div style="background:#fff;border-radius:16px;padding:20px;max-width:400px;width:100%"><h3 style="color:var(--c);margin-bottom:12px">⚙ 云端配置</h3>'+
+    '<div style="margin-bottom:10px"><label style="font-size:12px;color:var(--mut)">Supabase URL</label><input id="cfgUrl" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px" value="'+esc(cloudCfg.url)+'"></div>'+
+    '<div style="margin-bottom:10px"><label style="font-size:12px;color:var(--mut)">Supabase Key</label><input id="cfgKey" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px" value="'+esc(cloudCfg.key)+'"></div>'+
+    '<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px"><button class="tbtn" onclick="document.body.lastElementChild.remove()">取消</button><button class="tbtn primary" onclick="saveCfg()">保存</button></div></div></div>';
+  var host = document.createElement('div'); host.innerHTML = html;
+  document.body.appendChild(host.firstChild);
+}
+function saveCfg(){
+  var url = document.getElementById('cfgUrl').value;
+  var key = document.getElementById('cfgKey').value;
+  localStorage.setItem('wulun_cloud_cfg', JSON.stringify({url:url,key:key,table:'gaokao_state'}));
+  cloudCfg = {url:url,key:key,table:'gaokao_state'};
+  document.body.removeChild(document.body.lastElementChild);
+  refreshAll();
+}
+
+// ---------- 启动 ----------
+(function(){
+  var saved = null;
+  try{ saved = JSON.parse(localStorage.getItem('wulun_cloud_cfg')||'null'); }catch(e){}
+  if(saved){ cloudCfg = Object.assign(clone(DEFAULT_CLOUD), saved); }
+  refreshAll();
+  refreshTimer = setInterval(refreshAll, REFRESH_MS);
+})();
+</script>
+</body>
+</html>
