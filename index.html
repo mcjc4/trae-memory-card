@@ -442,8 +442,8 @@ var PALETTES = {
 
 // 云端配置
 var DEFAULT_CLOUD = {
-  url:'https://vajgltnfpdjpnsoknoma.supabase.co',
-  key:'sb_publishable_WkudOiZ5UwD0VhwquRsUBA_LkBhSyoN',
+  url:'https://mixuqjognbdrafrrlivc.supabase.co',
+  key:'sb_publishable_D0ha7g4X4LutG-3hxCguSA_pwyQLrVX',
   table:'gaokao_state'
 };
 
@@ -738,7 +738,13 @@ function init(){
   fxCfg = smartMerge(clone(DEFAULT_FX), lsGet(K.fx, {}));
   ttsCfg = smartMerge(clone(DEFAULT_TTS), lsGet(K.tts, {}));
   focusCfg = smartMerge(clone(DEFAULT_FOCUS), lsGet(K.focus, {}));
-  cloudCfg = smartMerge(clone(DEFAULT_CLOUD), lsGet(K.cloud, {}));
+  /* 2026-09-04 账号迁移：旧库(vajgltnfpdjpnsoknoma)弃用，丢弃设备残留旧云配置回落新默认 */
+  var _cc = lsGet(K.cloud, {});
+  if(_cc && _cc.url && String(_cc.url).indexOf('vajgltnfpdjpnsoknoma') >= 0){
+    try{ localStorage.removeItem(K.cloud); }catch(e){}
+    _cc = {};
+  }
+  cloudCfg = smartMerge(clone(DEFAULT_CLOUD), _cc);
   // 关键安全网：确保推送配置必填字段不为空
   if(!pushCfg.token) pushCfg.token = DEFAULT_PUSH.token;
   if(!pushCfg.webhook) pushCfg.webhook = DEFAULT_PUSH.webhook;

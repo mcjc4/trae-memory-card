@@ -81,8 +81,8 @@ th{color:var(--mut);font-weight:600;font-size:11px}
 // ---------- 配置 ----------
 var PERSONS = { chenxinyan:'陈昕言', chenzihan:'陈梓涵' };
 var DEFAULT_CLOUD = {
-  url:'https://vajgltnfpdjpnsoknoma.supabase.co',
-  key:'sb_publishable_WkudOiZ5UwD0VhwquRsUBA_LkBhSyoN',
+  url:'https://mixuqjognbdrafrrlivc.supabase.co',
+  key:'sb_publishable_D0ha7g4X4LutG-3hxCguSA_pwyQLrVX',
   table:'gaokao_state'
 };
 var REFRESH_MS = 60000;   /* egress 优化：5s→60s（配合 updated_at 探针，仅云端有更新才全量下载） */
@@ -364,6 +364,11 @@ function saveCfg(){
 (function(){
   var saved = null;
   try{ saved = JSON.parse(localStorage.getItem('wulun_cloud_cfg')||'null'); }catch(e){}
+  /* 2026-09-04 账号迁移：旧库(vajgltnfpdjpnsoknoma)弃用，丢弃残留旧配置回落新默认 */
+  if(saved && saved.url && String(saved.url).indexOf('vajgltnfpdjpnsoknoma') >= 0){
+    try{ localStorage.removeItem('wulun_cloud_cfg'); }catch(e){}
+    saved = null;
+  }
   if(saved){ cloudCfg = Object.assign(clone(DEFAULT_CLOUD), saved); }
   refreshAll();
   refreshTimer = setInterval(refreshAll, REFRESH_MS);
