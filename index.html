@@ -1557,7 +1557,7 @@ function closeIdleModal(){ closeModal('idleModal'); resetIdle(); }
 function cloudDocId(){ return 'jikaka-'+curPerson; }
 function initCloud(){
   if(cloudTimer) clearInterval(cloudTimer);
-  cloudTimer = setInterval(function(){ cloudPull(); }, 20000);
+  cloudTimer = setInterval(function(){ cloudPull(); }, 60000);   /* egress 优化：20s→60s（配合 updated_at 探针，仅云端有更新才全量下载） */
 }
 function cloudPayload(){
   var p = curP();
@@ -1589,7 +1589,32 @@ function cloudPush(){
     }).then(function(r){ if(r.ok){ lsSet(K.cloudSync, nowTs()); updateCloudBadge('ok'); } }).catch(function(){ updateCloudBadge('err'); });
   }catch(e){ updateCloudBadge('err'); }
 }
-function cloudPull(){
+function cloudPull(force){
+  if(!force){
+    /* ⚡ egress 优化（2026-09-04）：先探针只查 updated_at（≈150B），云端不比本地新则跳过全量下载
+     * 原逻辑每 20s 无条件全量拉取 ~2MB 文档（select=*），单端即可烧数百 MB/小时 */
+    fetchCloudMeta().then(function(meta){
+      if(meta !== null){
+        var lt = lsGet(K.cloudSync, 0) || 0;
+        var localMs = lt ? new Date(lt).getTime() : 0;
+        if(!isNaN(localMs) && meta <= localMs) return;   /* 云端无更新 → 跳过全量 */
+      }
+      doCloudPull();   /* 云端有更新，或探针失败（网络异常）→ 降级全量保可用 */
+    }).catch(function(){ doCloudPull(); });
+    return;
+  }
+  doCloudPull();
+}
+/* 轻量探针：仅查云端 updated_at 时间戳 */
+function fetchCloudMeta(){
+  var url = cloudCfg.url + '/rest/v1/'+cloudCfg.table+'?id=eq.'+cloudDocId()+'&select=updated_at';
+  return fetch(url, { headers:{ 'apikey':cloudCfg.key, 'Authorization':'Bearer '+cloudCfg.key } })
+    .then(function(r){ return r.json(); })
+    .then(function(arr){ if(arr && arr.length && arr[0] && arr[0].updated_at) return new Date(arr[0].updated_at).getTime() || 0; return 0; })
+    .catch(function(){ return null; });
+}
+/* 全量拉取（仅在云端有更新 / 强制 / 探针失败时执行） */
+function doCloudPull(){
   try{
     var url = cloudCfg.url + '/rest/v1/'+cloudCfg.table+'?id=eq.'+cloudDocId()+'&select=*';
     fetch(url, { headers:{ 'apikey':cloudCfg.key, 'Authorization':'Bearer '+cloudCfg.key } })
@@ -1647,7 +1672,7 @@ function openSettings(){
     '<h3>⚙ 设置</h3>'+
     '<div class="setGroup"><h4>执行人</h4>'+persons+'</div>'+
     '<div class="setGroup"><h4>云端同步</h4><div style="font-size:12px;color:var(--mut);margin-bottom:8px">状态：<b id="cloudBadge">-</b> · 文档 '+cloudDocId()+'</div>'+
-      '<div style="display:flex;gap:8px"><button class="btn" onclick="cloudPull();toast(\'已拉取\')">⬇拉取</button><button class="btn p" onclick="cloudPush();toast(\'已推送\')">⬆推送</button><button class="btn d" onclick="cloudDisconnect()">断开</button></div></div>'+
+      '<div style="display:flex;gap:8px"><button class="btn" onclick="cloudPull(1);toast(\'已拉取\')">⬇拉取</button><button class="btn p" onclick="cloudPush();toast(\'已推送\')">⬆推送</button><button class="btn d" onclick="cloudDisconnect()">断开</button></div></div>'+
     '<div class="setGroup"><h4>📢 卡片朗读</h4>'+
       '<div class="row"><label>启用朗读</label><div class="toggle '+(ttsCfg.enabled?'on':'')+'" onclick="this.classList.toggle(\'on\');ttsCfg.enabled=this.classList.contains(\'on\')"></div></div>'+
       '<div class="row"><label>英语自动</label><div class="toggle '+(ttsCfg.enAuto?'on':'')+'" onclick="this.classList.toggle(\'on\');ttsCfg.enAuto=this.classList.contains(\'on\')"></div></div>'+

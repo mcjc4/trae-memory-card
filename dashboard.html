@@ -85,7 +85,7 @@ var DEFAULT_CLOUD = {
   key:'sb_publishable_WkudOiZ5UwD0VhwquRsUBA_LkBhSyoN',
   table:'gaokao_state'
 };
-var REFRESH_MS = 5000;
+var REFRESH_MS = 60000;   /* egress 优化：5s→60s（配合 updated_at 探针，仅云端有更新才全量下载） */
 
 // ---------- 状态 ----------
 var cloudCfg = clone(DEFAULT_CLOUD);
@@ -109,15 +109,41 @@ function fetchPerson(key){
     .then(function(arr){ return arr && arr.length ? arr[0] : null; })
     .catch(function(e){ console.error('fetchPerson fail', key, e); return null; });
 }
+/* ⚡ egress 优化（2026-09-04）：轻量探针，仅查云端 updated_at（≈150B），失败返回 null */
+function fetchMeta(key){
+  var url = cloudCfg.url + '/rest/v1/'+cloudCfg.table+'?id=eq.'+docId(key)+'&select=updated_at';
+  return fetch(url, { headers:{ 'apikey':cloudCfg.key, 'Authorization':'Bearer '+cloudCfg.key } })
+    .then(function(r){ return r.json(); })
+    .then(function(arr){ return arr && arr.length ? arr[0] : null; })
+    .catch(function(e){ console.error('fetchMeta fail', key, e); return null; });
+}
 
 function refreshAll(){
-  Promise.all(Object.keys(PERSONS).map(function(k){ return fetchPerson(k); }))
-    .then(function(results){
-      results.forEach(function(r,i){
-        if(r){ dataCache[Object.keys(PERSONS)[i]] = { data:r.data, updated_at:r.updated_at }; }
+  var keys = Object.keys(PERSONS);
+  /* 先并行查各文档时间戳（≈150B×N），仅全量拉取云端有更新的文档 */
+  Promise.all(keys.map(fetchMeta))
+    .then(function(metas){
+      var need = [];   /* 需要全量拉取的执行人 key */
+      keys.forEach(function(k, i){
+        var m = metas[i];
+        var up = 0;
+        if(m && m.updated_at) up = new Date(m.updated_at).getTime();
+        var cached = dataCache[k];
+        var prev = (cached && cached.updated_at) ? new Date(cached.updated_at).getTime() : 0;
+        var metaFail = !(m && m.updated_at);   /* 探针失败（断网/超时） */
+        if(up > prev || (metaFail && !cached)) need.push(k);   /* 无缓存且探针失败 → 全量兜底保可用 */
       });
-      render();
-    });
+      if(!need.length) { render(); return; }   /* 云端无更新：用本地缓存渲染 */
+      Promise.all(need.map(fetchPerson))
+        .then(function(results){
+          results.forEach(function(r, i){
+            if(r){ dataCache[need[i]] = { data:r.data, updated_at:r.updated_at }; }
+          });
+          render();
+        })
+        .catch(function(){ render(); });
+    })
+    .catch(function(){ render(); });   /* 极端异常也渲染本地缓存 */
 }
 
 // ---------- 渲染 ----------
@@ -211,7 +237,7 @@ function renderPerson(){
     '</div>'+
     '<div style="text-align:center;margin-top:10px">'+
       '<span class="refreshBtn" onclick="refreshAll()">手动刷新</span>'+
-      '<span style="color:var(--mut);font-size:11px;margin-left:10px">自动刷新：每 5 秒</span>'+
+      '<span style="color:var(--mut);font-size:11px;margin-left:10px">自动刷新：每 60 秒（有更新才拉取）</span>'+
     '</div>';
 }
 
