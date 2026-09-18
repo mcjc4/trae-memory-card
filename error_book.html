@@ -1024,7 +1024,7 @@ function openDetailModal(id) {
     <div class="modal-header">
       <span class="q-badge ${e.is_correct?'correct':(e.is_solved?'wrong':'unsolved')}">${e.problem_number}</span>
       <h3>${e.source}</h3>
-      ${hwUrl ? `<a href="${hwUrl}" target="_blank" class="btn btn-sm btn-outline" style="margin-left:12px;font-size:12px;text-decoration:none">📋 查看作业批改原文</a>` : ''}
+      ${hwUrl ? `<button class="btn btn-sm btn-outline" style="margin-left:12px;font-size:12px;cursor:pointer;white-space:nowrap" onclick="event.stopPropagation();window.open('${hwUrl}','_blank')">📋 查看作业批改原文</button>` : ''}
       <button class="modal-close" onclick="closeModal()">✕</button>
     </div>
     <div class="modal-body">
