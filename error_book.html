@@ -641,16 +641,25 @@ function seedData() {
 
 // ==================== Init ====================
 async function init() {
-  showView('dashboard');
-  const pulled = await cloudPull();
-  if (!pulled || state.errors.length === 0) {
+  try {
+    showView('dashboard');
+    const pulled = await cloudPull();
+    if (!pulled || state.errors.length === 0) {
+      state.errors = seedData();
+      await cloudPush();
+      showToast('已初始化14道错题数据');
+    }
+    state.loaded = true;
+    updateNavBadges();
+    render();
+  } catch(err) {
+    console.warn('Init error, falling back to seed data:', err);
     state.errors = seedData();
-    await cloudPush();
-    showToast('已初始化14道错题数据');
+    state.loaded = true;
+    updateNavBadges();
+    render();
+    showToast('云端连接失败，已加载本地数据');
   }
-  state.loaded = true;
-  updateNavBadges();
-  render();
 }
 
 // ==================== Navigation ====================
@@ -1399,8 +1408,8 @@ function generateTestPaper() {
 function generateTestPaperHTML(problems) {
   return `<!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8"><title>重组试卷</title>
-<script>MathJax={tex:{inlineMath:[['$','$']],displayMath:[['$$','$$']]}};</script>
-<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+<script>MathJax={tex:{inlineMath:[['$','$']],displayMath:[['$$','$$']]}};<\/script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"><\/script>
 <style>body{font-family:'Noto Sans SC',sans-serif;max-width:800px;margin:0 auto;padding:40px;line-height:1.8}
 h1{text-align:center;border-bottom:2px solid #333;padding-bottom:10px}
 .problem{margin:24px 0;padding:16px;border:1px solid #ddd;border-radius:8px}
