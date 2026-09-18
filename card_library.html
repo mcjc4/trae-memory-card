@@ -571,6 +571,7 @@ function startTraining(mode) {
   state.trainIdx = 0;
   state.trainRevealed = false;
   state.trainSession = { total: queue.length, correct: 0, ratings: [], mode };
+  saveTrainProgress();
   state.view = 'train-session';
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   if (window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
@@ -591,8 +592,54 @@ function rateAndNext(rating) {
     state.view = 'train-complete';
     updateNavBadges();
     saveTrainSession();
+    clearTrainProgress();
+  } else {
+    saveTrainProgress();
   }
   render();
+}
+
+// ==================== Training Progress Persistence ====================
+function saveTrainProgress() {
+  if (!state.trainQueue || state.trainQueue.length === 0) return;
+  const progress = {
+    cardIds: state.trainQueue.map(c => c.id),
+    idx: state.trainIdx,
+    mode: state.trainSession ? state.trainSession.mode : 'plan',
+    total: state.trainSession ? state.trainSession.total : state.trainQueue.length,
+    correct: state.trainSession ? state.trainSession.correct : 0,
+    ratings: state.trainSession ? state.trainSession.ratings : [],
+    savedAt: Date.now()
+  };
+  localStorage.setItem('train_progress', JSON.stringify(progress));
+}
+
+function clearTrainProgress() {
+  localStorage.removeItem('train_progress');
+}
+
+function hasTrainProgress() {
+  try {
+    const p = JSON.parse(localStorage.getItem('train_progress') || 'null');
+    return p && p.cardIds && p.idx < p.cardIds.length;
+  } catch(e) { return false; }
+}
+
+function resumeTrainProgress() {
+  try {
+    const p = JSON.parse(localStorage.getItem('train_progress') || 'null');
+    if (!p || !p.cardIds) { showToast('无保存的训练进度'); return; }
+    const cards = p.cardIds.map(id => state.cards.find(c => c.id === id)).filter(Boolean);
+    if (cards.length === 0) { showToast('队列中的卡片已不在库中'); clearTrainProgress(); return; }
+    state.trainQueue = cards;
+    state.trainIdx = p.idx || 0;
+    state.trainRevealed = false;
+    state.trainSession = { total: p.total || cards.length, correct: p.correct || 0, ratings: p.ratings || [], mode: p.mode || 'plan' };
+    state.view = 'train-session';
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    render();
+    showToast(`继续训练：第 ${state.trainIdx + 1}/${cards.length} 张`);
+  } catch(e) { showToast('恢复训练失败'); }
 }
 
 // ==================== Train Session History ====================
@@ -659,6 +706,11 @@ async function loadTrainSessions() {
 }
 
 function exitTraining() {
+  // Save progress if mid-training
+  if (state.trainQueue && state.trainQueue.length > 0 && state.trainIdx < state.trainQueue.length) {
+    saveTrainProgress();
+    showToast('训练进度已保存，可随时继续');
+  }
   state.trainQueue = [];
   state.trainIdx = 0;
   showView('train-dashboard');
@@ -701,6 +753,7 @@ function startTrainingFromCards() {
   state.trainIdx = 0;
   state.trainRevealed = false;
   state.trainSession = { total: queue.length, correct: 0, ratings: [], mode: 'plan' };
+  saveTrainProgress();
   state.view = 'train-session';
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   if (window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
@@ -794,6 +847,7 @@ function startTopicQueueTraining(queueId) {
   state.trainIdx = 0;
   state.trainRevealed = false;
   state.trainSession = { total: cards.length, correct: 0, ratings: [], mode: 'plan', topicName: q.name };
+  saveTrainProgress();
   state.view = 'train-session';
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   render();
@@ -908,14 +962,18 @@ function startQueueTraining() {
   if (queue.length === 0) { showToast('训练队列为空'); return; }
   const cards = queue.map(id => state.cards.find(c => c.id === id)).filter(Boolean);
   if (cards.length === 0) { showToast('队列中的卡片未找到，可能尚未入库'); return; }
+  // Clear the homework queue since we're starting training
+  localStorage.setItem('hw_train_queue', '[]');
+  // Save training progress
   state.trainQueue = cards;
   state.trainIdx = 0;
   state.trainRevealed = false;
   state.trainSession = { total: cards.length, correct: 0, ratings: [], mode: 'queue' };
+  saveTrainProgress();
   state.view = 'train-session';
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   render();
-  showToast(`开始训练：${cards.length}张卡片`);
+  showToast(`开始训练：${cards.length}张卡片（作业队列已清空）`);
 }
 
 async function renderTopicQueueSection() {
@@ -1123,6 +1181,23 @@ function renderTrainDashboard() {
 
   return `
     <div class="page-header"><div class="page-title">🏋️ 训练总览</div></div>
+    ${hasTrainProgress() ? (() => {
+      try {
+        const p = JSON.parse(localStorage.getItem('train_progress') || '{}');
+        const remaining = (p.cardIds||[]).length - (p.idx||0);
+        const modeLabel = { due:'今日复习', new:'学习新卡', random:'随机抽查', plan:'训练计划', queue:'队列训练' }[p.mode] || '训练';
+        return `<div style="background:linear-gradient(135deg,#667eea,#764ba2);color:white;border-radius:12px;padding:16px 20px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+          <div>
+            <div style="font-size:15px;font-weight:700">⏸️ ${modeLabel}进行中</div>
+            <div style="font-size:12px;opacity:0.9">第 ${p.idx + 1}/${p.cardIds.length} 张，剩余 ${remaining} 张${p.correct > 0 ? `，已答对 ${p.correct} 张` : ''}</div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-sm" style="background:white;color:var(--primary);border:none" onclick="resumeTrainProgress()">▶ 继续训练</button>
+            <button class="btn btn-sm" style="background:rgba(255,255,255,0.2);color:white;border:1px solid rgba(255,255,255,0.4)" onclick="clearTrainProgress();render()">放弃</button>
+          </div>
+        </div>`;
+      } catch(e) { return ''; }
+    })() : ''}
     <div class="stats-grid">
       <div class="stat-card" onclick="startTraining('due')"><div class="label">待复习</div><div class="value" style="color:var(--danger)">${due.length}</div><div class="sub">到期未练</div></div>
       <div class="stat-card" onclick="startTraining('new')"><div class="label">新卡待学</div><div class="value" style="color:var(--info)">${Math.min(newCards.length, SRS_NEW_PER_DAY)}</div><div class="sub">今日上限${SRS_NEW_PER_DAY}</div></div>

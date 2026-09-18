@@ -1975,8 +1975,11 @@ function updateQueueUI() {
 
 function startQueueTraining() {
   if (trainQueue.length === 0) { hwToast('训练队列为空'); return; }
-  // Save queue and redirect to card_library training records page
+  // Save queue for card_library to pick up, then clear local queue
   localStorage.setItem('hw_train_queue', JSON.stringify(trainQueue));
+  trainQueue = [];
+  updateQueueUI();
+  // Redirect to card_library training records page
   window.location.href = 'card_library.html?view=train-history';
 }
 
