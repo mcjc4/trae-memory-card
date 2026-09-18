@@ -1085,6 +1085,25 @@ document.getElementById('modal-overlay').addEventListener('click', (e) => {
   await init();
   await pullErrorBookCards();
   updateNavBadges();
+  // Check for train=queue param from homework page
+  const params = new URLSearchParams(location.search);
+  if (params.get('train') === 'queue') {
+    const queue = JSON.parse(localStorage.getItem('hw_train_queue') || '[]');
+    if (queue.length > 0) {
+      const cards = queue.map(id => state.cards.find(c => c.id === id)).filter(Boolean);
+      if (cards.length > 0) {
+        state.trainQueue = cards;
+        state.trainIdx = 0;
+        state.trainRevealed = false;
+        state.trainSession = { total: cards.length, correct: 0, ratings: [], mode: 'queue' };
+        state.view = 'train-session';
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        render();
+        return;
+      }
+    }
+    showToast('训练队列中的卡片未找到，可能尚未入库');
+  }
   render();
 })();
 </script>

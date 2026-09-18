@@ -1570,10 +1570,50 @@ main { max-width: 1600px; margin: 0 auto; padding: 24px 16px 60px; }
 .new-card-suggest .nc-link { font-size: 11px; color: #3b82f6; }
 
 .matched-card-actions { display:inline-flex; gap:4px; margin-left:6px; }
+.btn-queued { background: #dbeafe !important; color: #1e40af !important; border: 1px solid #3b82f6 !important; }
+
+/* Floating train queue */
+.train-queue-fab {
+  position: fixed; bottom: 20px; right: 20px; z-index: 9998;
+  display: flex; flex-direction: column; gap: 8px; align-items: flex-end;
+}
+.train-queue-btn {
+  display: flex; align-items: center; gap: 8px;
+  padding: 12px 20px; border: none; border-radius: 24px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white;
+  font-size: 14px; font-weight: 600; cursor: pointer;
+  box-shadow: 0 4px 20px rgba(99,102,241,0.4); transition: all 0.2s;
+}
+.train-queue-btn:hover { transform: scale(1.05); box-shadow: 0 6px 28px rgba(99,102,241,0.5); }
+.train-queue-btn .queue-count {
+  background: white; color: #6366f1; padding: 2px 10px; border-radius: 12px; font-weight: 700; min-width: 24px; text-align: center;
+}
+.train-queue-panel {
+  display: none; flex-direction: column; gap: 0;
+  background: white; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+  width: 360px; max-height: 480px; overflow: hidden;
+  border: 1px solid #e2e8f0;
+}
+.train-queue-panel.show { display: flex; }
+.tq-header { padding: 14px 18px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; }
+.tq-header h3 { font-size: 15px; font-weight: 700; }
+.tq-close { width: 28px; height: 28px; border: none; border-radius: 6px; background: #f1f5f9; cursor: pointer; font-size: 14px; }
+.tq-list { flex: 1; overflow-y: auto; max-height: 320px; }
+.tq-empty { padding: 40px 20px; text-align: center; color: #94a3b8; font-size: 13px; }
+.tq-item { display: flex; align-items: center; gap: 8px; padding: 8px 14px; border-bottom: 1px solid #f1f5f9; font-size: 12px; }
+.tq-item .tq-id { font-family: monospace; font-weight: 700; color: #4338ca; min-width: 80px; }
+.tq-item .tq-ch { flex: 1; color: #64748b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tq-item .tq-remove { width: 24px; height: 24px; border: none; border-radius: 4px; background: #fee2e2; color: #ef4444; cursor: pointer; font-size: 12px; }
+.tq-footer { padding: 12px 18px; border-top: 1px solid #e2e8f0; display: flex; gap: 8px; }
+.tq-footer .btn { flex: 1; padding: 10px; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; }
+.tq-start { background: #6366f1; color: white; }
+.tq-start:hover { background: #4f46e5; }
+.tq-clear { background: #f1f5f9; color: #64748b; }
+.tq-clear:hover { background: #e2e8f0; }
 
 /* Toast */
 .hw-toast {
-  position: fixed; bottom: 20px; right: 20px; background: #1e293b; color: white;
+  position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #1e293b; color: white;
   padding: 12px 20px; border-radius: 8px; font-size: 14px; z-index: 9999;
   opacity: 0; transition: opacity 0.3s; pointer-events: none;
 }
@@ -1581,6 +1621,24 @@ main { max-width: 1600px; margin: 0 auto; padding: 24px 16px 60px; }
 </style>
 
 <div class="hw-toast" id="hw-toast"></div>
+
+<!-- Floating Train Queue -->
+<div class="train-queue-fab" id="tq-fab">
+  <div class="train-queue-panel" id="tq-panel">
+    <div class="tq-header">
+      <h3>🏋️ 训练队列</h3>
+      <button class="tq-close" onclick="toggleQueuePanel()">✕</button>
+    </div>
+    <div class="tq-list" id="tq-list"></div>
+    <div class="tq-footer">
+      <button class="tq-clear" onclick="clearQueue()">清空</button>
+      <button class="tq-start" onclick="startQueueTraining()">开始训练</button>
+    </div>
+  </div>
+  <button class="train-queue-btn" onclick="toggleQueuePanel()">
+    🏋️ 训练队列 <span class="queue-count" id="tq-count">0</span>
+  </button>
+</div>
 
 <script>
 // ==================== Config ====================
@@ -1699,14 +1757,19 @@ function injectNewCardSuggestions() {
     const cardLink = HW_PAGE_URL + '#' + qid;
     const isAdded = existingCardIds.has(cardId);
 
-    // Add "再训练" buttons to matched cards
+    // Add "加入训练" buttons to matched cards
     const colIds = section.querySelectorAll('.col-id');
     colIds.forEach(cell => {
       const cardIdText = cell.textContent.trim();
       if (cell.querySelector('.matched-card-actions')) return;
       const actions = document.createElement('span');
       actions.className = 'matched-card-actions';
-      actions.innerHTML = `<a class="btn-train" href="card_library.html" onclick="event.stopPropagation()" title="去记忆卡库训练">🏋️ 再训练</a>`;
+      const btn = document.createElement('button');
+      btn.className = 'btn-train';
+      btn.dataset.cardId = cardIdText;
+      btn.onclick = function(e) { e.stopPropagation(); toggleTrainQueue(cardIdText, this); };
+      btn.innerHTML = '🏋️ 加入训练';
+      actions.appendChild(btn);
       cell.appendChild(actions);
     });
 
@@ -1785,8 +1848,104 @@ async function addCard(cardId) {
   }
 }
 
+// ==================== Train Queue ====================
+let trainQueue = [];
+const QUEUE_KEY = 'hw_train_queue';
+
+function loadQueue() {
+  try {
+    const saved = localStorage.getItem(QUEUE_KEY);
+    if (saved) trainQueue = JSON.parse(saved);
+  } catch(e) { trainQueue = []; }
+}
+
+function saveQueue() {
+  localStorage.setItem(QUEUE_KEY, JSON.stringify(trainQueue));
+}
+
+function toggleTrainQueue(cardId, btn) {
+  const idx = trainQueue.indexOf(cardId);
+  if (idx >= 0) {
+    trainQueue.splice(idx, 1);
+    btn.classList.remove('btn-queued');
+    btn.innerHTML = '🏋️ 加入训练';
+    hwToast(`已从训练队列移除 ${cardId}`);
+  } else {
+    trainQueue.push(cardId);
+    btn.classList.add('btn-queued');
+    btn.innerHTML = '✅ 已加入队列';
+    hwToast(`已加入训练队列：${cardId}（共${trainQueue.length}张）`);
+  }
+  saveQueue();
+  updateQueueUI();
+}
+
+function removeFromQueue(cardId) {
+  trainQueue = trainQueue.filter(id => id !== cardId);
+  saveQueue();
+  updateQueueUI();
+  // Reset button state
+  const btn = document.querySelector(`[data-card-id="${cardId}"]`);
+  if (btn) { btn.classList.remove('btn-queued'); btn.innerHTML = '🏋️ 加入训练'; }
+}
+
+function clearQueue() {
+  trainQueue.forEach(id => {
+    const btn = document.querySelector(`[data-card-id="${id}"]`);
+    if (btn) { btn.classList.remove('btn-queued'); btn.innerHTML = '🏋️ 加入训练'; }
+  });
+  trainQueue = [];
+  saveQueue();
+  updateQueueUI();
+  hwToast('训练队列已清空');
+}
+
+function toggleQueuePanel() {
+  document.getElementById('tq-panel').classList.toggle('show');
+}
+
+function updateQueueUI() {
+  document.getElementById('tq-count').textContent = trainQueue.length;
+  const listEl = document.getElementById('tq-list');
+  if (trainQueue.length === 0) {
+    listEl.innerHTML = '<div class="tq-empty">队列为空，点击卡片旁的"加入训练"按钮添加</div>';
+    return;
+  }
+  // Get chapter info from the page's card table
+  listEl.innerHTML = trainQueue.map(id => {
+    let chapter = '';
+    const cell = document.querySelector(`.col-id`);
+    // Try to find the row containing this card ID
+    document.querySelectorAll('section.problem-card').forEach(sec => {
+      const idCells = sec.querySelectorAll('.col-id');
+      idCells.forEach(c => {
+        if (c.textContent.trim().startsWith(id)) {
+          const row = c.closest('tr');
+          if (row) {
+            const matchCell = row.querySelector('.col-match');
+            chapter = (sec.querySelector('.p-statement .label')?.textContent || '').substring(0, 30);
+          }
+        }
+      });
+    });
+    return `<div class="tq-item">
+      <span class="tq-id">${id}</span>
+      <span class="tq-ch">${chapter || '记忆卡'}</span>
+      <button class="tq-remove" onclick="removeFromQueue('${id}')">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function startQueueTraining() {
+  if (trainQueue.length === 0) { hwToast('训练队列为空'); return; }
+  // Save queue and redirect to card_library with train param
+  localStorage.setItem('hw_train_queue', JSON.stringify(trainQueue));
+  window.location.href = 'card_library.html?train=queue';
+}
+
 // ==================== Init ====================
 loadExistingCards();
+loadQueue();
 if (typeof MathJax !== 'undefined') {
   // Wait for MathJax then inject
   const checkReady = setInterval(() => {
@@ -1794,6 +1953,12 @@ if (typeof MathJax !== 'undefined') {
       clearInterval(checkReady);
       injectNewCardSuggestions();
       MathJax.typesetPromise();
+      // Restore queue button states
+      trainQueue.forEach(id => {
+        const btn = document.querySelector(`[data-card-id="${id}"]`);
+        if (btn) { btn.classList.add('btn-queued'); btn.innerHTML = '✅ 已加入队列'; }
+      });
+      updateQueueUI();
     }
   }, 300);
 } else {
