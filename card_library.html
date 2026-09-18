@@ -28,6 +28,13 @@
   --border: #e2e8f0;
   --sidebar-w: 260px;
   --radius: 12px;
+  /* Subject colors */
+  --subj-math: #3b82f6;
+  --subj-math-light: #dbeafe;
+  --subj-physics: #8b5cf6;
+  --subj-physics-light: #ede9fe;
+  --subj-chem: #10b981;
+  --subj-chem-light: #d1fae5;
 }
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); }
@@ -80,6 +87,56 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .stat-card .label { font-size: 12px; color: var(--text-light); margin-bottom: 8px; }
 .stat-card .value { font-size: 32px; font-weight: 700; }
 .stat-card .sub { font-size: 12px; color: var(--text-lighter); margin-top: 4px; }
+
+/* Subject hero cards */
+.subject-hero {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 28px;
+}
+.subject-card {
+  background: var(--bg-card); border-radius: 16px; padding: 24px;
+  border: 1px solid var(--border); position: relative; overflow: hidden;
+  cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
+}
+.subject-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
+.subject-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+}
+.subject-card.math::before { background: var(--subj-math); }
+.subject-card.physics::before { background: var(--subj-physics); }
+.subject-card.chem::before { background: var(--subj-chem); }
+.subject-card .sc-icon {
+  width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center;
+  font-size: 24px; margin-bottom: 16px;
+}
+.subject-card.math .sc-icon { background: var(--subj-math-light); }
+.subject-card.physics .sc-icon { background: var(--subj-physics-light); }
+.subject-card.chem .sc-icon { background: var(--subj-chem-light); }
+.subject-card .sc-name { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+.subject-card .sc-count { font-size: 13px; color: var(--text-light); margin-bottom: 16px; }
+.subject-card .sc-mastery { margin-bottom: 8px; }
+.subject-card .sc-mastery-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-light); margin-bottom: 6px; }
+.subject-card .sc-mastery-label .sc-pct { font-weight: 700; color: var(--text); }
+.subject-card .sc-bar-bg { height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
+.subject-card .sc-bar-fg { height: 100%; border-radius: 4px; transition: width 0.6s; }
+.subject-card.math .sc-bar-fg { background: linear-gradient(90deg, var(--subj-math), #60a5fa); }
+.subject-card.physics .sc-bar-fg { background: linear-gradient(90deg, var(--subj-physics), #a78bfa); }
+.subject-card.chem .sc-bar-fg { background: linear-gradient(90deg, var(--subj-chem), #34d399); }
+.subject-card .sc-stats { display: flex; gap: 16px; margin-top: 14px; font-size: 12px; }
+.subject-card .sc-stat { flex: 1; }
+.subject-card .sc-stat-val { font-weight: 700; font-size: 16px; }
+.subject-card.math .sc-stat-val { color: var(--subj-math); }
+.subject-card.physics .sc-stat-val { color: var(--subj-physics); }
+.subject-card.chem .sc-stat-val { color: var(--subj-chem); }
+.subject-card .sc-stat-label { color: var(--text-lighter); font-size: 11px; }
+
+/* Subject badge on cards */
+.card-subj-badge {
+  display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 600;
+  margin-right: 6px;
+}
+.card-subj-badge.math { background: var(--subj-math-light); color: var(--subj-math); }
+.card-subj-badge.physics { background: var(--subj-physics-light); color: var(--subj-physics); }
+.card-subj-badge.chem { background: var(--subj-chem-light); color: var(--subj-chem); }
 
 /* Chapter distribution */
 .chapter-list { background: var(--bg-card); border-radius: var(--radius); padding: 20px; border: 1px solid var(--border); margin-bottom: 24px; }
@@ -181,6 +238,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
   .stats-grid { grid-template-columns: repeat(2, 1fr); }
   .search-bar { flex-direction: column; }
   .search-bar input, .search-bar select { width: 100%; }
+  .subject-hero { grid-template-columns: 1fr; gap: 12px; }
+  .subject-card { padding: 16px; }
 }
 </style>
 </head>
@@ -287,6 +346,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     <h1>🧠 记忆卡库</h1>
     <p>信号 → 结论 记忆系统</p>
   </div>
+  <div class="nav-section-title">学科</div>
+  <div class="nav-item" data-view="grid" data-subject="数学" onclick="filterBySubject('数学')">🔢 数学 <span class="badge" id="nav-math">0</span></div>
+  <div class="nav-item" data-view="grid" data-subject="物理" onclick="filterBySubject('物理')">⚛️ 物理 <span class="badge" id="nav-physics">0</span></div>
+  <div class="nav-item" data-view="grid" data-subject="化学" onclick="filterBySubject('化学')">🧪 化学 <span class="badge" id="nav-chem">0</span></div>
   <div class="nav-section-title">导航</div>
   <div class="nav-item active" data-view="dashboard" onclick="showView('dashboard')">📊 仪表盘</div>
   <div class="nav-item" data-view="grid" onclick="showView('grid')">📋 全部卡片 <span class="badge" id="nav-total">0</span></div>
@@ -331,7 +394,7 @@ const ROW_PREFIX = 'card-lib-';
 let state = {
   cards: [],
   view: 'dashboard',
-  filter: { search: '', chapter: '', source: '' },
+  filter: { search: '', chapter: '', source: '', subject: '' },
   loaded: false,
   srs: {},          // cardId -> { level, nextReview, lastReview, reviewCount, history:[] }
   trainQueue: [],   // current training session cards
@@ -881,6 +944,13 @@ function updateNavBadges() {
   const hwCount = state.cards.filter(c => (c.source||'').includes('作业')).length;
   const hwEl = document.getElementById('nav-hw');
   if (hwEl) hwEl.textContent = hwCount;
+  // Subject badges
+  const mathEl = document.getElementById('nav-math');
+  const phyEl = document.getElementById('nav-physics');
+  const chemEl = document.getElementById('nav-chem');
+  if (mathEl) mathEl.textContent = state.cards.filter(c => c.subject === '数学').length;
+  if (phyEl) phyEl.textContent = state.cards.filter(c => c.subject === '物理').length;
+  if (chemEl) chemEl.textContent = state.cards.filter(c => c.subject === '化学').length;
 }
 
 // ==================== MathJax ====================
@@ -1335,6 +1405,27 @@ function renderDashboard() {
   const total = state.cards.length;
   const excelCount = state.cards.filter(c => c.origin === 'excel').length;
   const errorCount = state.cards.filter(c => c.origin === 'error').length;
+
+  // Subject stats
+  const subjects = ['数学', '物理', '化学'];
+  const subjIcons = { '数学': '🔢', '物理': '⚛️', '化学': '🧪' };
+  const subjClass = { '数学': 'math', '物理': 'physics', '化学': 'chem' };
+  const subjStats = {};
+  subjects.forEach(s => {
+    const subjCards = state.cards.filter(c => c.subject === s);
+    const mastered = subjCards.filter(c => {
+      const srs = state.srs[c.id];
+      return srs && srs.level >= 6;
+    }).length;
+    const learning = subjCards.filter(c => {
+      const srs = state.srs[c.id];
+      return srs && srs.level >= 1 && srs.level < 6;
+    }).length;
+    const totalS = subjCards.length;
+    const pct = totalS > 0 ? (mastered / totalS * 100).toFixed(1) : 0;
+    subjStats[s] = { total: totalS, mastered, learning, pct };
+  });
+
   const chapters = {};
   state.cards.forEach(c => {
     const ch = (c.chapter || '').split('·')[0] || '未分类';
@@ -1345,9 +1436,39 @@ function renderDashboard() {
 
   return `
     <div class="page-header"><div class="page-title">📊 仪表盘</div></div>
+    <div class="subject-hero">
+      ${subjects.map(s => `
+        <div class="subject-card ${subjClass[s]}" onclick="filterBySubject('${s}')">
+          <div class="sc-icon">${subjIcons[s]}</div>
+          <div class="sc-name">${s}</div>
+          <div class="sc-count">${subjStats[s].total} 张卡片</div>
+          <div class="sc-mastery">
+            <div class="sc-mastery-label">
+              <span>熟练占比</span>
+              <span class="sc-pct">${subjStats[s].pct}%</span>
+            </div>
+            <div class="sc-bar-bg"><div class="sc-bar-fg" style="width:${subjStats[s].pct}%"></div></div>
+          </div>
+          <div class="sc-stats">
+            <div class="sc-stat">
+              <div class="sc-stat-val">${subjStats[s].mastered}</div>
+              <div class="sc-stat-label">已掌握 (L6+)</div>
+            </div>
+            <div class="sc-stat">
+              <div class="sc-stat-val">${subjStats[s].learning}</div>
+              <div class="sc-stat-label">学习中</div>
+            </div>
+            <div class="sc-stat">
+              <div class="sc-stat-val">${subjStats[s].total - subjStats[s].mastered - subjStats[s].learning}</div>
+              <div class="sc-stat-label">未学</div>
+            </div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
     <div class="stats-grid">
       <div class="stat-card" onclick="showView('grid')"><div class="label">总卡片数</div><div class="value">${total}</div><div class="sub">全部记忆卡</div></div>
-      <div class="stat-card" onclick="showView('excel')"><div class="label">Excel导入</div><div class="value" style="color:var(--info)">${excelCount}</div><div class="sub">数一轮复习</div></div>
+      <div class="stat-card" onclick="showView('excel')"><div class="label">Excel导入</div><div class="value" style="color:var(--info)">${excelCount}</div><div class="sub">一轮复习</div></div>
       <div class="stat-card" onclick="showView('error')"><div class="label">错题生成</div><div class="value" style="color:var(--secondary)">${errorCount}</div><div class="sub">来自错题本</div></div>
       <div class="stat-card" onclick="showView('linked')"><div class="label">已关联错题</div><div class="value" style="color:var(--success)">${state.cards.filter(c=>c.source_err_id).length}</div><div class="sub">可回溯</div></div>
       <div class="stat-card"><div class="label">章节数</div><div class="value" style="color:var(--warning)">${Object.keys(chapters).length}</div><div class="sub">知识点覆盖</div></div>
@@ -1375,7 +1496,8 @@ function renderGrid() {
   else if (state.view === 'linked') cards = cards.filter(c => c.source_err_id);
 
   // Apply filters
-  const { search, chapter, source } = state.filter;
+  const { search, chapter, source, subject } = state.filter;
+  if (subject) cards = cards.filter(c => c.subject === subject);
   if (search) {
     const q = search.toLowerCase();
     cards = cards.filter(c =>
@@ -1390,15 +1512,19 @@ function renderGrid() {
   if (chapter) cards = cards.filter(c => (c.chapter||'').includes(chapter));
   if (source) cards = cards.filter(c => (c.source||'').includes(source));
 
-  // Chapters for filter dropdown
-  const chapters = [...new Set(state.cards.map(c => (c.chapter||'').split('·')[0]).filter(Boolean))].sort();
+  // Chapters for filter dropdown - filter by subject if set
+  let filteredForChapters = state.cards;
+  if (subject) filteredForChapters = filteredForChapters.filter(c => c.subject === subject);
+  const chapters = [...new Set(filteredForChapters.map(c => (c.chapter||'').split('·')[0]).filter(Boolean))].sort();
   const sources = [...new Set(state.cards.map(c => c.source).filter(Boolean))].sort().slice(0, 20);
+  const subjects = [...new Set(state.cards.map(c => c.subject).filter(Boolean))].sort();
 
   const viewTitle = { dashboard:'仪表盘', grid:'全部卡片', excel:'Excel导入卡', error:'错题生成卡', homework:'作业卡片', linked:'已关联错题' }[state.view] || '卡片';
+  const displayTitle = subject ? `${subject} · ${viewTitle}` : viewTitle;
 
   return `
     <div class="page-header">
-      <div class="page-title">${viewTitle}（${cards.length}）</div>
+      <div class="page-title">${displayTitle}（${cards.length}）</div>
       <div style="display:flex;gap:8px">
         ${cards.length > 0 ? `<button class="btn btn-success" onclick="startTrainingFromCards()">🎯 生成训练计划</button>` : ''}
         <button class="btn btn-primary" onclick="openAddModal()">➕ 新建记忆卡</button>
@@ -1406,6 +1532,10 @@ function renderGrid() {
     </div>
     <div class="search-bar">
       <input type="text" placeholder="搜索编号/章节/信号/结论/题干..." value="${search}" oninput="onFilter('search', this.value)">
+      <select onchange="onFilter('subject', this.value)">
+        <option value="">全部学科</option>
+        ${subjects.map(s => `<option value="${s}" ${subject===s?'selected':''}>${s}</option>`).join('')}
+      </select>
       <select onchange="onFilter('chapter', this.value)">
         <option value="">全部章节</option>
         ${chapters.map(ch => `<option value="${ch}" ${chapter===ch?'selected':''}>${ch}</option>`).join('')}
@@ -1426,10 +1556,13 @@ function renderCard(c) {
   const isFromError = c.origin === 'error';
   const linkedHtml = c.source_err_id ?
     `<span class="tag tag-link">🔗 错题 ${c.source_err_qnum||''}</span>` : '';
+  const subjClassMap = { '数学': 'math', '物理': 'physics', '化学': 'chem' };
+  const subjClass = subjClassMap[c.subject] || '';
   return `
     <div class="card-item ${isFromError?'from-error':''}" onclick="openDetailModal('${c.id}')">
       <div class="card-top">
         <span class="card-id">${c.id}</span>
+        ${c.subject ? `<span class="card-subj-badge ${subjClass}">${c.subject}</span>` : ''}
         <span class="tag ${isFromError?'tag-error':'tag-excel'}">${isFromError?'错题生成':'Excel'}</span>
         ${linkedHtml}
         <span class="card-source">${(c.source||'').substring(0,20)}</span>
@@ -1445,6 +1578,20 @@ function renderCard(c) {
   `;
 }
 
+function filterBySubject(subject) {
+  state.view = 'grid';
+  state.filter.subject = subject;
+  state.filter.search = '';
+  state.filter.chapter = '';
+  state.filter.source = '';
+  // Update sidebar active state
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-item[data-subject]').forEach(el => {
+    if (el.dataset.subject === subject) el.classList.add('active');
+  });
+  render();
+}
+
 function onFilter(key, val) {
   state.filter[key] = val;
   render();
@@ -1457,15 +1604,19 @@ function openDetailModal(id) {
   const c = state.cards.find(x => x.id === id);
   if (!c) return;
   const isFromError = c.origin === 'error';
+  const subjClassMap = { '数学': 'math', '物理': 'physics', '化学': 'chem' };
+  const subjClass = subjClassMap[c.subject] || '';
   const modal = document.getElementById('modal');
   modal.innerHTML = `
     <div class="modal-header">
       <span class="card-id">${c.id}</span>
+      ${c.subject ? `<span class="card-subj-badge ${subjClass}">${c.subject}</span>` : ''}
       <span class="tag ${isFromError?'tag-error':'tag-excel'}">${isFromError?'错题生成':'Excel导入'}</span>
       <h3>${c.chapter||''}</h3>
       <button class="modal-close" onclick="closeModal()">✕</button>
     </div>
     <div class="modal-body">
+      <div class="detail-section"><h4>科目</h4><div class="content">${c.subject||'-'}</div></div>
       <div class="detail-section"><h4>章节知识点</h4><div class="content">${c.chapter||'-'}</div></div>
       <div class="detail-section"><h4>原题题干</h4><div class="content">${c.problem||'-'}</div></div>
       <div class="detail-section"><h4>题干信号（看到…）</h4><div class="content bg-info">${c.signal||'-'}</div></div>
