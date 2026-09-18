@@ -1668,12 +1668,13 @@ main { max-width: 1600px; margin: 0 auto; padding: 24px 16px 60px; }
     <div class="tq-list" id="tq-list"></div>
     <div class="tq-footer">
       <button class="tq-clear" onclick="clearQueue()">清空</button>
-      <button class="tq-start" onclick="startQueueTraining()">开始训练</button>
+      <button class="tq-start" onclick="startQueueTraining()">去记忆库训练 →</button>
     </div>
   </div>
   <button class="train-queue-btn" onclick="toggleQueuePanel()">
     🏋️ 训练队列 <span class="queue-count" id="tq-count">0</span>
   </button>
+  <a href="card_library.html?view=train-history" style="font-size:11px;color:rgba(255,255,255,0.6);text-decoration:none;text-align:center">📜 查看训练记录</a>
 </div>
 
 <script>
@@ -1974,9 +1975,9 @@ function updateQueueUI() {
 
 function startQueueTraining() {
   if (trainQueue.length === 0) { hwToast('训练队列为空'); return; }
-  // Save queue and redirect to card_library with train param
+  // Save queue and redirect to card_library training records page
   localStorage.setItem('hw_train_queue', JSON.stringify(trainQueue));
-  window.location.href = 'card_library.html?train=queue';
+  window.location.href = 'card_library.html?view=train-history';
 }
 
 // ==================== Image Replace ====================

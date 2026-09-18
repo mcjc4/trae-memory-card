@@ -761,12 +761,74 @@ async function loadAndRenderHistory() {
   typesetMath();
 }
 
+function renderTrainQueueSection() {
+  const queue = JSON.parse(localStorage.getItem('hw_train_queue') || '[]');
+  if (queue.length === 0) {
+    return `<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:20px">
+      <h3 style="font-size:14px;margin-bottom:8px">🏋️ 训练队列</h3>
+      <p style="font-size:13px;color:var(--text-light)">队列为空。在<a href="homework_analysis.html" style="color:var(--primary)">作业批改页面</a>点击卡片旁的"加入训练"按钮，卡片会出现在这里。</p>
+    </div>`;
+  }
+  const queueCards = queue.map(id => state.cards.find(c => c.id === id)).filter(Boolean);
+  return `<div style="background:var(--bg-card);border:2px solid var(--primary);border-radius:10px;padding:16px;margin-bottom:20px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <h3 style="font-size:14px">🏋️ 训练队列（${queue.length}张）</h3>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-sm btn-outline" onclick="clearTrainQueue()">清空</button>
+        <button class="btn btn-sm btn-primary" onclick="startQueueTraining()">开始训练</button>
+      </div>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px">
+      ${queue.map(id => {
+        const card = state.cards.find(c => c.id === id);
+        const ch = card ? (card.chapter||'').substring(0,15) : '未找到';
+        return `<span style="display:inline-flex;align-items:center;gap:4px;background:var(--primary-light);color:var(--primary-dark);padding:4px 10px;border-radius:6px;font-size:11px">
+          <span style="font-family:monospace;font-weight:700">${id}</span>
+          <span style="color:var(--text-light)">${ch}</span>
+          <button onclick="removeFromTrainQueue('${id}')" style="border:none;background:transparent;color:var(--danger);cursor:pointer;font-size:14px;padding:0 2px">✕</button>
+        </span>`;
+      }).join('')}
+    </div>
+    <p style="font-size:11px;color:var(--text-lighter);margin-top:8px">来自作业批改页面的命中卡片，点击"开始训练"进入闪卡训练</p>
+  </div>`;
+}
+
+function removeFromTrainQueue(cardId) {
+  let queue = JSON.parse(localStorage.getItem('hw_train_queue') || '[]');
+  queue = queue.filter(id => id !== cardId);
+  localStorage.setItem('hw_train_queue', JSON.stringify(queue));
+  loadAndRenderHistory();
+  showToast(`已移除 ${cardId}`);
+}
+
+function clearTrainQueue() {
+  localStorage.setItem('hw_train_queue', '[]');
+  loadAndRenderHistory();
+  showToast('训练队列已清空');
+}
+
+function startQueueTraining() {
+  const queue = JSON.parse(localStorage.getItem('hw_train_queue') || '[]');
+  if (queue.length === 0) { showToast('训练队列为空'); return; }
+  const cards = queue.map(id => state.cards.find(c => c.id === id)).filter(Boolean);
+  if (cards.length === 0) { showToast('队列中的卡片未找到，可能尚未入库'); return; }
+  state.trainQueue = cards;
+  state.trainIdx = 0;
+  state.trainRevealed = false;
+  state.trainSession = { total: cards.length, correct: 0, ratings: [], mode: 'queue' };
+  state.view = 'train-session';
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  render();
+  showToast(`开始训练：${cards.length}张卡片`);
+}
+
 function renderTrainHistory(sessions) {
   const navEl = document.getElementById('nav-sessions');
   if (navEl) navEl.textContent = sessions.length;
 
   if (sessions.length === 0) {
     return `<div class="page-header"><div class="page-title">📜 训练记录</div></div>
+      ${renderTrainQueueSection()}
       <div class="train-empty"><h2>暂无训练记录</h2><p>完成一次训练后，记录会自动出现在这里</p>
       <button class="btn btn-primary" onclick="startTraining('random')">🎲 开始随机抽查</button></div>`;
   }
@@ -799,6 +861,7 @@ function renderTrainHistory(sessions) {
       <button class="btn btn-outline" onclick="startTraining('random')">🎲 随机抽查</button>
       <button class="btn btn-outline" onclick="startTraining('new')">🆕 学习新卡</button>
     </div>
+    ${renderTrainQueueSection()}
     ${Object.entries(byDate).map(([date, daySessions]) => `
       <div style="margin-bottom:20px">
         <h3 style="font-size:14px;color:var(--text-light);margin-bottom:8px;padding-left:4px">📅 ${date}（${daySessions.length}次）</h3>
@@ -1346,8 +1409,12 @@ document.getElementById('modal-overlay').addEventListener('click', (e) => {
   await init();
   await pullErrorBookCards();
   updateNavBadges();
-  // Check for train=queue param from homework page
+  // Check for URL params from homework page
   const params = new URLSearchParams(location.search);
+  if (params.get('view') === 'train-history') {
+    showView('train-history');
+    return;
+  }
   if (params.get('train') === 'queue') {
     const queue = JSON.parse(localStorage.getItem('hw_train_queue') || '[]');
     if (queue.length > 0) {
