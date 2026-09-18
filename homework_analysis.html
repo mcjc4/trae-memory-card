@@ -11,6 +11,7 @@
   };
 </script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+<script src="cards_data.js"></script>
 <style>
 :root {
   --primary: #2563eb;
@@ -2223,29 +2224,302 @@ function compressImage(dataUrl, maxSize, quality) {
   });
 }
 
+// ==================== Auto Match Engine ====================
+let allCards = []; // combined card pool
+
+async function loadAllCards() {
+  // Static cards from cards_data.js
+  const staticCards = (typeof CARDS_DATA !== 'undefined') ? CARDS_DATA : [];
+  // Dynamic cards from Supabase
+  let dynamicCards = [];
+  try {
+    const res = await fetch(`${HW_SUPABASE_URL}/rest/v1/${HW_TABLE}?id=like.${HW_ROW_PREFIX}*&select=data`, {
+      headers: { 'apikey': HW_SUPABASE_KEY, 'Authorization': `Bearer ${HW_SUPABASE_KEY}` }
+    });
+    const rows = await res.json();
+    dynamicCards = rows.map(r => r.data).filter(d => d && d.id && !d.id.startsWith('hw-img') && !d.id.startsWith('train-session') && !d.id.startsWith('topic-queue'));
+  } catch(e) { console.warn('loadAllCards cloud error:', e); }
+  allCards = [...staticCards, ...dynamicCards];
+  return allCards;
+}
+
+// Topic keyword dictionary for matching
+const TOPIC_KEYWORDS = {
+  '奇函数': ['奇函数', 'f(-x)=-f(x)', 'f(-x) = -f(x)', '奇偶性', '关于原点对称', '奇函数f'],
+  '偶函数': ['偶函数', 'f(-x)=f(x)', 'f(-x) = f(x)', '关于y轴对称', '偶函数f'],
+  '单调性': ['单调递增', '单调递减', '单调性', '增函数', '减函数', '单调区间'],
+  'f(0)=0': ['f(0)=0', 'f(0) = 0', 'f(0)', '定义域含0', '含参求值'],
+  '函数比较大小': ['比较', '大小', 'f(a)', 'f(b)', '函数值'],
+  '分段函数': ['分段函数', '分段', 'x≥0', 'x≤0', 'x≥', 'x≤'],
+  '零点': ['零点', 'f(x)=0', '方程的根', '交点个数'],
+  '指数函数': ['指数', 'a^x', '2^x', 'e^x', '指数函数'],
+  '对数函数': ['对数', 'lg', 'ln', 'log', '对数函数'],
+  '幂函数': ['幂函数', 'x^n', 'x^3', 'x^2', '幂'],
+  '定义域': ['定义域', '有意义', '分母不为零', '真数大于0'],
+  '值域': ['值域', '最值', '最大值', '最小值'],
+  '二次函数': ['二次函数', '抛物线', '开口', '对称轴'],
+  '方程组': ['方程组', '构造方程', '联立', '解方程组'],
+  '最值求和': ['M+m', '最大值+最小值', '最值求和', 'M+m=2b'],
+  '正负转换': ['正负转换', '正负区间', '符号', '正负'],
+  '图像交点': ['交点', '图像', 'f(x)=g(x)', '图像交'],
+};
+
+function extractKeywords(text) {
+  const lowerText = text.toLowerCase();
+  const keywords = [];
+  for (const [topic, patterns] of Object.entries(TOPIC_KEYWORDS)) {
+    for (const p of patterns) {
+      if (lowerText.includes(p.toLowerCase())) {
+        keywords.push(topic);
+        break;
+      }
+    }
+  }
+  return keywords;
+}
+
+function autoMatchCards(qid) {
+  const section = document.getElementById(qid);
+  if (!section) return { matches: [], keywords: [], problemText: '', analysisText: '' };
+
+  // Extract text from problem statement and analysis
+  const stmtEl = section.querySelector('.p-statement');
+  const analysisEl = section.querySelector('.p-analysis');
+  const problemText = stmtEl ? stmtEl.textContent : '';
+  const analysisText = analysisEl ? analysisEl.textContent : '';
+  const combinedText = problemText + ' ' + analysisText;
+
+  const keywords = extractKeywords(combinedText);
+  if (keywords.length === 0) return { matches: [], keywords: [], problemText, analysisText };
+
+  // Match against all cards
+  const scored = allCards.map(card => {
+    let score = 0;
+    let reasons = [];
+    const cardText = ((card.chapter||'') + ' ' + (card.signal||'') + ' ' + (card.conclusion||'') + ' ' + (card.problem||'')).toLowerCase();
+    const cardKeywords = extractKeywords(cardText);
+
+    // Keyword overlap
+    const overlap = keywords.filter(k => cardKeywords.includes(k));
+    if (overlap.length > 0) {
+      score += overlap.length * 0.25;
+      reasons.push(`关键词命中: ${overlap.join(', ')}`);
+    }
+
+    // Chapter match
+    for (const kw of keywords) {
+      if ((card.chapter||'').includes(kw) || kw.includes((card.chapter||'').split('·')[1]||'')) {
+        score += 0.1;
+        if (!reasons.some(r => r.includes('章节匹配'))) reasons.push(`章节匹配: ${card.chapter}`);
+        break;
+      }
+    }
+
+    // Signal text overlap
+    if (card.signal) {
+      const sigWords = card.signal.replace(/看到【|】/g, '').split(/[，；,;、\s]/).filter(w => w.length >= 2);
+      const sigHits = sigWords.filter(w => combinedText.includes(w));
+      if (sigHits.length > 0) {
+        score += sigHits.length * 0.08;
+        reasons.push(`信号词命中: ${sigHits.slice(0,3).join(', ')}`);
+      }
+    }
+
+    // Direct problem text match
+    if (card.problem) {
+      const probWords = card.problem.replace(/\$|\\|[\(\)（）]/g, '').split(/[\s，。；,;.、]/).filter(w => w.length >= 3);
+      const probHits = probWords.filter(w => combinedText.includes(w));
+      if (probHits.length > 0) {
+        score += probHits.length * 0.05;
+      }
+    }
+
+    score = Math.min(score, 1.0);
+    return { card, score, reasons, overlap };
+  }).filter(item => item.score >= 0.15);
+
+  scored.sort((a, b) => b.score - a.score);
+  return {
+    matches: scored.slice(0, 6),
+    keywords,
+    problemText,
+    analysisText
+  };
+}
+
+function scoreBadge(score) {
+  if (score >= 0.8) return `<span class="score-badge score-high">${score.toFixed(2)}</span>`;
+  if (score >= 0.5) return `<span class="score-badge score-mid">${score.toFixed(2)}</span>`;
+  return `<span class="score-badge score-low">${score.toFixed(2)}</span>`;
+}
+
+function renderAutoMatchTable(qid, matchResult) {
+  const { matches, keywords } = matchResult;
+  if (matches.length === 0) return '';
+
+  return `<div class="p-cards" id="auto-match-${qid}">
+    <div class="label">命中记忆卡 <span class="card-count">${matches.length} 张</span> <span style="font-size:11px;color:#94a3b8;font-weight:normal;margin-left:8px">关键词: ${keywords.join(' · ')}</span></div>
+    <table class="cards-table">
+      <thead>
+        <tr>
+          <th style="width:4%">编号</th>
+          <th style="width:7%">章节知识点</th>
+          <th style="width:14%">原题题干</th>
+          <th style="width:10%">题干信号</th>
+          <th style="width:14%">结论/易错点</th>
+          <th style="width:9%">出处</th>
+          <th style="width:6%">备注</th>
+          <th style="width:4%">契合评分</th>
+          <th style="width:22%">契合分析</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${matches.map(({ card, score, reasons }) => `
+          <tr>
+            <td class="col-id">${card.id}<span class="matched-card-actions"><button class="btn-train" data-card-id="${card.id}" onclick="toggleTrainQueue('${card.id}', this)">🏋️ 加入训练</button></span></td>
+            <td>${card.chapter||''}</td>
+            <td>${(card.problem||'').substring(0, 80)}${(card.problem||'').length>80?'...':''}</td>
+            <td>${(card.signal||'').substring(0, 60)}${(card.signal||'').length>60?'...':''}</td>
+            <td>${(card.conclusion||'').substring(0, 80)}${(card.conclusion||'').length>80?'...':''}</td>
+            <td class="col-source">${card.source||''}</td>
+            <td class="col-note">${card.note||''}</td>
+            <td class="col-score">${scoreBadge(score)}</td>
+            <td class="col-match">${reasons.join('；')}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  </div>`;
+}
+
+// Generate new card suggestions from unmatched analysis
+function generateAutoNewCards(qid, matchResult) {
+  const { keywords, problemText, analysisText } = matchResult;
+  if (keywords.length === 0) return [];
+
+  const qNum = qid.replace('q','');
+  const cardId = `hw0917-${qNum.padStart(2,'0')}`;
+  const cardLink = HW_PAGE_URL + '#' + qid;
+
+  // Build signal and conclusion from keywords + analysis
+  const chapterName = keywords.slice(0, 2).join('+');
+  const signal = `看到【${keywords.join('、')}相关题目】`;
+  const analysisSnippet = analysisText.substring(0, 120).replace(/\s+/g, ' ').trim();
+  const conclusion = `想到【${analysisSnippet}】；警惕【审题时注意${keywords[0]||''}的定义域和前提条件】`;
+
+  return [{
+    id: cardId,
+    subject: '数学',
+    chapter: chapterName,
+    problem: problemText.substring(0, 100).replace(/\s+/g, ' ').trim(),
+    signal: signal,
+    conclusion: conclusion,
+    source: '0917 作业',
+    note: 'Q' + qNum + ' 自动生成',
+    link: cardLink,
+    origin: 'error',
+    created_at: new Date().toISOString()
+  }];
+}
+
+function renderAutoNewCardSuggestion(card, isAdded) {
+  return `<div class="new-card-suggest" id="suggest-${card.id}">
+    <div class="nc-header">
+      <span class="nc-badge">🆕 新卡建议（自动生成）</span>
+      <span class="nc-title">${card.chapter}</span>
+    </div>
+    <div class="nc-field">
+      <span class="nc-label chapter">编号</span>
+      <span class="nc-id">${card.id}</span>
+      <span class="nc-source"> | 出处: 0917 作业</span>
+      <span class="nc-link"> | 链接: <a href="${card.link}" target="_blank">${card.link}</a></span>
+    </div>
+    <div class="nc-field">
+      <span class="nc-label signal">题干信号（看到…）</span>
+      <div class="nc-content signal">${card.signal}</div>
+    </div>
+    <div class="nc-field">
+      <span class="nc-label conclusion">结论/易错点（想到…；警惕…）</span>
+      <div class="nc-content conclusion">${card.conclusion}</div>
+    </div>
+    <div class="nc-footer">
+      <button class="btn-add-card ${isAdded?'btn-added':''}" id="btn-${card.id}" ${isAdded?'disabled':''} onclick="addCard('${card.id}')">
+        ${isAdded ? '✅ 已入库' : '📥 入库到记忆库'}
+      </button>
+    </div>
+  </div>`;
+}
+
+// ==================== Main Auto-Match + Render ====================
+async function runAutoMatch() {
+  await loadAllCards();
+
+  document.querySelectorAll('section.problem-card').forEach(section => {
+    const qid = section.id;
+    if (!qid.startsWith('q')) return;
+
+    const matchResult = autoMatchCards(qid);
+
+    // Remove old hardcoded .p-cards
+    const oldCards = section.querySelectorAll('.p-cards');
+    oldCards.forEach(el => el.remove());
+
+    // Remove old new-card-suggest blocks
+    const oldSuggests = section.querySelectorAll('.new-card-suggest');
+    oldSuggests.forEach(el => el.remove());
+
+    // Insert auto-matched table
+    const pBody = section.querySelector('.p-body');
+    if (!pBody) return;
+
+    const matchHtml = renderAutoMatchTable(qid, matchResult);
+    if (matchHtml) {
+      pBody.insertAdjacentHTML('beforeend', matchHtml);
+    }
+
+    // Generate and insert new card suggestions for unmatched topics
+    // Only generate if match score is low (no high-quality match)
+    const hasHighMatch = matchResult.matches.some(m => m.score >= 0.6);
+    if (!hasHighMatch || matchResult.keywords.length > 0) {
+      const newCards = generateAutoNewCards(qid, matchResult);
+      newCards.forEach(card => {
+        const isAdded = existingCardIds.has(card.id);
+        pBody.insertAdjacentHTML('beforeend', renderAutoNewCardSuggestion(card, isAdded));
+        // Store card data
+        const el = document.getElementById(`suggest-${card.id}`);
+        if (el) el.dataset.cardData = JSON.stringify(card);
+      });
+    }
+  });
+
+  // Restore queue button states
+  trainQueue.forEach(id => {
+    const btn = document.querySelector(`[data-card-id="${id}"]`);
+    if (btn) { btn.classList.add('btn-queued'); btn.innerHTML = '✅ 已加入队列'; }
+  });
+  updateQueueUI();
+
+  // Typeset math
+  if (window.MathJax && window.MathJax.typesetPromise) {
+    MathJax.typesetPromise();
+  }
+}
+
 // ==================== Init ====================
 loadExistingCards();
 loadQueue();
 if (typeof MathJax !== 'undefined') {
-  // Wait for MathJax then inject
   const checkReady = setInterval(() => {
     if (window.MathJax && window.MathJax.typesetPromise) {
       clearInterval(checkReady);
-      injectNewCardSuggestions();
-      MathJax.typesetPromise();
-      // Restore queue button states
-      trainQueue.forEach(id => {
-        const btn = document.querySelector(`[data-card-id="${id}"]`);
-        if (btn) { btn.classList.add('btn-queued'); btn.innerHTML = '✅ 已加入队列'; }
+      runAutoMatch().then(() => {
+        initImageReplace();
       });
-      updateQueueUI();
-      // Init image replace
-      initImageReplace();
+      MathJax.typesetPromise();
     }
   }, 300);
 } else {
-  injectNewCardSuggestions();
-  initImageReplace();
+  runAutoMatch().then(() => { initImageReplace(); });
 }
 </script>
 
