@@ -185,6 +185,21 @@
   }
   window.SimKit = window.SimKit || {};
   window.SimKit.initProbImg = initProbImg;
+  // 滚动显现「分步讲解」步骤：滚动进入视口即加上 .show
+  window.SimKit.revealSteps = function(){
+    var steps = document.querySelectorAll('.step');
+    if(!steps.length) return;
+    if(!('IntersectionObserver' in window)){
+      [].forEach.call(steps, function(s){ s.classList.add('show'); });
+      return;
+    }
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(en){
+        if(en.isIntersecting){ en.target.classList.add('show'); io.unobserve(en.target); }
+      });
+    }, {threshold:0.12, rootMargin:'0px 0px -40px 0px'});
+    [].forEach.call(steps, function(s){ io.observe(s); });
+  };
   if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', function(){ initProbImg(); }); }
   else initProbImg();
 })();
