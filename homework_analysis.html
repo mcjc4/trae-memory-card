@@ -1572,6 +1572,42 @@ main { max-width: 1600px; margin: 0 auto; padding: 24px 16px 60px; }
 .matched-card-actions { display:inline-flex; gap:4px; margin-left:6px; }
 .btn-queued { background: #dbeafe !important; color: #1e40af !important; border: 1px solid #3b82f6 !important; }
 
+/* Image replace */
+.p-screenshot { position: relative; }
+.img-replace-bar {
+  display: flex; gap: 6px; align-items: center; margin-top: 6px;
+}
+.btn-img-replace {
+  padding: 4px 10px; border: 1px solid var(--border); border-radius: 6px;
+  background: white; font-size: 11px; cursor: pointer; color: #64748b;
+  transition: all 0.15s;
+}
+.btn-img-replace:hover { background: #6366f1; color: white; border-color: #6366f1; }
+.btn-img-reset {
+  padding: 4px 10px; border: 1px solid var(--border); border-radius: 6px;
+  background: white; font-size: 11px; cursor: pointer; color: #94a3b8;
+}
+.btn-img-reset:hover { color: #ef4444; border-color: #ef4444; }
+.img-paste-zone {
+  border: 2px dashed #6366f1; border-radius: 10px; padding: 16px;
+  text-align: center; margin-top: 8px; display: none;
+  background: #eef2ff;
+}
+.img-paste-zone.show { display: block; }
+.img-paste-zone p { font-size: 12px; color: #6366f1; margin-bottom: 8px; }
+.img-paste-zone .paste-area {
+  width: 100%; min-height: 60px; border: 1px solid #c7d2fe; border-radius: 6px;
+  background: white; padding: 8px; font-size: 12px; color: #94a3b8;
+  outline: none; cursor: text;
+}
+.img-paste-zone .paste-area:focus { border-color: #6366f1; }
+.img-paste-zone .paste-btns { margin-top: 8px; display: flex; gap: 8px; justify-content: center; }
+.img-paste-zone .paste-btn { padding: 6px 16px; border: none; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: 600; }
+.img-paste-zone .paste-confirm { background: #6366f1; color: white; }
+.img-paste-zone .paste-cancel { background: #e2e8f0; color: #64748b; }
+.img-preview { max-width: 100%; border-radius: 8px; margin-top: 8px; }
+.img-loading { font-size: 12px; color: #6366f1; margin-top: 4px; }
+
 /* Floating train queue */
 .train-queue-fab {
   position: fixed; bottom: 20px; right: 20px; z-index: 9998;
@@ -1943,6 +1979,205 @@ function startQueueTraining() {
   window.location.href = 'card_library.html?train=queue';
 }
 
+// ==================== Image Replace ====================
+const HW_IMG_PREFIX = 'card-lib-hw-img-';
+let pendingImgData = null;
+
+function initImageReplace() {
+  document.querySelectorAll('.p-screenshot').forEach(container => {
+    const img = container.querySelector('img');
+    if (!img) return;
+    const src = img.getAttribute('src');
+    const imgKey = src.replace('homework_crops/', '').replace(/\.[^.]+$/, '');
+
+    // Add replace bar
+    const bar = document.createElement('div');
+    bar.className = 'img-replace-bar';
+    bar.innerHTML = `
+      <button class="btn-img-replace" onclick="showPasteZone('${imgKey}', this)">📷 替换图片</button>
+      <button class="btn-img-reset" onclick="resetImage('${imgKey}')" style="display:none" id="reset-${imgKey}">↩ 恢复原图</button>
+    `;
+    container.appendChild(bar);
+
+    // Add paste zone (hidden by default)
+    const zone = document.createElement('div');
+    zone.className = 'img-paste-zone';
+    zone.id = `paste-zone-${imgKey}`;
+    zone.innerHTML = `
+      <p>📋 Ctrl+V 粘贴截图，或点击下方按钮上传图片文件</p>
+      <div class="paste-area" contenteditable="true" id="paste-area-${imgKey}" onpaste="handlePaste(event, '${imgKey}')" style="outline:none">点击此处后 Ctrl+V 粘贴图片...</div>
+      <div class="paste-btns">
+        <label class="paste-btn paste-confirm" style="cursor:pointer">
+          📁 选择文件
+          <input type="file" accept="image/*" style="display:none" onchange="handleFileSelect(event, '${imgKey}')">
+        </label>
+        <button class="paste-btn paste-cancel" onclick="hidePasteZone('${imgKey}')">取消</button>
+      </div>
+      <div id="img-preview-container-${imgKey}"></div>
+    `;
+    container.appendChild(zone);
+
+    // Check for saved override
+    loadImageOverride(imgKey, img);
+  });
+}
+
+async function loadImageOverride(imgKey, imgEl) {
+  // Check localStorage first (fast)
+  const localKey = `hw_img_override_${imgKey}`;
+  const localData = localStorage.getItem(localKey);
+  if (localData) {
+    imgEl.src = localData;
+    const resetBtn = document.getElementById(`reset-${imgKey}`);
+    if (resetBtn) resetBtn.style.display = 'inline-block';
+    return;
+  }
+  // Check Supabase
+  try {
+    const rowId = HW_IMG_PREFIX + imgKey;
+    const res = await fetch(`${HW_SUPABASE_URL}/rest/v1/${HW_TABLE}?id=eq.${rowId}&select=data`, {
+      headers: { 'apikey': HW_SUPABASE_KEY, 'Authorization': `Bearer ${HW_SUPABASE_KEY}` }
+    });
+    const rows = await res.json();
+    if (rows.length > 0 && rows[0].data && rows[0].data.img) {
+      const dataUrl = rows[0].data.img;
+      localStorage.setItem(localKey, dataUrl);
+      imgEl.src = dataUrl;
+      const resetBtn = document.getElementById(`reset-${imgKey}`);
+      if (resetBtn) resetBtn.style.display = 'inline-block';
+    }
+  } catch(e) { console.warn('loadImageOverride error:', e); }
+}
+
+function showPasteZone(imgKey, btn) {
+  const zone = document.getElementById(`paste-zone-${imgKey}`);
+  zone.classList.toggle('show');
+  if (zone.classList.contains('show')) {
+    const area = document.getElementById(`paste-area-${imgKey}`);
+    area.focus();
+  }
+}
+
+function hidePasteZone(imgKey) {
+  const zone = document.getElementById(`paste-zone-${imgKey}`);
+  zone.classList.remove('show');
+  pendingImgData = null;
+  document.getElementById(`img-preview-container-${imgKey}`).innerHTML = '';
+}
+
+function handlePaste(e, imgKey) {
+  e.preventDefault();
+  const items = e.clipboardData?.items;
+  if (!items) return;
+  for (const item of items) {
+    if (item.type.startsWith('image/')) {
+      const blob = item.getAsFile();
+      const reader = new FileReader();
+      reader.onload = ev => {
+        pendingImgData = ev.target.result;
+        showImgPreview(imgKey, pendingImgData);
+      };
+      reader.readAsDataURL(blob);
+      return;
+    }
+  }
+  hwToast('粘贴内容中没有图片');
+}
+
+function handleFileSelect(e, imgKey) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    pendingImgData = ev.target.result;
+    showImgPreview(imgKey, pendingImgData);
+  };
+  reader.readAsDataURL(file);
+}
+
+function showImgPreview(imgKey, dataUrl) {
+  const container = document.getElementById(`img-preview-container-${imgKey}`);
+  container.innerHTML = `
+    <img class="img-preview" src="${dataUrl}" style="max-height:200px;border:1px solid #c7d2fe">
+    <div class="img-loading">预览已就绪，点击确认替换</div>
+    <div class="paste-btns" style="margin-top:6px">
+      <button class="paste-btn paste-confirm" onclick="confirmReplace('${imgKey}')">✅ 确认替换</button>
+      <button class="paste-btn paste-cancel" onclick="hidePasteZone('${imgKey}')">取消</button>
+    </div>
+  `;
+}
+
+async function confirmReplace(imgKey) {
+  if (!pendingImgData) { hwToast('请先粘贴或选择图片'); return; }
+  // Compress if too large
+  const compressed = await compressImage(pendingImgData, 1200, 0.8);
+  // Save to localStorage
+  localStorage.setItem(`hw_img_override_${imgKey}`, compressed);
+  // Update image
+  const imgEl = document.querySelector(`img[src*="${imgKey}"]`);
+  if (imgEl) imgEl.src = compressed;
+  // Show reset button
+  const resetBtn = document.getElementById(`reset-${imgKey}`);
+  if (resetBtn) resetBtn.style.display = 'inline-block';
+  // Push to Supabase
+  const rowId = HW_IMG_PREFIX + imgKey;
+  const payload = { id: rowId, data: { img: compressed, originalKey: imgKey }, updated_at: new Date().toISOString() };
+  try {
+    await fetch(`${HW_SUPABASE_URL}/rest/v1/${HW_TABLE}`, {
+      method: 'POST',
+      headers: { 'apikey': HW_SUPABASE_KEY, 'Authorization': `Bearer ${HW_SUPABASE_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates' },
+      body: JSON.stringify(payload)
+    });
+    hwToast('图片已替换并同步到云端');
+  } catch(e) {
+    hwToast('图片已替换（本地），云端同步失败');
+  }
+  hidePasteZone(imgKey);
+  pendingImgData = null;
+}
+
+function resetImage(imgKey) {
+  if (!confirm('恢复为原始截图？')) return;
+  localStorage.removeItem(`hw_img_override_${imgKey}`);
+  const imgEl = document.querySelector(`img[src*="${imgKey}"]`);
+  if (imgEl) imgEl.src = `homework_crops/${imgKey}.jpg`;
+  const resetBtn = document.getElementById(`reset-${imgKey}`);
+  if (resetBtn) resetBtn.style.display = 'none';
+  // Delete from Supabase
+  const rowId = HW_IMG_PREFIX + imgKey;
+  fetch(`${HW_SUPABASE_URL}/rest/v1/${HW_TABLE}?id=eq.${rowId}`, {
+    method: 'DELETE',
+    headers: { 'apikey': HW_SUPABASE_KEY, 'Authorization': `Bearer ${HW_SUPABASE_KEY}` }
+  }).catch(()=>{});
+  hwToast('已恢复原始截图');
+}
+
+function compressImage(dataUrl, maxSize, quality) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      let { width, height } = img;
+      if (width > maxSize || height > maxSize) {
+        if (width > height) {
+          height = Math.round(height * maxSize / width);
+          width = maxSize;
+        } else {
+          width = Math.round(width * maxSize / height);
+          height = maxSize;
+        }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.onerror = () => resolve(dataUrl);
+    img.src = dataUrl;
+  });
+}
+
 // ==================== Init ====================
 loadExistingCards();
 loadQueue();
@@ -1959,10 +2194,13 @@ if (typeof MathJax !== 'undefined') {
         if (btn) { btn.classList.add('btn-queued'); btn.innerHTML = '✅ 已加入队列'; }
       });
       updateQueueUI();
+      // Init image replace
+      initImageReplace();
     }
   }, 300);
 } else {
   injectNewCardSuggestions();
+  initImageReplace();
 }
 </script>
 
