@@ -296,6 +296,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
   <div class="nav-item" data-view="linked" onclick="showView('linked')">🔗 已关联错题 <span class="badge" id="nav-linked">0</span></div>
   <div class="nav-section-title">训练</div>
   <div class="nav-item" data-view="train-dashboard" onclick="showView('train-dashboard')">🏋️ 训练总览 <span class="badge" id="nav-due" style="background:var(--danger)">0</span></div>
+  <div class="nav-item" data-view="train-history" onclick="showView('train-history')">📜 训练记录 <span class="badge" id="nav-sessions">0</span></div>
   <div class="nav-item" onclick="startTraining('due')">🔥 今日复习 <span class="badge" id="nav-today">0</span></div>
   <div class="nav-item" onclick="startTraining('new')">🆕 学习新卡</div>
   <div class="nav-item" onclick="startTraining('random')">🎲 随机抽查</div>
@@ -349,6 +350,8 @@ async function init() {
   loadSRS();
   // Load user-created / error-generated cards from Supabase
   await cloudPull();
+  // Sync SRS with cloud
+  await cloudPullSRS();
   state.loaded = true;
   updateNavBadges();
   render();
@@ -446,6 +449,44 @@ function loadSRS() {
 }
 
 function saveSRS() {
+  try { localStorage.setItem('card_srs', JSON.stringify(state.srs)); } catch(e) {}
+  cloudPushSRS();
+}
+
+async function cloudPushSRS() {
+  const rowId = 'card-lib-srs-state';
+  const payload = { id: rowId, data: state.srs, updated_at: new Date().toISOString() };
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}`, {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates' },
+      body: JSON.stringify(payload)
+    });
+  } catch(e) { console.warn('cloudPushSRS error:', e); }
+}
+
+async function cloudPullSRS() {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?id=eq.card-lib-srs-state&select=data`, {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+    });
+    const rows = await res.json();
+    if (rows.length > 0 && rows[0].data) {
+      const cloudSRS = rows[0].data;
+      // Merge: cloud wins if card exists in cloud (newer)
+      Object.keys(cloudSRS).forEach(cardId => {
+        const local = state.srs[cardId];
+        const cloud = cloudSRS[cardId];
+        if (!local || (cloud.lastReview && (!local.lastReview || cloud.lastReview > local.lastReview))) {
+          state.srs[cardId] = cloud;
+        }
+      });
+      saveSRSLocal();
+    }
+  } catch(e) { console.warn('cloudPullSRS error:', e); }
+}
+
+function saveSRSLocal() {
   try { localStorage.setItem('card_srs', JSON.stringify(state.srs)); } catch(e) {}
 }
 
@@ -549,8 +590,72 @@ function rateAndNext(rating) {
   if (state.trainIdx >= state.trainQueue.length) {
     state.view = 'train-complete';
     updateNavBadges();
+    saveTrainSession();
   }
   render();
+}
+
+// ==================== Train Session History ====================
+async function saveTrainSession() {
+  const s = state.trainSession;
+  const sessionId = 'train-session-' + Date.now();
+  const modeLabel = { due:'今日复习', new:'学习新卡', random:'随机抽查', plan:'计划训练', queue:'队列训练' }[s.mode] || '训练';
+  const session = {
+    id: sessionId,
+    mode: modeLabel,
+    modeKey: s.mode,
+    total: s.total,
+    correct: s.correct,
+    rate: s.total > 0 ? Math.round(s.correct / s.total * 100) : 0,
+    avgScore: s.ratings.length > 0 ? +(s.ratings.reduce((a,b)=>a+b,0) / s.ratings.length).toFixed(1) : 0,
+    ratings: s.ratings,
+    cardIds: state.trainQueue.map(c => c.id),
+    chapters: [...new Set(state.trainQueue.map(c => (c.chapter||'').split('·')[0]).filter(Boolean))],
+    created_at: new Date().toISOString()
+  };
+  // Save to localStorage
+  let sessions = [];
+  try { sessions = JSON.parse(localStorage.getItem('train_sessions') || '[]'); } catch(e) {}
+  sessions.unshift(session);
+  if (sessions.length > 100) sessions = sessions.slice(0, 100);
+  localStorage.setItem('train_sessions', JSON.stringify(sessions));
+  // Push to Supabase
+  const rowId = 'card-lib-' + sessionId;
+  const payload = { id: rowId, data: session, updated_at: new Date().toISOString() };
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}`, {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates' },
+      body: JSON.stringify(payload)
+    });
+  } catch(e) { console.warn('saveTrainSession cloud error:', e); }
+}
+
+async function loadTrainSessions() {
+  // From Supabase
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?id=like.card-lib-train-session-*&select=data&order=data->>created_at.desc&limit=50`, {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+    });
+    const rows = await res.json();
+    const cloudSessions = rows.map(r => r.data).filter(Boolean);
+    // Merge with local
+    let localSessions = [];
+    try { localSessions = JSON.parse(localStorage.getItem('train_sessions') || '[]'); } catch(e) {}
+    // Deduplicate by id
+    const seen = new Set();
+    const merged = [...cloudSessions, ...localSessions].filter(s => {
+      if (seen.has(s.id)) return false;
+      seen.add(s.id);
+      return true;
+    });
+    merged.sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+    return merged;
+  } catch(e) {
+    let localSessions = [];
+    try { localSessions = JSON.parse(localStorage.getItem('train_sessions') || '[]'); } catch(e) {}
+    return localSessions;
+  }
 }
 
 function exitTraining() {
@@ -640,12 +745,168 @@ function render() {
   const container = document.getElementById('view-content');
   if (state.view === 'dashboard') container.innerHTML = renderDashboard();
   else if (state.view === 'train-dashboard') container.innerHTML = renderTrainDashboard();
+  else if (state.view === 'train-history') { container.innerHTML = '<div class="page-header"><div class="page-title">📜 训练记录</div></div><p style="color:var(--text-light)">加载中...</p>'; loadAndRenderHistory(); return; }
   else if (state.view === 'train-session') container.innerHTML = renderTrainSession();
   else if (state.view === 'train-empty') container.innerHTML = renderTrainEmpty();
   else if (state.view === 'train-complete') container.innerHTML = renderTrainComplete();
   else container.innerHTML = renderGrid();
   typesetMath();
   bindCardClicks();
+}
+
+async function loadAndRenderHistory() {
+  const sessions = await loadTrainSessions();
+  const container = document.getElementById('view-content');
+  container.innerHTML = renderTrainHistory(sessions);
+  typesetMath();
+}
+
+function renderTrainHistory(sessions) {
+  const navEl = document.getElementById('nav-sessions');
+  if (navEl) navEl.textContent = sessions.length;
+
+  if (sessions.length === 0) {
+    return `<div class="page-header"><div class="page-title">📜 训练记录</div></div>
+      <div class="train-empty"><h2>暂无训练记录</h2><p>完成一次训练后，记录会自动出现在这里</p>
+      <button class="btn btn-primary" onclick="startTraining('random')">🎲 开始随机抽查</button></div>`;
+  }
+
+  // Stats
+  const totalSessions = sessions.length;
+  const totalCards = sessions.reduce((s, x) => s + x.total, 0);
+  const totalCorrect = sessions.reduce((s, x) => s + x.correct, 0);
+  const avgRate = totalCards > 0 ? Math.round(totalCorrect / totalCards * 100) : 0;
+  const lastSession = sessions[0];
+
+  // Group by date
+  const byDate = {};
+  sessions.forEach(s => {
+    const d = new Date(s.created_at).toLocaleDateString('zh-CN', { month:'short', day:'numeric' });
+    if (!byDate[d]) byDate[d] = [];
+    byDate[d].push(s);
+  });
+
+  return `
+    <div class="page-header"><div class="page-title">📜 训练记录</div></div>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="label">总训练次数</div><div class="value">${totalSessions}</div></div>
+      <div class="stat-card"><div class="label">累计训练卡片</div><div class="value" style="color:var(--primary)">${totalCards}</div></div>
+      <div class="stat-card"><div class="label">累计正确率</div><div class="value" style="color:var(--success)">${avgRate}%</div></div>
+      <div class="stat-card"><div class="label">最近训练</div><div class="value" style="font-size:16px;color:var(--text)">${lastSession.mode}</div><div class="sub">${new Date(lastSession.created_at).toLocaleString('zh-CN',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</div></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <button class="btn btn-outline" onclick="startTraining('due')">🔥 今日复习</button>
+      <button class="btn btn-outline" onclick="startTraining('random')">🎲 随机抽查</button>
+      <button class="btn btn-outline" onclick="startTraining('new')">🆕 学习新卡</button>
+    </div>
+    ${Object.entries(byDate).map(([date, daySessions]) => `
+      <div style="margin-bottom:20px">
+        <h3 style="font-size:14px;color:var(--text-light);margin-bottom:8px;padding-left:4px">📅 ${date}（${daySessions.length}次）</h3>
+        ${daySessions.map(s => {
+          const time = new Date(s.created_at).toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
+          const rateColor = s.rate >= 80 ? 'var(--success)' : s.rate >= 60 ? 'var(--warning)' : 'var(--danger)';
+          const modeIcon = { '今日复习':'🔥','学习新卡':'🆕','随机抽查':'🎲','计划训练':'🎯','队列训练':'🏋️' }[s.mode] || '📋';
+          return `
+            <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;gap:12px;cursor:pointer" onclick="showSessionDetail('${s.id}')">
+              <div style="font-size:20px">${modeIcon}</div>
+              <div style="flex:1">
+                <div style="font-size:14px;font-weight:600">${s.mode}</div>
+                <div style="font-size:12px;color:var(--text-light)">${time} · ${s.chapters.join(', ')||'多个章节'} · ${s.total}张卡</div>
+              </div>
+              <div style="text-align:center">
+                <div style="font-size:20px;font-weight:700;color:${rateColor}">${s.rate}%</div>
+                <div style="font-size:11px;color:var(--text-lighter)">均分${s.avgScore}</div>
+              </div>
+              <div style="text-align:center;min-width:50px">
+                ${s.rate >= 80 ? '⭐⭐⭐' : s.rate >= 60 ? '⭐⭐' : s.rate >= 40 ? '⭐' : '📉'}
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `).join('')}
+  `;
+}
+
+function showSessionDetail(sessionId) {
+  let sessions = [];
+  try { sessions = JSON.parse(localStorage.getItem('train_sessions') || '[]'); } catch(e) {}
+  let s = sessions.find(x => x.id === sessionId);
+  if (!s) return;
+  const modal = document.getElementById('modal');
+  const ratingDist = [0,0,0,0,0];
+  (s.ratings||[]).forEach(r => { if (r >= 1 && r <= 5) ratingDist[r-1]++; });
+  const ratingLabels = ['😵 完全忘了','😬 勉强记得','🙂 想起来了','😊 很顺利','🤩 秒答'];
+  modal.innerHTML = `
+    <div class="modal-header">
+      <h3>${s.mode} - 训练详情</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-section"><h4>训练时间</h4><div class="content">${new Date(s.created_at).toLocaleString('zh-CN')}</div></div>
+      <div class="detail-section"><h4>训练章节</h4><div class="content">${(s.chapters||[]).join('、') || '多个章节'}</div></div>
+      <div style="display:flex;gap:16px;margin:16px 0">
+        <div style="text-align:center;flex:1;padding:12px;background:var(--bg);border-radius:8px">
+          <div style="font-size:24px;font-weight:700;color:var(--primary)">${s.total}</div>
+          <div style="font-size:11px;color:var(--text-light)">总卡片</div>
+        </div>
+        <div style="text-align:center;flex:1;padding:12px;background:var(--success-light);border-radius:8px">
+          <div style="font-size:24px;font-weight:700;color:var(--success)">${s.correct}</div>
+          <div style="font-size:11px;color:var(--text-light)">答对(≥3分)</div>
+        </div>
+        <div style="text-align:center;flex:1;padding:12px;background:var(--warning-light);border-radius:8px">
+          <div style="font-size:24px;font-weight:700;color:var(--warning)">${s.rate}%</div>
+          <div style="font-size:11px;color:var(--text-light)">正确率</div>
+        </div>
+        <div style="text-align:center;flex:1;padding:12px;background:var(--info-light);border-radius:8px">
+          <div style="font-size:24px;font-weight:700;color:var(--info)">${s.avgScore}</div>
+          <div style="font-size:11px;color:var(--text-light)">平均分</div>
+        </div>
+      </div>
+      <div class="detail-section"><h4>评分分布</h4>
+        <div class="content">
+          ${ratingLabels.map((label, i) => {
+            const cnt = ratingDist[i];
+            const pct = s.ratings.length > 0 ? (cnt / s.ratings.length * 100).toFixed(0) : 0;
+            return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+              <span style="width:90px;font-size:12px">${label}</span>
+              <div style="flex:1;height:16px;background:var(--border);border-radius:4px;overflow:hidden">
+                <div style="height:100%;width:${pct}%;background:${['#ef4444','#f59e0b','#fbbf24','#3b82f6','#10b981'][i]};border-radius:4px"></div>
+              </div>
+              <span style="width:30px;font-size:12px;text-align:right">${cnt}</span>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+      <div class="detail-section"><h4>训练卡片（${(s.cardIds||[]).length}张）</h4>
+        <div class="content" style="font-size:12px">
+          ${(s.cardIds||[]).map(id => `<span style="display:inline-block;font-family:monospace;background:var(--primary-light);color:var(--primary-dark);padding:2px 8px;border-radius:4px;margin:2px;font-size:11px">${id}</span>`).join('')}
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="retrainSession('${s.id}')">🔄 重新训练这些卡</button>
+      <button class="btn btn-primary" onclick="closeModal()">关闭</button>
+    </div>
+  `;
+  document.getElementById('modal-overlay').classList.add('show');
+}
+
+function retrainSession(sessionId) {
+  let sessions = [];
+  try { sessions = JSON.parse(localStorage.getItem('train_sessions') || '[]'); } catch(e) {}
+  const s = sessions.find(x => x.id === sessionId);
+  if (!s || !s.cardIds) return;
+  const cards = s.cardIds.map(id => state.cards.find(c => c.id === id)).filter(Boolean);
+  if (cards.length === 0) { showToast('这些卡片已不在库中'); return; }
+  closeModal();
+  state.trainQueue = cards;
+  state.trainIdx = 0;
+  state.trainRevealed = false;
+  state.trainSession = { total: cards.length, correct: 0, ratings: [], mode: 'plan' };
+  state.view = 'train-session';
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  render();
 }
 
 function renderTrainDashboard() {
