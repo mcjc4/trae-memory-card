@@ -666,7 +666,6 @@ function exitTraining() {
 
 function startTrainingFromCards() {
   // Use current filtered cards as training queue
-  const isFiltered = state.view !== 'grid';
   let cards = state.cards;
   if (state.view === 'excel') cards = cards.filter(c => c.origin === 'excel');
   else if (state.view === 'error') cards = cards.filter(c => c.origin === 'error');
@@ -693,6 +692,11 @@ function startTrainingFromCards() {
   const due = cards.filter(c => { const s = getSRS(c.id); return s.nextReview <= Date.now(); });
   const notDue = cards.filter(c => { const s = getSRS(c.id); return s.nextReview > Date.now(); });
   const queue = [...due, ...notDue].slice(0, 50);
+
+  // Save as a topic queue
+  const topicName = chapter || source || (search ? `搜索: ${search}` : '全部卡片');
+  saveTopicQueue(topicName, queue, { view: state.view, search, chapter, source });
+
   state.trainQueue = queue;
   state.trainIdx = 0;
   state.trainRevealed = false;
@@ -702,6 +706,98 @@ function startTrainingFromCards() {
   if (window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
   render();
   showToast(`已生成训练计划：${queue.length}张卡片`);
+}
+
+// ==================== Saved Topic Queues ====================
+async function saveTopicQueue(name, cards, filterCtx) {
+  const queueId = 'card-lib-topic-queue-' + Date.now();
+  const queue = {
+    id: queueId,
+    name: name,
+    cardIds: cards.map(c => c.id),
+    cardCount: cards.length,
+    chapters: [...new Set(cards.map(c => (c.chapter||'').split('·')[0]).filter(Boolean))],
+    filter: filterCtx,
+    created_at: new Date().toISOString(),
+    lastTrained: null,
+    trainCount: 0
+  };
+  // Save to localStorage
+  let saved = [];
+  try { saved = JSON.parse(localStorage.getItem('topic_queues') || '[]'); } catch(e) {}
+  // Deduplicate by name+cardIds hash
+  const hash = name + '|' + queue.cardIds.slice(0,5).join(',');
+  const existingIdx = saved.findIndex(q => (q.name + '|' + (q.cardIds||[]).slice(0,5).join(',')) === hash);
+  if (existingIdx >= 0) { saved[existingIdx] = { ...saved[existingIdx], ...queue, id: saved[existingIdx].id }; }
+  else { saved.unshift(queue); }
+  if (saved.length > 50) saved = saved.slice(0, 50);
+  localStorage.setItem('topic_queues', JSON.stringify(saved));
+  // Push to Supabase
+  const rowId = queueId;
+  const payload = { id: rowId, data: queue, updated_at: new Date().toISOString() };
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}`, {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates' },
+      body: JSON.stringify(payload)
+    });
+  } catch(e) { console.warn('saveTopicQueue cloud error:', e); }
+}
+
+async function loadTopicQueues() {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?id=like.card-lib-topic-queue-*&select=data&order=data->>created_at.desc&limit=50`, {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+    });
+    const rows = await res.json();
+    const cloudQueues = rows.map(r => r.data).filter(Boolean);
+    let localQueues = [];
+    try { localQueues = JSON.parse(localStorage.getItem('topic_queues') || '[]'); } catch(e) {}
+    const seen = new Set();
+    const merged = [...cloudQueues, ...localQueues].filter(q => {
+      if (seen.has(q.id)) return false;
+      seen.add(q.id);
+      return true;
+    });
+    merged.sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+    return merged;
+  } catch(e) {
+    try { return JSON.parse(localStorage.getItem('topic_queues') || '[]'); } catch(_) { return []; }
+  }
+}
+
+async function deleteTopicQueue(queueId) {
+  // Local
+  let saved = [];
+  try { saved = JSON.parse(localStorage.getItem('topic_queues') || '[]'); } catch(e) {}
+  saved = saved.filter(q => q.id !== queueId);
+  localStorage.setItem('topic_queues', JSON.stringify(saved));
+  // Cloud
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?id=eq.${queueId}`, {
+      method: 'DELETE',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+    });
+  } catch(e) {}
+  loadAndRenderHistory();
+  showToast('已删除专题队列');
+}
+
+function startTopicQueueTraining(queueId) {
+  let saved = [];
+  try { saved = JSON.parse(localStorage.getItem('topic_queues') || '[]'); } catch(e) {}
+  const q = saved.find(x => x.id === queueId);
+  if (!q || !q.cardIds) { showToast('队列未找到'); return; }
+  const cards = q.cardIds.map(id => state.cards.find(c => c.id === id)).filter(Boolean);
+  if (cards.length === 0) { showToast('队列中的卡片已不在库中'); return; }
+  state.trainQueue = cards;
+  state.trainIdx = 0;
+  state.trainRevealed = false;
+  state.trainSession = { total: cards.length, correct: 0, ratings: [], mode: 'plan', topicName: q.name };
+  state.view = 'train-session';
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  render();
+  showToast(`开始训练：${q.name}（${cards.length}张）`);
 }
 
 // ==================== Navigation ====================
@@ -757,7 +853,7 @@ function render() {
 async function loadAndRenderHistory() {
   const sessions = await loadTrainSessions();
   const container = document.getElementById('view-content');
-  container.innerHTML = renderTrainHistory(sessions);
+  container.innerHTML = await renderTrainHistory(sessions);
   typesetMath();
 }
 
@@ -822,13 +918,48 @@ function startQueueTraining() {
   showToast(`开始训练：${cards.length}张卡片`);
 }
 
-function renderTrainHistory(sessions) {
+async function renderTopicQueueSection() {
+  const queues = await loadTopicQueues();
+  if (queues.length === 0) {
+    return `<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:20px">
+      <h3 style="font-size:14px;margin-bottom:8px">📚 专题练习队列</h3>
+      <p style="font-size:13px;color:var(--text-light)">暂无保存的专题队列。在卡片列表中按章节/知识点筛选后，点击"🎯 生成训练计划"即可自动保存到这里。</p>
+    </div>`;
+  }
+  return `<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:20px">
+    <h3 style="font-size:14px;margin-bottom:12px">📚 专题练习队列（${queues.length}个）</h3>
+    <div style="display:grid;gap:10px">
+      ${queues.map(q => `<div style="border:1px solid var(--border);border-radius:8px;padding:12px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+        <div style="flex:1;min-width:200px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+            <span style="font-weight:700;font-size:14px">${q.name}</span>
+            <span style="font-size:11px;background:var(--primary-light);color:var(--primary-dark);padding:2px 8px;border-radius:4px">${q.cardCount}张</span>
+            ${q.trainCount > 0 ? `<span style="font-size:11px;color:var(--text-lighter)">已练${q.trainCount}次</span>` : ''}
+          </div>
+          <div style="font-size:11px;color:var(--text-lighter)">
+            ${q.chapters ? q.chapters.join(' · ') : ''}
+            ${q.lastTrained ? ` | 最近: ${new Date(q.lastTrained).toLocaleDateString()}` : ' | 未训练'}
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;flex-shrink:0">
+          <button class="btn btn-sm btn-primary" onclick="startTopicQueueTraining('${q.id}')">▶ 训练</button>
+          <button class="btn btn-sm btn-outline" onclick="deleteTopicQueue('${q.id}')">删除</button>
+        </div>
+      </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+async function renderTrainHistory(sessions) {
   const navEl = document.getElementById('nav-sessions');
   if (navEl) navEl.textContent = sessions.length;
+
+  const topicSection = await renderTopicQueueSection();
 
   if (sessions.length === 0) {
     return `<div class="page-header"><div class="page-title">📜 训练记录</div></div>
       ${renderTrainQueueSection()}
+      ${topicSection}
       <div class="train-empty"><h2>暂无训练记录</h2><p>完成一次训练后，记录会自动出现在这里</p>
       <button class="btn btn-primary" onclick="startTraining('random')">🎲 开始随机抽查</button></div>`;
   }
@@ -862,6 +993,7 @@ function renderTrainHistory(sessions) {
       <button class="btn btn-outline" onclick="startTraining('new')">🆕 学习新卡</button>
     </div>
     ${renderTrainQueueSection()}
+    ${topicSection}
     ${Object.entries(byDate).map(([date, daySessions]) => `
       <div style="margin-bottom:20px">
         <h3 style="font-size:14px;color:var(--text-light);margin-bottom:8px;padding-left:4px">📅 ${date}（${daySessions.length}次）</h3>
