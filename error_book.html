@@ -537,7 +537,9 @@ body {
 // ==================== Config ====================
 const SUPABASE_URL = 'https://mixuqjognbdrafrrlivc.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_D0ha7g4X4LutG-3hxCguSA_pwyQLrVX';
-const DOC_ID = 'error-book-default';
+const TABLE = 'gaokao_state';
+const ROW_PREFIX = 'error-book-';
+const OLD_DOC_ID = 'error-book-default';
 const STUDENT_NAME = localStorage.getItem('eb_student') || 'default';
 
 // ==================== State ====================
@@ -550,12 +552,15 @@ let state = {
   loaded: false
 };
 
-// ==================== Supabase ====================
-async function cloudPush() {
-  const payload = { id: DOC_ID, data: { v: 1, errors: state.errors }, updated_at: new Date().toISOString() };
+// ==================== Supabase (per-question rows) ====================
+async function cloudPushOne(errorId) {
+  const err = state.errors.find(e => e.id === errorId);
+  if (!err) return;
+  const rowId = ROW_PREFIX + errorId;
+  const payload = { id: rowId, data: err, updated_at: new Date().toISOString() };
   try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/gaokao_state?id=eq.${DOC_ID}`, {
-      method: 'PATCH',
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}`, {
+      method: 'POST',
       headers: {
         'apikey': SUPABASE_KEY,
         'Authorization': `Bearer ${SUPABASE_KEY}`,
@@ -564,22 +569,56 @@ async function cloudPush() {
       },
       body: JSON.stringify(payload)
     });
-    if (!res.ok) console.warn('cloudPush failed:', res.status);
-  } catch(e) { console.warn('cloudPush error:', e); }
+    if (!res.ok) console.warn(`cloudPushOne(${errorId}) failed:`, res.status);
+  } catch(e) { console.warn(`cloudPushOne(${errorId}) error:`, e); }
+}
+
+async function cloudPushAll() {
+  await Promise.all(state.errors.map(e => cloudPushOne(e.id)));
 }
 
 async function cloudPull() {
   try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/gaokao_state?id=eq.${DOC_ID}&select=*`, {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?id=like.${ROW_PREFIX}*&select=*&order=data->>created_at.asc`, {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+    });
+    const rows = await res.json();
+    if (rows.length > 0) {
+      state.errors = rows.map(r => r.data).filter(d => d && d.id);
+      return true;
+    }
+    return false;
+  } catch(e) { console.warn('cloudPull error:', e); return false; }
+}
+
+async function cloudDeleteOne(errorId) {
+  const rowId = ROW_PREFIX + errorId;
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?id=eq.${rowId}`, {
+      method: 'DELETE',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+    });
+  } catch(e) { console.warn(`cloudDeleteOne(${errorId}) error:`, e); }
+}
+
+async function migrateOldFormat() {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?id=eq.${OLD_DOC_ID}&select=*`, {
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
     });
     const rows = await res.json();
     if (rows.length > 0 && rows[0].data && rows[0].data.errors) {
       state.errors = rows[0].data.errors;
+      await cloudPushAll();
+      await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?id=eq.${OLD_DOC_ID}`, {
+        method: 'DELETE',
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+      });
+      console.log('Migrated old format to per-question rows');
       return true;
     }
-    return false;
-  } catch(e) { console.warn('cloudPull error:', e); return false; }
+  } catch(e) { console.warn('migrateOldFormat error:', e); }
+  return false;
 }
 
 // ==================== Seed Data ====================
@@ -590,85 +629,99 @@ function seedData() {
       problem_image:'homework_crops/q1.jpg', knowledge_points:['奇函数','单调性','指数函数','对数函数'],
       error_type:'无错误', proficiency:4, student_answer:'C', correct_answer:'AC', is_correct:true, is_solved:true,
       analysis:'A和C都满足条件。A的$f\'(0)=0$但严格递增；C的$f\'(x)\\geq 2>0$处处严格递增。',
-      linked_card_ids:['mat0047','mat0058','mat0059','mat0068'], review_count:0, last_reviewed:null, notes:'单选选C正确，多选应为AC' },
+      linked_card_ids:['mat0047','mat0058','mat0059','mat0068'], review_count:0, last_reviewed:null, notes:'单选选C正确，多选应为AC',
+      homework_qid:'q1' },
     { id:'err-002', created_at:'2026-09-18T10:00:00Z', subject:'数学', problem_number:'Q2', source:'2025·模拟',
       problem_text:'已知偶函数$f(x)$在$[0,4]$上单调递减，比较$f(\\pi)$、$f(-3)$、$f(-2)$的大小',
       problem_image:'homework_crops/q2.jpg', knowledge_points:['偶函数','单调性','比较大小'],
       error_type:'无错误', proficiency:4, student_answer:'A', correct_answer:'A', is_correct:true, is_solved:true,
       analysis:'偶函数比较自变量绝对值，$|\\pi|>|{-3}|>|{-2}|$，递减则$f(\\pi)<f(-3)<f(-2)$',
-      linked_card_ids:['mat0067','mat0127'], review_count:0, last_reviewed:null, notes:'' },
+      linked_card_ids:['mat0067','mat0127'], review_count:0, last_reviewed:null, notes:'',
+      homework_qid:'q2' },
     { id:'err-003', created_at:'2026-09-18T10:00:00Z', subject:'数学', problem_number:'Q3', source:'2025·赤峰模拟',
       problem_text:'若$f(x)=a-\\frac{3}{3^x+1}$是奇函数，求$a$的值',
       problem_image:'homework_crops/q3.jpg', knowledge_points:['奇函数','求参数','$f(0)=0$'],
       error_type:'未掌握', proficiency:1, student_answer:'', correct_answer:'C ($a=\\frac{3}{2}$)', is_correct:false, is_solved:false,
       analysis:'定义域含0，奇函数$f(0)=0$：$a-\\frac{3}{3^0+1}=a-\\frac{3}{2}=0$，解得$a=\\frac{3}{2}$',
-      linked_card_ids:['mat0062','mat0061','mat0129'], review_count:0, last_reviewed:null, notes:'关键：奇函数定义域含0时优先用$f(0)=0$' },
+      linked_card_ids:['mat0062','mat0061','mat0129'], review_count:0, last_reviewed:null, notes:'关键：奇函数定义域含0时优先用$f(0)=0$',
+      homework_qid:'q3' },
     { id:'err-004', created_at:'2026-09-18T10:00:00Z', subject:'数学', problem_number:'Q4', source:'2025·白银模拟',
       problem_text:'已知$f(x)=x^3-\\sin x+2$在$[-2,2]$上的最大值和最小值为$M,m$，求$M+m$',
       problem_image:'homework_crops/q4.jpg', knowledge_points:['奇函数','对称中心','最值求和','$M+m=2b$'],
       error_type:'无错误', proficiency:5, student_answer:'C (4)', correct_answer:'C (4)', is_correct:true, is_solved:true,
       analysis:'$g(x)=x^3-\\sin x$为奇函数，$f(x)=g(x)+2$，对称中心$(0,2)$，$M+m=2\\times2=4$',
-      linked_card_ids:['mat0082','mat0059'], review_count:0, last_reviewed:null, notes:'' },
+      linked_card_ids:['mat0082','mat0059'], review_count:0, last_reviewed:null, notes:'',
+      homework_qid:'q4' },
     { id:'err-005', created_at:'2026-09-18T10:00:00Z', subject:'数学', problem_number:'Q5', source:'2021·全国乙卷',
       problem_text:'设$f(x)=\\frac{1-x}{1+x}$，下列函数中为奇函数的是 A.$f(x-1)-1$ B.$f(x-1)+1$ C.$f(x+1)-1$ D.$f(x+1)+1$',
       problem_image:'homework_crops/q5.jpg', knowledge_points:['奇函数','对称中心','平移变换'],
       error_type:'未掌握', proficiency:2, student_answer:'', correct_answer:'B', is_correct:false, is_solved:false,
       analysis:'$f(x)=\\frac{2}{1+x}-1$，对称中心$(-1,-1)$。要变为奇函数需将对称中心移到原点：右移1上移1→$f(x-1)+1$',
-      linked_card_ids:['mat0077','mat0076'], review_count:0, last_reviewed:null, notes:'关键：识别对称中心后通过平移使其成为奇函数' },
+      linked_card_ids:['mat0077','mat0076'], review_count:0, last_reviewed:null, notes:'关键：识别对称中心后通过平移使其成为奇函数',
+      homework_qid:'q5' },
     { id:'err-006', created_at:'2026-09-18T10:00:00Z', subject:'数学', problem_number:'Q6', source:'2025·安徽皖南八校模拟',
       problem_text:'$y=f(x)+e^x$是偶函数，$y=f(x)-3e^x$是奇函数，求$f(\\ln 3)$',
       problem_image:'homework_crops/q6.jpg', knowledge_points:['奇函数','偶函数','构造方程组','求解析式'],
       error_type:'未掌握', proficiency:1, student_answer:'', correct_answer:'D ($\\frac{11}{3}$)', is_correct:false, is_solved:false,
       analysis:'联立方程：$f(-x)+e^{-x}=f(x)+e^x$和$f(-x)-3e^{-x}=-f(x)+3e^x$，解得$f(x)=e^x+2e^{-x}$，$f(\\ln 3)=3+\\frac{2}{3}=\\frac{11}{3}$',
-      linked_card_ids:['mat0066','mat0064'], review_count:0, last_reviewed:null, notes:'关键：构造方程组法，将x替换为-x联立求解' },
+      linked_card_ids:['mat0066','mat0064'], review_count:0, last_reviewed:null, notes:'关键：构造方程组法，将x替换为-x联立求解',
+      homework_qid:'q6' },
     { id:'err-007', created_at:'2026-09-18T10:00:00Z', subject:'数学', problem_number:'Q7', source:'2025·毕节模拟',
       problem_text:'$f(x)$是奇函数，$g(x)$是偶函数，判断$f(x)g(x)$、$f(g(x))$、$f(x)-g(x)$、$g(f(x))$的奇偶性',
       problem_image:'homework_crops/q7.jpg', knowledge_points:['奇偶性','运算性质','复合函数'],
       error_type:'未掌握', proficiency:2, student_answer:'', correct_answer:'AD', is_correct:false, is_solved:false,
       analysis:'奇×偶=奇(A✓)，$f(g(x))$中$g$偶→$f(g(-x))=f(g(x))$为偶(B✗)，奇-偶=非奇非偶(C✗)，$g(f(x))$中$f$奇→$g(-f(x))=g(f(x))$为偶(D✓)',
-      linked_card_ids:['mat0060','mat0059'], review_count:0, last_reviewed:null, notes:'关键：奇偶运算性质和复合函数奇偶性判断' },
+      linked_card_ids:['mat0060','mat0059'], review_count:0, last_reviewed:null, notes:'关键：奇偶运算性质和复合函数奇偶性判断',
+      homework_qid:'q7' },
     { id:'err-008', created_at:'2026-09-18T10:00:00Z', subject:'数学', problem_number:'Q8', source:'2025·湖北重点学校开学联考',
       problem_text:'$\\forall x,y\\in\\mathbb{R}$，$f(xy)+xy=xf(y)+yf(x)$，判断各选项',
       problem_image:'homework_crops/q8.jpg', knowledge_points:['抽象函数','赋值法','函数方程'],
       error_type:'未掌握', proficiency:1, student_answer:'', correct_answer:'ABD', is_correct:false, is_solved:false,
       analysis:'令$x=y=0$得$f(0)=0$(A✓)；令$y=\\frac{1}{x}$得B✓；$f(x)=x$满足方程为奇函数(D✓)；$f(x)=x\\ln|x|$也满足但非单调(C✗)',
-      linked_card_ids:['mat0066','mat0096'], review_count:0, last_reviewed:null, notes:'关键：抽象函数用赋值法，令特殊值推导' },
+      linked_card_ids:['mat0066','mat0096'], review_count:0, last_reviewed:null, notes:'关键：抽象函数用赋值法，令特殊值推导',
+      homework_qid:'q8' },
     { id:'err-009', created_at:'2026-09-18T10:00:00Z', subject:'数学', problem_number:'Q9', source:'2026·绵阳模拟',
       problem_text:'$f(x)$是奇函数，$x\\geq 0$时$f(x)=2^{-x}+m$，求$f(-3)$',
       problem_image:'homework_crops/q9.jpg', knowledge_points:['奇函数','求参数','正负转换','$f(0)=0$'],
       error_type:'未掌握', proficiency:2, student_answer:'', correct_answer:'$\\frac{7}{8}$', is_correct:false, is_solved:false,
       analysis:'①$f(0)=1+m=0$得$m=-1$；②$f(3)=2^{-3}-1=-\\frac{7}{8}$；③$f(-3)=-f(3)=\\frac{7}{8}$',
-      linked_card_ids:['mat0062','mat0064'], review_count:0, last_reviewed:null, notes:'两步：先用$f(0)=0$求参，再用正负转换求另一侧' },
+      linked_card_ids:['mat0062','mat0064'], review_count:0, last_reviewed:null, notes:'两步：先用$f(0)=0$求参，再用正负转换求另一侧',
+      homework_qid:'q9' },
     { id:'err-010', created_at:'2026-09-18T10:00:00Z', subject:'数学', problem_number:'Q10', source:'模拟题',
       problem_text:'$f(x)$是偶函数且在$(0,+\\infty)$递增，$f(-2)=0$，解$xf(x)>0$',
       problem_image:'homework_crops/q10.jpg', knowledge_points:['偶函数','单调性','不等式','图像法'],
       error_type:'未掌握', proficiency:2, student_answer:'', correct_answer:'$(-2,0)\\cup(2,+\\infty)$', is_correct:false, is_solved:false,
       analysis:'偶函数$f(2)=f(-2)=0$，画草图标零点正负。$xf(x)>0$同号区间：$(-2,0)$（同负）和$(2,+\\infty)$（同正）',
-      linked_card_ids:['mat0067','mat0070'], review_count:0, last_reviewed:null, notes:'关键：画函数草图，标出零点后按区间分析正负' },
+      linked_card_ids:['mat0067','mat0070'], review_count:0, last_reviewed:null, notes:'关键：画函数草图，标出零点后按区间分析正负',
+      homework_qid:'q10' },
     { id:'err-011', created_at:'2026-09-18T10:00:00Z', subject:'数学', problem_number:'Q11', source:'2025·湖南名校联盟',
       problem_text:'$f(x)$是奇函数，$x>0$时$f(x)=3^x-3$。(1)求解析式 (2)$f(x)=2a+3$恰有两个根求$a$范围',
       problem_image:'homework_crops/q11.jpg', knowledge_points:['奇函数','分段函数','求解析式','零点求参'],
       error_type:'方法错误', proficiency:2, student_answer:'$a\\in[-\\frac{5}{2},-\\frac{1}{2}]$', correct_answer:'$a\\in(-\\frac{5}{2},-\\frac{3}{2})\\cup(-\\frac{3}{2},-\\frac{1}{2})$', is_correct:false, is_solved:true,
       analysis:'(1)正确。(2)错因：用$\\leq$而非$<$（端点处只有1个根），且未排除$a=-\\frac{3}{2}$时3个根的情况',
-      linked_card_ids:['mat0153','mat0065','mat0063','mat0062'], review_count:0, last_reviewed:null, notes:'关键：边界等号需逐点检验，$k=0$时3个根要排除' },
+      linked_card_ids:['mat0153','mat0065','mat0063','mat0062'], review_count:0, last_reviewed:null, notes:'关键：边界等号需逐点检验，$k=0$时3个根要排除',
+      homework_qid:'q11' },
     { id:'err-012', created_at:'2026-09-18T10:00:00Z', subject:'数学', problem_number:'Q12', source:'解答题',
       problem_text:'$g(x)$偶$f(x)$奇，$g(x)+f(x)=e^x$。(1)求解析式 (2)$[g(x)]^2-[f(x)]^2$是否为定值',
       problem_image:'homework_crops/q12.jpg', knowledge_points:['奇函数','偶函数','构造方程组','求解析式'],
       error_type:'未掌握', proficiency:1, student_answer:'', correct_answer:'(1)$f=\\frac{e^x-e^{-x}}{2},g=\\frac{e^x+e^{-x}}{2}$ (2)定值1', is_correct:false, is_solved:false,
       analysis:'(1)联立$f+g=e^x$和$-f+g=e^{-x}$解得。 (2)$(g+f)(g-f)=e^x\\cdot e^{-x}=1$',
-      linked_card_ids:['mat0066','mat0068'], review_count:0, last_reviewed:null, notes:'与记忆卡mat0066几乎原题！构造方程组法' },
+      linked_card_ids:['mat0066','mat0068'], review_count:0, last_reviewed:null, notes:'与记忆卡mat0066几乎原题！构造方程组法',
+      homework_qid:'q12' },
     { id:'err-013', created_at:'2026-09-18T10:00:00Z', subject:'数学', problem_number:'Q13', source:'2026·贵阳模拟',
       problem_text:'$f(x)=\\frac{e^x-1}{e^x+1}$定义域$[-4,4]$，$f(m^2)+f(m-2)>0$求$m$范围',
       problem_image:'homework_crops/q13.jpg', knowledge_points:['奇函数','单调性','不等式','定义域约束'],
       error_type:'未掌握', proficiency:1, student_answer:'', correct_answer:'$m\\in(1,2]$', is_correct:false, is_solved:false,
       analysis:'①$f$为奇增函数 ②$f(m^2)>f(2-m)$→$m^2>2-m$→$m>1$或$m<-2$ ③定义域约束$-2\\leq m\\leq 2$ ④交集$(1,2]$',
-      linked_card_ids:['mat0068','mat0069','mat0053'], review_count:0, last_reviewed:null, notes:'关键：$f+f$型不等式去f后必须列定义域约束' },
+      linked_card_ids:['mat0068','mat0069','mat0053'], review_count:0, last_reviewed:null, notes:'关键：$f+f$型不等式去f后必须列定义域约束',
+      homework_qid:'q13' },
     { id:'err-014', created_at:'2026-09-18T10:00:00Z', subject:'数学', problem_number:'Q14', source:'2022·全国乙卷',
       problem_text:'$f(x)=\\ln|a+\\frac{1}{1-x}|+b$是奇函数，求$a$和$b$',
       problem_image:'homework_crops/q14.jpg', knowledge_points:['奇函数','定义域对称','求参数','对数函数'],
       error_type:'未掌握', proficiency:2, student_answer:'', correct_answer:'$a=-\\frac{1}{2}, b=\\ln 2$', is_correct:false, is_solved:false,
       analysis:'①定义域对称：$x=1$是奇点→$x=-1$也必须是奇点→$a+\\frac{1}{1-(-1)}=0$→$a=-\\frac{1}{2}$ ②$f(0)=\\ln\\frac{1}{2}+b=0$→$b=\\ln 2$',
-      linked_card_ids:['mat0058','mat0062','mat0121'], review_count:0, last_reviewed:null, notes:'关键：先保证定义域对称，再用$f(0)=0$求参' }
+      linked_card_ids:['mat0058','mat0062','mat0121'], review_count:0, last_reviewed:null, notes:'关键：先保证定义域对称，再用$f(0)=0$求参',
+      homework_qid:'q14' }
   ];
 }
 
@@ -678,9 +731,14 @@ async function init() {
     showView('dashboard');
     const pulled = await cloudPull();
     if (!pulled || state.errors.length === 0) {
-      state.errors = seedData();
-      await cloudPush();
-      showToast('已初始化14道错题数据');
+      const migrated = await migrateOldFormat();
+      if (!migrated) {
+        state.errors = seedData();
+        await cloudPushAll();
+        showToast('已初始化14道错题数据');
+      } else {
+        showToast('已从旧格式迁移为每题独立存储');
+      }
     }
     state.loaded = true;
     updateNavBadges();
@@ -960,11 +1018,13 @@ function openDetailModal(id) {
   const e = state.errors.find(x => x.id === id);
   if (!e) return;
   const stars = Array(5).fill(0).map((_,i) => `<span class="prof-star ${i<e.proficiency?'filled':''}" data-idx="${i}" data-err="${e.id}">★</span>`).join('');
+  const hwUrl = e.homework_qid ? `homework_analysis.html#${e.homework_qid}` : '';
   const modal = document.getElementById('modal');
   modal.innerHTML = `
     <div class="modal-header">
       <span class="q-badge ${e.is_correct?'correct':(e.is_solved?'wrong':'unsolved')}">${e.problem_number}</span>
       <h3>${e.source}</h3>
+      ${hwUrl ? `<a href="${hwUrl}" target="_blank" class="btn btn-sm btn-outline" style="margin-left:12px;font-size:12px;text-decoration:none">📋 查看作业批改原文</a>` : ''}
       <button class="modal-close" onclick="closeModal()">✕</button>
     </div>
     <div class="modal-body">
@@ -972,7 +1032,7 @@ function openDetailModal(id) {
         <h4>题干</h4>
         <div class="content">${e.problem_text}</div>
       </div>
-      ${e.problem_image ? `<div class="detail-section"><h4>原题截图</h4><img src="${e.problem_image}" alt="原题"></div>` : ''}
+      ${e.problem_image ? `<div class="detail-section"><h4>原题截图</h4><img src="${e.problem_image}" alt="原题" style="max-width:100%;border-radius:8px"></div>` : ''}
       <div class="detail-section">
         <h4>作答情况</h4>
         <div class="content">
@@ -984,6 +1044,14 @@ function openDetailModal(id) {
         <h4>题目分析</h4>
         <div class="content">${e.analysis}</div>
       </div>
+      ${e.homework_qid ? `
+        <div class="detail-section">
+          <h4>作业批改完整内容 <span style="font-size:12px;font-weight:400;color:var(--text-light)">（含函数图像/记忆卡契合分析）</span></h4>
+          <div id="hw-content" style="min-height:60px">
+            <button class="btn btn-sm btn-outline" onclick="loadHomeworkAnalysis('${e.id}')" style="margin:8px 0">📥 加载作业批改完整内容</button>
+          </div>
+        </div>
+      ` : ''}
       <div class="detail-section">
         <h4>熟练度</h4>
         <div class="prof-editor" onclick="event.stopPropagation()">${stars}</div>
@@ -1026,6 +1094,30 @@ function openDetailModal(id) {
   `;
   document.getElementById('modal-overlay').classList.add('show');
   typesetMath();
+}
+
+async function loadHomeworkAnalysis(errId) {
+  const e = state.errors.find(x => x.id === errId);
+  if (!e || !e.homework_qid) return;
+  const container = document.getElementById('hw-content');
+  container.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-light)">加载中...</div>';
+  try {
+    const res = await fetch('homework_analysis.html');
+    const html = await res.text();
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const section = doc.getElementById(e.homework_qid);
+    if (section) {
+      container.innerHTML = section.innerHTML;
+      typesetMath();
+    } else {
+      container.innerHTML = '<p style="color:var(--text-light)">未找到对应题目内容</p>';
+    }
+  } catch(err) {
+    container.innerHTML = `<div style="padding:12px;background:var(--danger-light);border-radius:8px;color:var(--danger);font-size:13px">
+      加载失败：${err.message}<br>
+      <a href="homework_analysis.html#${e.homework_qid}" target="_blank" style="color:var(--primary)">点击此处直接打开作业批改页面</a>
+    </div>`;
+  }
 }
 
 // ==================== Edit Modal ====================
@@ -1170,7 +1262,7 @@ function saveError(id) {
     state.errors.push(errData);
   }
   closeModal();
-  cloudPush();
+  cloudPushOne(errData.id);
   updateNavBadges();
   render();
   showToast(id ? '已更新' : '已添加');
@@ -1180,7 +1272,7 @@ function deleteError(id) {
   if (!confirm('确定删除这道错题？')) return;
   state.errors = state.errors.filter(e => e.id !== id);
   closeModal();
-  cloudPush();
+  cloudDeleteOne(id);
   updateNavBadges();
   render();
   showToast('已删除');
@@ -1191,7 +1283,7 @@ function setProficiency(errId, level) {
   const e = state.errors.find(x => x.id === errId);
   if (!e) return;
   e.proficiency = level + 1;
-  cloudPush();
+  cloudPushOne(errId);
   render();
 }
 
@@ -1384,7 +1476,7 @@ function saveCardFromError(errId, cardId) {
   if (!e.linked_card_ids.includes(cardId)) e.linked_card_ids.push(cardId);
   e.generated_card = { id: cardId, signal, conclusion, source_err: errId, created_at: new Date().toISOString() };
   closeModal();
-  cloudPush();
+  cloudPushOne(errId);
   render();
   showToast('记忆卡已生成并关联到错题');
 }
@@ -1483,7 +1575,7 @@ function markReviewed(errId) {
   e.review_count = (e.review_count || 0) + 1;
   e.last_reviewed = new Date().toISOString();
   if (e.proficiency < 5) e.proficiency++;
-  cloudPush();
+  cloudPushOne(e.id);
   closeModal();
   render();
   showToast(`已标记复习（第${e.review_count}次），熟练度+1`);
@@ -1536,7 +1628,7 @@ function importData() {
         const data = JSON.parse(ev.target.result);
         if (data.errors) {
           state.errors = data.errors;
-          cloudPush(); updateNavBadges(); render();
+          cloudPushAll(); updateNavBadges(); render();
           showToast('导入成功');
         }
       } catch(err) { showToast('导入失败：格式错误'); }
