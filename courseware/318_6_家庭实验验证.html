@@ -83,6 +83,22 @@
         </div>
       </div>
       <div id="balanceHint" class="badge-warn"></div>
+
+      <!-- 原题截图：点选 / 粘贴 / 拖入，自动存本地 -->
+      <div class="prob-img" data-key="cw3186_probimg" tabindex="0">
+        <div class="prob-img-head">
+          <b>原题图</b>
+          <button type="button" class="prob-img-btn" data-action="pick">选择图片</button>
+          <button type="button" class="prob-img-btn danger" data-action="clear">清除</button>
+        </div>
+        <div class="prob-img-body">
+          <div class="prob-img-empty">
+            <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.6"/><path d="M3 16l5-4 4 3 4-5 5 6"/></svg>
+            <p>此处放入原题截图<br>点「选择图片」，或直接 <b>Ctrl+V</b> 粘贴，也可将图片拖入本框</p>
+          </div>
+        </div>
+      </div>
+      <p class="note" style="margin-top:8px">截图保存在当前浏览器本地，刷新不丢失；换设备或清除浏览器数据后需重新粘贴。</p>
     </div>
 
     <!-- 右：参数控制台 -->
@@ -337,5 +353,6 @@ FP、FQ 水平分量 大小相等方向相反 → 相消
   render();
 })();
 </script>
+<script src="shared/engine.js"></script>
 </body>
 </html>

@@ -39,6 +39,10 @@
     </div>
   </section>
 
+  <!-- 双栏布局：参数控制台(左) + 动画沙盘(右)，窄屏自动叠放 -->
+  <div class="wrk">
+
+    <div class="sim-panel">
   <!-- 沙盘 -->
   <section class="card">
     <h2><span class="dot"></span>互动沙盘：合力 F 与实测力 F′</h2>
@@ -109,9 +113,33 @@
         <span><i style="border-top:2px dashed #cbd5e1"></i>AO 参考方向</span>
       </div>
     </div>
+  </section>
 
-    <!-- 参数控制台 -->
-    <div class="readouts" style="grid-template-columns:1fr 1fr 1fr;margin-top:14px">
+  <!-- 原题截图：点选 / 粘贴 / 拖入，自动存本地 -->
+  <section class="card">
+    <h2><span class="dot"></span>原题截图</h2>
+    <div class="prob-img" data-key="cw3171_probimg" tabindex="0">
+      <div class="prob-img-head">
+        <b>原题图</b>
+        <button type="button" class="prob-img-btn" data-action="pick">选择图片</button>
+        <button type="button" class="prob-img-btn danger" data-action="clear">清除</button>
+      </div>
+      <div class="prob-img-body">
+        <div class="prob-img-empty">
+          <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.6"/><path d="M3 16l5-4 4 3 4-5 5 6"/></svg>
+          <p>此处放入原题截图<br>点「选择图片」，或直接 <b>Ctrl+V</b> 粘贴，也可将图片拖入本框</p>
+        </div>
+      </div>
+    </div>
+    <p class="note" style="margin-top:8px">截图保存在当前浏览器本地，刷新不丢失；换设备或清除浏览器数据后需重新粘贴。</p>
+  </section>
+    </div><!-- /sim-panel -->
+
+    <div class="param-panel">
+  <!-- 参数控制台 -->
+  <section class="card">
+    <h2><span class="dot"></span>参数控制台</h2>
+    <div class="readouts" style="grid-template-columns:1fr 1fr 1fr">
       <div class="ro"><div class="k">分力 F₁</div><div class="v" id="rF1">2.0</div><div class="u">N</div></div>
       <div class="ro"><div class="k">分力 F₂</div><div class="v" id="rF2">2.0</div><div class="u">N</div></div>
       <div class="ro"><div class="k">合力大小 |F|</div><div class="v" id="rFm">3.5</div><div class="u">N</div></div>
@@ -150,6 +178,8 @@
       <b>互动重点（对应第 3 问）：</b>拖动 F₁、F₂ 时，合力 <b>F</b>（红色虚对角线）会不断随两分力变化，<span class="ok" style="color:var(--success)">不一定沿 AO</span>；而单独用一个弹簧测力计实际测出的力 <b>F′</b>（绿色实线）的<span style="color:var(--danger)">方向恒定沿 AO</span>。正是因此，实验规定用实际力 F′ 与理论合力 F 比较来验证规律，且 <b>F′ 一定沿 AO、F 不一定</b>。
     </div>
   </section>
+    </div><!-- /param-panel -->
+  </div><!-- /wrk -->
 
   <!-- 三问判定 -->
   <section class="card opts">
@@ -377,5 +407,6 @@
   resetSliders();
 })();
 </script>
+<script src="shared/engine.js"></script>
 </body>
 </html>

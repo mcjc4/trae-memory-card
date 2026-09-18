@@ -80,3 +80,32 @@ input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;bac
 .footer{margin-top:26px;text-align:center;color:var(--text-light);font-size:12px}
 a.back{color:var(--primary);text-decoration:none;font-weight:600}
 a.back:hover{text-decoration:underline}
+
+/* ===== 宽屏双栏：参数控制台(左) + 动画沙盘(右) ===== */
+.wrk{display:grid;gap:18px;align-items:start;grid-template-columns:1fr}
+.wrk .sim-panel{min-width:0}
+@media(min-width:1000px){
+  .wrk{grid-template-columns:minmax(0,1fr) minmax(285px,352px)}
+  .wrk .param-panel{position:sticky;top:16px}
+}
+@media(min-width:1000px) and (min-height:760px){
+  .wrk .stage svg{max-height:68vh}
+}
+@media(max-width:999px){
+  .wrk .sim-panel{grid-row:1}
+}
+
+/* ===== 原题截图框（点选 / 粘贴 / 本地保存） ===== */
+.prob-img{border:1.5px dashed var(--border);border-radius:var(--radius);background:#fafbff;overflow:hidden;position:relative;outline:none}
+.prob-img:focus{border-color:var(--primary)}
+.prob-img-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 12px;border-bottom:1px dashed var(--border);font-size:12px;color:var(--text-light)}
+.prob-img-head b{color:var(--text)}
+.prob-img-btn{margin-left:auto;font-size:12px;font-weight:700;padding:5px 12px;border-radius:6px;border:1px solid var(--primary);background:#fff;color:var(--primary);cursor:pointer;font-family:var(--font);transition:all .15s}
+.prob-img-btn:hover{background:var(--primary-light)}
+.prob-img-btn.danger{border-color:var(--danger);color:var(--danger);background:#fff}
+.prob-img-btn.danger:hover{background:var(--danger-light)}
+.prob-img-body{min-height:120px;position:relative;display:flex;align-items:center;justify-content:center}
+.prob-img-empty{color:var(--text-light);text-align:center;font-size:13px;line-height:1.7;padding:22px}
+.prob-img-empty svg{margin:0 auto 8px;display:block;opacity:.5}
+.prob-img-img{width:100%;max-height:520px;object-fit:contain;display:block;background:#fff}
+.prob-img.pasting{border-color:var(--success);box-shadow:0 0 0 3px rgba(22,163,74,.15)}

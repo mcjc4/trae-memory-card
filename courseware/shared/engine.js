@@ -125,3 +125,66 @@
     if(!window.__simStarted){ window.__simStarted=true; initSim(window.SIM_CFG); }
   };
 })();
+
+/* ===== 原题截图：点击选择 / Ctrl+V 粘贴 / 自动存本地 =====
+ * 页面放 <div class="prob-img" data-key="...">，脚本自动初始化（见题干框头栏） */
+(function(){
+  'use strict';
+  function initProbImg(scope){
+    var roots = (scope && scope.querySelectorAll ? scope.querySelectorAll('.prob-img') : document.querySelectorAll('.prob-img'));
+    Array.prototype.forEach.call(roots, function(root){
+      if(root.dataset && root.dataset.probReady) return;
+      if(root.dataset) root.dataset.probReady='1';
+      var key = root.getAttribute('data-key') || ('probimg_'+Math.random().toString(36).slice(2));
+      var body = root.querySelector('.prob-img-body');
+      var empty = root.querySelector('.prob-img-empty');
+      if(!body) return;
+      var img = null;
+      var fileInput = document.createElement('input');
+      fileInput.type='file'; fileInput.accept='image/*'; fileInput.style.display='none';
+      document.body.appendChild(fileInput);
+
+      function show(src){
+        if(!img){ img=document.createElement('img'); img.className='prob-img-img'; body.appendChild(img); }
+        img.src=src;
+        if(empty) empty.style.display='none';
+        try{ localStorage.setItem(key, src); }catch(_){}
+      }
+      function clearAll(){
+        if(img){ img.remove(); img=null; }
+        if(empty) empty.style.display='';
+        try{ localStorage.removeItem(key); }catch(_){}
+      }
+      function readFile(f){
+        if(!f || !/^image\//.test(f.type)) return;
+        var r=new FileReader();
+        r.onload=function(){ show(r.result); };
+        r.readAsDataURL(f);
+      }
+      // 恢复已保存
+      try{ var saved=localStorage.getItem(key); if(saved){ show(saved); } }catch(_){}
+      // 按钮
+      root.addEventListener('click', function(ev){
+        var a = ev.target.closest ? ev.target.closest('[data-action]') : null;
+        if(!a) return;
+        if(a.getAttribute('data-action')==='pick'){ fileInput.click(); }
+        else if(a.getAttribute('data-action')==='clear'){ clearAll(); }
+      });
+      fileInput.addEventListener('change', function(){ var f=fileInput.files && fileInput.files[0]; if(f) readFile(f); fileInput.value=''; });
+      // 粘贴
+      root.addEventListener('paste', function(ev){
+        var items = (ev.clipboardData && ev.clipboardData.items) || [];
+        for(var i=0;i<items.length;i++){ var it=items[i]; if(it.type && it.type.indexOf('image')===0){ var f=it.getAsFile(); if(f){ ev.preventDefault(); readFile(f); break; } } }
+      });
+      // 拖放
+      root.addEventListener('dragover', function(ev){ ev.preventDefault(); root.classList.add('pasting'); });
+      root.addEventListener('dragleave', function(){ root.classList.remove('pasting'); });
+      root.addEventListener('drop', function(ev){ ev.preventDefault(); root.classList.remove('pasting'); var f=ev.dataTransfer && ev.dataTransfer.files && ev.dataTransfer.files[0]; if(f) readFile(f); });
+      if(root.tabIndex<0) root.tabIndex=0;
+    });
+  }
+  window.SimKit = window.SimKit || {};
+  window.SimKit.initProbImg = initProbImg;
+  if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', function(){ initProbImg(); }); }
+  else initProbImg();
+})();
