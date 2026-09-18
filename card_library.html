@@ -188,6 +188,100 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 
 <button class="hamburger" onclick="toggleSidebar()">☰</button>
 
+<!-- Training CSS -->
+<style>
+/* Training Mode */
+.train-card-display {
+  max-width: 700px; margin: 0 auto;
+}
+.train-progress {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 20px;
+}
+.train-progress .progress-bar {
+  flex: 1; height: 8px; background: var(--border); border-radius: 4px; overflow: hidden;
+}
+.train-progress .progress-fill { height: 100%; background: var(--primary); border-radius: 4px; transition: width 0.3s; }
+.train-progress .progress-text { font-size: 13px; color: var(--text-light); white-space: nowrap; }
+.train-flashcard {
+  background: var(--bg-card); border-radius: 16px; padding: 32px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08); border: 1px solid var(--border);
+  min-height: 320px; display: flex; flex-direction: column;
+}
+.train-card-id { font-family: monospace; font-size: 13px; color: var(--primary); margin-bottom: 8px; font-weight: 600; }
+.train-card-chapter { font-size: 14px; color: var(--text-light); margin-bottom: 20px; }
+.train-question-prompt {
+  font-size: 16px; font-weight: 600; margin-bottom: 16px;
+  padding: 12px 16px; background: var(--info-light); border-radius: 8px;
+  display: flex; align-items: center; gap: 8px;
+}
+.train-signal-box {
+  background: var(--info-light); border-radius: 10px; padding: 16px 20px; margin-bottom: 16px;
+  border-left: 4px solid var(--info);
+}
+.train-signal-box .label { font-size: 11px; font-weight: 700; color: var(--info); display: block; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+.train-signal-box .content { font-size: 15px; line-height: 1.6; }
+.train-answer-area { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.train-reveal-btn {
+  padding: 14px 36px; font-size: 16px; border: 2px dashed var(--primary); border-radius: 12px;
+  background: transparent; color: var(--primary); cursor: pointer; transition: all 0.2s; font-weight: 600;
+}
+.train-reveal-btn:hover { background: var(--primary-light); }
+.train-answer-box {
+  background: var(--success-light); border-radius: 10px; padding: 16px 20px;
+  border-left: 4px solid var(--success); width: 100%;
+  animation: slideDown 0.3s ease;
+}
+.train-answer-box .label { font-size: 11px; font-weight: 700; color: var(--success); display: block; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+.train-answer-box .content { font-size: 15px; line-height: 1.6; }
+.train-problem-box { font-size: 13px; color: var(--text-light); margin-top: 12px; padding: 10px 14px; background: var(--bg); border-radius: 8px; line-height: 1.5; }
+@keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+.train-rating {
+  display: flex; gap: 12px; margin-top: 20px; justify-content: center;
+}
+.train-rate-btn {
+  padding: 12px 24px; border: none; border-radius: 10px; font-size: 14px; font-weight: 600;
+  cursor: pointer; transition: all 0.15s; display: flex; flex-direction: column; align-items: center; gap: 2px;
+}
+.train-rate-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+.train-rate-btn .rate-label { font-size: 16px; }
+.train-rate-btn .rate-desc { font-size: 10px; opacity: 0.8; }
+.rate-1 { background: var(--danger); color: white; }
+.rate-2 { background: var(--warning); color: white; }
+.rate-3 { background: #fbbf24; color: white; }
+.rate-4 { background: var(--info); color: white; }
+.rate-5 { background: var(--success); color: white; }
+.train-meta { display: flex; gap: 16px; margin-top: 16px; justify-content: center; font-size: 12px; color: var(--text-lighter); }
+.train-meta .meta-item { display: flex; align-items: center; gap: 4px; }
+.train-empty { text-align: center; padding: 60px 20px; }
+.train-empty h2 { font-size: 24px; margin-bottom: 12px; }
+.train-empty p { color: var(--text-light); margin-bottom: 20px; }
+.train-complete { text-align: center; padding: 60px 20px; }
+.train-complete h2 { font-size: 28px; margin-bottom: 12px; color: var(--success); }
+.train-stats { display: flex; gap: 20px; justify-content: center; margin: 24px 0; }
+.train-stat { text-align: center; }
+.train-stat .val { font-size: 32px; font-weight: 700; color: var(--primary); }
+.train-stat .lbl { font-size: 12px; color: var(--text-light); }
+/* SRS level badges */
+.srs-level { display: inline-block; width: 24px; height: 24px; border-radius: 50%; font-size: 11px; font-weight: 700; line-height: 24px; text-align: center; }
+.srs-0 { background: var(--danger-light); color: var(--danger); }
+.srs-1 { background: var(--warning-light); color: var(--warning); }
+.srs-2 { background: #fef3c7; color: #d97706; }
+.srs-3 { background: var(--info-light); color: var(--info); }
+.srs-4 { background: var(--success-light); color: var(--success); }
+.srs-5 { background: #ddd6fe; color: #7c3aed; }
+.srs-6 { background: #c7d2fe; color: #4338ca; }
+.srs-7 { background: #a7f3d0; color: #047857; }
+/* Train dashboard */
+.srs-overview { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px,1fr)); gap: 12px; margin-bottom: 24px; }
+.srs-bin { background: var(--bg-card); border-radius: 10px; padding: 16px; text-align: center; border: 1px solid var(--border); }
+.srs-bin .bin-count { font-size: 28px; font-weight: 700; }
+.srs-bin .bin-label { font-size: 11px; color: var(--text-light); margin-top: 4px; }
+.train-log { background: var(--bg-card); border-radius: 10px; padding: 16px; border: 1px solid var(--border); margin-top: 16px; }
+.train-log h3 { font-size: 14px; margin-bottom: 8px; }
+.log-entry { display: flex; align-items: center; gap: 8px; padding: 4px 0; font-size: 12px; border-bottom: 1px solid var(--border); }
+.log-entry:last-child { border: none; }
+</style>
+
 <div class="sidebar" id="sidebar">
   <div class="sidebar-header">
     <h1>🧠 记忆卡库</h1>
@@ -199,6 +293,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
   <div class="nav-item" data-view="excel" onclick="showView('excel')">📚 Excel导入卡 <span class="badge" id="nav-excel">0</span></div>
   <div class="nav-item" data-view="error" onclick="showView('error')">✏️ 错题生成卡 <span class="badge" id="nav-error">0</span></div>
   <div class="nav-item" data-view="linked" onclick="showView('linked')">🔗 已关联错题 <span class="badge" id="nav-linked">0</span></div>
+  <div class="nav-section-title">训练</div>
+  <div class="nav-item" data-view="train-dashboard" onclick="showView('train-dashboard')">🏋️ 训练总览 <span class="badge" id="nav-due" style="background:var(--danger)">0</span></div>
+  <div class="nav-item" onclick="startTraining('due')">🔥 今日复习 <span class="badge" id="nav-today">0</span></div>
+  <div class="nav-item" onclick="startTraining('new')">🆕 学习新卡</div>
+  <div class="nav-item" onclick="startTraining('random')">🎲 随机抽查</div>
   <div class="nav-section-title">工具</div>
   <div class="nav-item" onclick="openAddModal()">➕ 新建记忆卡</div>
   <div class="nav-item" onclick="exportData()">💾 导出JSON</div>
@@ -231,7 +330,12 @@ let state = {
   cards: [],
   view: 'dashboard',
   filter: { search: '', chapter: '', source: '' },
-  loaded: false
+  loaded: false,
+  srs: {},          // cardId -> { level, nextReview, lastReview, reviewCount, history:[] }
+  trainQueue: [],   // current training session cards
+  trainIdx: 0,
+  trainRevealed: false,
+  trainSession: { total: 0, correct: 0, ratings: [] }
 };
 
 // ==================== Init ====================
@@ -240,6 +344,8 @@ async function init() {
   if (typeof CARDS_DATA !== 'undefined') {
     state.cards = CARDS_DATA.map(c => ({ ...c, origin: 'excel' }));
   }
+  // Load SRS state
+  loadSRS();
   // Load user-created / error-generated cards from Supabase
   await cloudPull();
   state.loaded = true;
@@ -326,6 +432,132 @@ async function pullErrorBookCards() {
   } catch(e) { console.warn('pullErrorBookCards error:', e); }
 }
 
+// ==================== SRS (Spaced Repetition) ====================
+const SRS_INTERVALS = [0, 1, 2, 4, 7, 15, 30, 60, 120]; // days per level
+const SRS_MAX_LEVEL = 8;
+const SRS_NEW_PER_DAY = 20;
+
+function loadSRS() {
+  try {
+    const saved = localStorage.getItem('card_srs');
+    if (saved) state.srs = JSON.parse(saved);
+  } catch(e) { state.srs = {}; }
+}
+
+function saveSRS() {
+  try { localStorage.setItem('card_srs', JSON.stringify(state.srs)); } catch(e) {}
+}
+
+function getSRS(cardId) {
+  if (!state.srs[cardId]) return { level: 0, nextReview: Date.now(), lastReview: null, reviewCount: 0, history: [] };
+  return state.srs[cardId];
+}
+
+function getDueCards() {
+  const now = Date.now();
+  return state.cards.filter(c => {
+    const srs = getSRS(c.id);
+    return srs.nextReview <= now;
+  });
+}
+
+function getNewCards(limit) {
+  return state.cards.filter(c => !state.srs[c.id]).slice(0, limit || SRS_NEW_PER_DAY);
+}
+
+function getTodayNewCount() {
+  const today = new Date().toDateString();
+  return Object.values(state.srs).filter(s => {
+    return s.history && s.history.some(h => h.date === today && h.wasNew);
+  }).length;
+}
+
+function rateCard(cardId, rating) {
+  const srs = getSRS(cardId);
+  const wasNew = srs.level === 0 && srs.reviewCount === 0;
+  const today = new Date().toDateString();
+
+  let newLevel = srs.level;
+  if (rating <= 1) {
+    newLevel = 0; // forgot completely, restart
+  } else if (rating === 2) {
+    newLevel = Math.max(0, srs.level); // stay same level
+  } else if (rating === 3) {
+    newLevel = Math.min(SRS_MAX_LEVEL, srs.level + 1);
+  } else if (rating === 4) {
+    newLevel = Math.min(SRS_MAX_LEVEL, srs.level + 2);
+  } else {
+    newLevel = Math.min(SRS_MAX_LEVEL, srs.level + 3);
+  }
+
+  const intervalDays = SRS_INTERVALS[newLevel];
+  const nextReview = Date.now() + intervalDays * 86400000;
+
+  srs.level = newLevel;
+  srs.lastReview = Date.now();
+  srs.nextReview = nextReview;
+  srs.reviewCount = (srs.reviewCount || 0) + 1;
+  if (!srs.history) srs.history = [];
+  srs.history.push({ date: today, rating, wasNew });
+  if (srs.history.length > 30) srs.history = srs.history.slice(-30);
+
+  state.srs[cardId] = srs;
+  saveSRS();
+  state.trainSession.ratings.push(rating);
+  if (rating >= 3) state.trainSession.correct++;
+}
+
+function getDueCount() { return getDueCards().length; }
+
+// ==================== Training ====================
+function startTraining(mode) {
+  let queue = [];
+  if (mode === 'due') {
+    queue = getDueCards();
+  } else if (mode === 'new') {
+    queue = getNewCards(SRS_NEW_PER_DAY);
+  } else if (mode === 'random') {
+    queue = [...state.cards].sort(() => Math.random() - 0.5).slice(0, 30);
+  }
+  if (queue.length === 0) {
+    state.view = 'train-empty';
+    state.trainMode = mode;
+    render();
+    return;
+  }
+  state.trainQueue = queue;
+  state.trainIdx = 0;
+  state.trainRevealed = false;
+  state.trainSession = { total: queue.length, correct: 0, ratings: [], mode };
+  state.view = 'train-session';
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  if (window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
+  render();
+}
+
+function revealCard() {
+  state.trainRevealed = true;
+  render();
+}
+
+function rateAndNext(rating) {
+  const card = state.trainQueue[state.trainIdx];
+  rateCard(card.id, rating);
+  state.trainIdx++;
+  state.trainRevealed = false;
+  if (state.trainIdx >= state.trainQueue.length) {
+    state.view = 'train-complete';
+    updateNavBadges();
+  }
+  render();
+}
+
+function exitTraining() {
+  state.trainQueue = [];
+  state.trainIdx = 0;
+  showView('train-dashboard');
+}
+
 // ==================== Navigation ====================
 function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
 
@@ -342,10 +574,14 @@ function updateNavBadges() {
   const excelCount = state.cards.filter(c => c.origin === 'excel').length;
   const errorCount = state.cards.filter(c => c.origin === 'error').length;
   const linkedCount = state.cards.filter(c => c.source_err_id || c.linked_errors).length;
+  const dueCount = getDueCount();
+  const todayNew = getTodayNewCount();
   document.getElementById('nav-total').textContent = state.cards.length;
   document.getElementById('nav-excel').textContent = excelCount;
   document.getElementById('nav-error').textContent = errorCount;
   document.getElementById('nav-linked').textContent = linkedCount;
+  document.getElementById('nav-due').textContent = dueCount;
+  document.getElementById('nav-today').textContent = dueCount;
 }
 
 // ==================== MathJax ====================
@@ -359,9 +595,165 @@ function typesetMath() {
 function render() {
   const container = document.getElementById('view-content');
   if (state.view === 'dashboard') container.innerHTML = renderDashboard();
+  else if (state.view === 'train-dashboard') container.innerHTML = renderTrainDashboard();
+  else if (state.view === 'train-session') container.innerHTML = renderTrainSession();
+  else if (state.view === 'train-empty') container.innerHTML = renderTrainEmpty();
+  else if (state.view === 'train-complete') container.innerHTML = renderTrainComplete();
   else container.innerHTML = renderGrid();
   typesetMath();
   bindCardClicks();
+}
+
+function renderTrainDashboard() {
+  const due = getDueCards();
+  const newCards = state.cards.filter(c => !state.srs[c.id]);
+  const todayNew = getTodayNewCount();
+  const totalTrained = Object.keys(state.srs).length;
+  const mastered = Object.values(state.srs).filter(s => s.level >= 6).length;
+  const learning = Object.values(state.srs).filter(s => s.level >= 1 && s.level < 6).length;
+
+  // SRS level distribution
+  const bins = Array(9).fill(0);
+  Object.values(state.srs).forEach(s => bins[Math.min(s.level, 8)]++);
+  const binLabels = ['未学', 'L1\n1天', 'L2\n2天', 'L3\n4天', 'L4\n7天', 'L5\n15天', 'L6\n30天', 'L7\n60天', 'L8\n120天'];
+
+  // Recent reviews
+  const today = new Date().toDateString();
+  const todayReviews = Object.entries(state.srs).filter(([id, s]) => s.history && s.history.some(h => h.date === today));
+
+  return `
+    <div class="page-header"><div class="page-title">🏋️ 训练总览</div></div>
+    <div class="stats-grid">
+      <div class="stat-card" onclick="startTraining('due')"><div class="label">待复习</div><div class="value" style="color:var(--danger)">${due.length}</div><div class="sub">到期未练</div></div>
+      <div class="stat-card" onclick="startTraining('new')"><div class="label">新卡待学</div><div class="value" style="color:var(--info)">${Math.min(newCards.length, SRS_NEW_PER_DAY)}</div><div class="sub">今日上限${SRS_NEW_PER_DAY}</div></div>
+      <div class="stat-card"><div class="label">已学过</div><div class="value" style="color:var(--primary)">${totalTrained}</div><div class="sub">/ ${state.cards.length}</div></div>
+      <div class="stat-card"><div class="label">已掌握</div><div class="value" style="color:var(--success)">${mastered}</div><div class="sub">L6+ 高级</div></div>
+      <div class="stat-card"><div class="label">学习中</div><div class="value" style="color:var(--warning)">${learning}</div><div class="sub">L1-L5</div></div>
+      <div class="stat-card"><div class="label">今日已练</div><div class="value" style="color:#8b5cf6">${todayReviews.length}</div><div class="sub">张卡</div></div>
+    </div>
+    <div class="chapter-list">
+      <h3>📊 SRS 等级分布</h3>
+      <div class="srs-overview">
+        ${bins.map((cnt, i) => `
+          <div class="srs-bin">
+            <div class="bin-count"><span class="srs-level srs-${i}">${i}</span></div>
+            <div class="bin-count" style="margin-top:4px">${cnt}</div>
+            <div class="bin-label">${binLabels[i].replace('\n',' ')}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+    ${due.length > 0 ? `
+      <div style="text-align:center;margin:20px 0">
+        <button class="btn btn-primary" style="padding:14px 36px;font-size:16px" onclick="startTraining('due')">🔥 开始复习（${due.length}张）</button>
+      </div>
+    ` : `
+      <div style="text-align:center;margin:20px 0;color:var(--success);font-size:18px">
+        ✅ 今日复习已完成！
+      </div>
+    `}
+    ${todayReviews.length > 0 ? `
+      <div class="train-log">
+        <h3>📝 今日训练记录（${todayReviews.length}条）</h3>
+        ${todayReviews.slice(0, 20).map(([id, s]) => {
+          const card = state.cards.find(c => c.id === id);
+          const lastH = s.history[s.history.length - 1];
+          const ratingColors = {1:'var(--danger)',2:'var(--warning)',3:'#fbbf24',4:'var(--info)',5:'var(--success)'};
+          return `<div class="log-entry">
+            <span class="card-id">${id}</span>
+            <span style="flex:1;color:var(--text-light)">${card ? (card.chapter||'').substring(0,30) : ''}</span>
+            <span style="color:${ratingColors[lastH.rating]||''}">★${lastH.rating}</span>
+            <span class="srs-level srs-${s.level}">${s.level}</span>
+          </div>`;
+        }).join('')}
+      </div>
+    ` : ''}
+  `;
+}
+
+function renderTrainSession() {
+  if (state.trainIdx >= state.trainQueue.length) return renderTrainComplete();
+  const card = state.trainQueue[state.trainIdx];
+  const srs = getSRS(card.id);
+  const progress = ((state.trainIdx) / state.trainQueue.length * 100).toFixed(0);
+  const modeLabel = { due:'复习', new:'新学', random:'抽查' }[state.trainSession.mode] || '训练';
+
+  return `
+    <div class="train-card-display">
+      <div class="train-progress">
+        <div class="progress-text">${state.trainIdx + 1} / ${state.trainQueue.length}</div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${progress}%"></div></div>
+        <button class="btn btn-sm btn-outline" onclick="exitTraining()">退出</button>
+      </div>
+      <div class="train-flashcard">
+        <div class="train-card-id">${card.id} ${srs.reviewCount > 0 ? `<span class="srs-level srs-${srs.level}">${srs.level}</span>` : '<span style="font-size:11px;color:var(--info)">🆕 新卡</span>'}</div>
+        <div class="train-card-chapter">${card.chapter || ''}</div>
+        <div class="train-question-prompt">💭 看到这个信号，你能想到什么？</div>
+        <div class="train-signal-box">
+          <span class="label">题干信号</span>
+          <div class="content">${card.signal || '（无信号）'}</div>
+        </div>
+        ${state.trainRevealed ? `
+          <div class="train-answer-box">
+            <span class="label">结论 / 易错点</span>
+            <div class="content">${card.conclusion || '（无结论）'}</div>
+          </div>
+          ${card.problem ? `<div class="train-problem-box">📌 ${card.problem}</div>` : ''}
+          <div class="train-rating">
+            <button class="train-rate-btn rate-1" onclick="rateAndNext(1)"><span class="rate-label">😵</span><span class="rate-desc">完全忘了<br>重来</span></button>
+            <button class="train-rate-btn rate-2" onclick="rateAndNext(2)"><span class="rate-label">😬</span><span class="rate-desc">勉强记得<br>维持</span></button>
+            <button class="train-rate-btn rate-3" onclick="rateAndNext(3)"><span class="rate-label">🙂</span><span class="rate-desc">想起来了<br>+1级</span></button>
+            <button class="train-rate-btn rate-4" onclick="rateAndNext(4)"><span class="rate-label">😊</span><span class="rate-desc">很顺利<br>+2级</span></button>
+            <button class="train-rate-btn rate-5" onclick="rateAndNext(5)"><span class="rate-label">🤩</span><span class="rate-desc">秒答<br>+3级</span></button>
+          </div>
+        ` : `
+          <div class="train-answer-area">
+            <button class="train-reveal-btn" onclick="revealCard()">👆 点击显示答案</button>
+          </div>
+        `}
+        <div class="train-meta">
+          <div class="meta-item">📖 ${modeLabel}模式</div>
+          <div class="meta-item">🔄 已练${srs.reviewCount}次</div>
+          ${srs.nextReview > Date.now() ? `<div class="meta-item">⏰ 下次: ${new Date(srs.nextReview).toLocaleDateString('zh-CN')}</div>` : ''}
+          ${card.source ? `<div class="meta-item">📚 ${card.source.substring(0,20)}</div>` : ''}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderTrainEmpty() {
+  const modeLabel = { due:'复习', new:'新学', random:'抽查' }[state.trainMode] || '训练';
+  return `
+    <div class="train-empty">
+      <h2>🎉 暂无${modeLabel}任务</h2>
+      <p>${state.trainMode === 'due' ? '所有到期卡片已复习完毕，干得漂亮！' : state.trainMode === 'new' ? '今日新卡已学完，明天继续！' : '没有卡片可抽查'}</p>
+      <button class="btn btn-primary" onclick="showView('train-dashboard')">← 返回训练总览</button>
+    </div>
+  `;
+}
+
+function renderTrainComplete() {
+  const s = state.trainSession;
+  const avg = s.ratings.length > 0 ? (s.ratings.reduce((a,b)=>a+b,0) / s.ratings.length).toFixed(1) : 0;
+  const rate = s.total > 0 ? (s.correct / s.total * 100).toFixed(0) : 0;
+  const modeLabel = { due:'复习', new:'新学', random:'抽查' }[s.mode] || '训练';
+  return `
+    <div class="train-complete">
+      <h2>🎉 ${modeLabel}完成！</h2>
+      <p>本次训练${s.total}张卡片</p>
+      <div class="train-stats">
+        <div class="train-stat"><div class="val">${s.total}</div><div class="lbl">总卡片</div></div>
+        <div class="train-stat"><div class="val" style="color:var(--success)">${s.correct}</div><div class="lbl">答对(≥3分)</div></div>
+        <div class="train-stat"><div class="val" style="color:var(--primary)">${rate}%</div><div class="lbl">正确率</div></div>
+        <div class="train-stat"><div class="val" style="color:var(--warning)">${avg}</div><div class="lbl">平均评分</div></div>
+      </div>
+      <div style="display:flex;gap:12px;justify-content:center">
+        <button class="btn btn-outline" onclick="showView('train-dashboard')">📊 训练总览</button>
+        <button class="btn btn-primary" onclick="startTraining('due')">🔥 继续复习</button>
+      </div>
+    </div>
+  `;
 }
 
 function renderDashboard() {
