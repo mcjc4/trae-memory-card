@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>记忆卡库</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" id="MathJax-script" async></script>
+<script src="cards_data.js"></script>
+<style>
+:root {
+  --primary: #6366f1;
+  --primary-light: #e0e7ff;
+  --primary-dark: #4f46e5;
+  --secondary: #ec4899;
+  --success: #10b981;
+  --success-light: #d1fae5;
+  --danger: #ef4444;
+  --danger-light: #fee2e2;
+  --warning: #f59e0b;
+  --warning-light: #fef3c7;
+  --info: #3b82f6;
+  --info-light: #dbeafe;
+  --bg: #f8fafc;
+  --bg-card: #ffffff;
+  --text: #1e293b;
+  --text-light: #64748b;
+  --text-lighter: #94a3b8;
+  --border: #e2e8f0;
+  --sidebar-w: 260px;
+  --radius: 12px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); }
+
+/* Sidebar */
+.sidebar {
+  position: fixed; left: 0; top: 0; bottom: 0; width: var(--sidebar-w);
+  background: linear-gradient(180deg, #4f46e5 0%, #6366f1 50%, #8b5cf6 100%);
+  color: white; padding: 20px 0; z-index: 100;
+  display: flex; flex-direction: column;
+  transform: translateX(0); transition: transform 0.3s;
+}
+.sidebar-header { padding: 0 20px 20px; border-bottom: 1px solid rgba(255,255,255,0.15); }
+.sidebar-header h1 { font-size: 20px; font-weight: 700; }
+.sidebar-header p { font-size: 12px; opacity: 0.7; margin-top: 4px; }
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 20px; cursor: pointer; transition: background 0.2s;
+  font-size: 14px; color: rgba(255,255,255,0.85);
+}
+.nav-item:hover { background: rgba(255,255,255,0.1); color: white; }
+.nav-item.active { background: rgba(255,255,255,0.2); color: white; font-weight: 600; }
+.nav-item .badge { margin-left: auto; background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 10px; font-size: 11px; }
+.nav-section-title { padding: 16px 20px 8px; font-size: 11px; text-transform: uppercase; opacity: 0.5; letter-spacing: 1px; }
+
+/* Main */
+.main { margin-left: var(--sidebar-w); padding: 20px 24px; max-width: 1600px; }
+.page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+.page-title { font-size: 24px; font-weight: 700; }
+
+/* Hamburger */
+.hamburger { display: none; position: fixed; top: 12px; left: 12px; z-index: 101; background: var(--primary); color: white; border: none; border-radius: 8px; width: 40px; height: 40px; font-size: 20px; cursor: pointer; }
+
+/* Search bar */
+.search-bar { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+.search-bar input, .search-bar select {
+  padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; background: white;
+}
+.search-bar input { flex: 1; min-width: 200px; }
+.search-bar select { min-width: 120px; }
+
+/* Stats cards */
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px; }
+.stat-card {
+  background: var(--bg-card); border-radius: var(--radius); padding: 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06); border: 1px solid var(--border);
+  cursor: pointer; transition: transform 0.15s, box-shadow 0.15s;
+}
+.stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+.stat-card .label { font-size: 12px; color: var(--text-light); margin-bottom: 8px; }
+.stat-card .value { font-size: 32px; font-weight: 700; }
+.stat-card .sub { font-size: 12px; color: var(--text-lighter); margin-top: 4px; }
+
+/* Chapter distribution */
+.chapter-list { background: var(--bg-card); border-radius: var(--radius); padding: 20px; border: 1px solid var(--border); margin-bottom: 24px; }
+.chapter-list h3 { font-size: 16px; margin-bottom: 12px; }
+.chapter-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.chapter-bar .ch-name { width: 120px; font-size: 12px; color: var(--text-light); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chapter-bar .ch-bar-bg { flex: 1; height: 20px; background: var(--border); border-radius: 4px; overflow: hidden; }
+.chapter-bar .ch-bar-fg { height: 100%; background: var(--primary); border-radius: 4px; transition: width 0.5s; }
+.chapter-bar .ch-count { width: 40px; font-size: 12px; text-align: right; color: var(--text-light); }
+
+/* Card grid */
+.card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 16px; }
+.card-item {
+  background: var(--bg-card); border-radius: var(--radius); padding: 18px;
+  border: 1px solid var(--border); border-left: 4px solid var(--primary);
+  transition: box-shadow 0.15s, transform 0.15s; position: relative;
+  cursor: pointer;
+}
+.card-item:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); transform: translateY(-1px); }
+.card-item.from-error { border-left-color: var(--secondary); }
+.card-item .card-top { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+.card-id { font-family: monospace; font-size: 11px; background: var(--primary-light); color: var(--primary-dark); padding: 2px 8px; border-radius: 4px; font-weight: 600; }
+.card-from-error .card-id { background: #fce7f3; color: #be185d; }
+.card-chapter { font-size: 11px; color: var(--text-light); }
+.card-source { font-size: 11px; color: var(--text-lighter); margin-left: auto; }
+.card-note { font-size: 11px; color: var(--warning); }
+.card-signal { background: var(--info-light); border-radius: 6px; padding: 8px 10px; margin-bottom: 8px; font-size: 13px; line-height: 1.5; }
+.card-signal .label { font-size: 10px; font-weight: 700; color: var(--info); display: block; margin-bottom: 2px; }
+.card-conclusion { background: var(--success-light); border-radius: 6px; padding: 8px 10px; margin-bottom: 8px; font-size: 13px; line-height: 1.5; }
+.card-conclusion .label { font-size: 10px; font-weight: 700; color: var(--success); display: block; margin-bottom: 2px; }
+.card-problem { font-size: 12px; color: var(--text-light); line-height: 1.5; margin-bottom: 8px; }
+.card-footer { display: flex; align-items: center; gap: 8px; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); }
+.card-linked-errors { font-size: 11px; color: var(--text-lighter); }
+.card-linked-errors a { color: var(--primary); text-decoration: none; }
+.card-linked-errors a:hover { text-decoration: underline; }
+.tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; }
+.tag-excel { background: var(--info-light); color: var(--info); }
+.tag-error { background: #fce7f3; color: #be185d; }
+.tag-link { background: var(--success-light); color: var(--success); }
+
+/* Modal */
+.modal-overlay {
+  display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+  z-index: 200; justify-content: center; align-items: flex-start;
+  padding: 40px 20px; overflow-y: auto;
+}
+.modal-overlay.show { display: flex; }
+.modal {
+  background: white; border-radius: 16px; max-width: 800px; width: 100%;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2); overflow: hidden;
+}
+.modal-header {
+  display: flex; align-items: center; gap: 12px;
+  padding: 16px 24px; border-bottom: 1px solid var(--border);
+}
+.modal-header h3 { font-size: 18px; flex: 1; }
+.modal-close { width: 32px; height: 32px; border: none; border-radius: 8px; background: var(--border); cursor: pointer; font-size: 16px; }
+.modal-close:hover { background: var(--danger); color: white; }
+.modal-body { padding: 24px; max-height: 65vh; overflow-y: auto; }
+.modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; gap: 12px; justify-content: flex-end; }
+
+.detail-section { margin-bottom: 16px; }
+.detail-section h4 { font-size: 13px; color: var(--text-light); margin-bottom: 6px; font-weight: 600; }
+.detail-section .content { font-size: 14px; line-height: 1.6; }
+.detail-section .content.bg-info { background: var(--info-light); padding: 10px 12px; border-radius: 8px; }
+.detail-section .content.bg-success { background: var(--success-light); padding: 10px 12px; border-radius: 8px; }
+
+/* Form */
+.form-group { margin-bottom: 12px; }
+.form-label { display: block; font-size: 12px; color: var(--text-light); margin-bottom: 4px; font-weight: 600; }
+.form-input, .form-textarea, .form-select {
+  width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px;
+}
+.form-textarea { min-height: 80px; resize: vertical; font-family: inherit; }
+.form-row { display: flex; gap: 12px; }
+.form-row .form-group { flex: 1; }
+
+/* Buttons */
+.btn { padding: 8px 16px; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; transition: background 0.2s; }
+.btn-primary { background: var(--primary); color: white; }
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-outline { background: white; border: 1px solid var(--border); color: var(--text); }
+.btn-outline:hover { background: var(--bg); }
+.btn-success { background: var(--success); color: white; }
+.btn-danger { background: var(--danger); color: white; }
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+
+/* Toast */
+.toast { position: fixed; bottom: 20px; right: 20px; background: var(--text); color: white; padding: 12px 20px; border-radius: 8px; font-size: 14px; z-index: 300; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+.toast.show { opacity: 1; }
+
+/* Mobile */
+@media (max-width: 768px) {
+  .sidebar { transform: translateX(-100%); }
+  .sidebar.open { transform: translateX(0); }
+  .main { margin-left: 0; padding: 60px 12px 20px; }
+  .hamburger { display: flex; align-items: center; justify-content: center; }
+  .card-grid { grid-template-columns: 1fr; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .search-bar { flex-direction: column; }
+  .search-bar input, .search-bar select { width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<button class="hamburger" onclick="toggleSidebar()">☰</button>
+
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <h1>🧠 记忆卡库</h1>
+    <p>信号 → 结论 记忆系统</p>
+  </div>
+  <div class="nav-section-title">导航</div>
+  <div class="nav-item active" data-view="dashboard" onclick="showView('dashboard')">📊 仪表盘</div>
+  <div class="nav-item" data-view="grid" onclick="showView('grid')">📋 全部卡片 <span class="badge" id="nav-total">0</span></div>
+  <div class="nav-item" data-view="excel" onclick="showView('excel')">📚 Excel导入卡 <span class="badge" id="nav-excel">0</span></div>
+  <div class="nav-item" data-view="error" onclick="showView('error')">✏️ 错题生成卡 <span class="badge" id="nav-error">0</span></div>
+  <div class="nav-item" data-view="linked" onclick="showView('linked')">🔗 已关联错题 <span class="badge" id="nav-linked">0</span></div>
+  <div class="nav-section-title">工具</div>
+  <div class="nav-item" onclick="openAddModal()">➕ 新建记忆卡</div>
+  <div class="nav-item" onclick="exportData()">💾 导出JSON</div>
+  <div class="nav-item" onclick="document.getElementById('import-file').click()">📥 导入JSON</div>
+  <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
+  <div style="margin-top:auto;padding:16px 20px;border-top:1px solid rgba(255,255,255,0.15)">
+    <a href="error_book.html" style="color:rgba(255,255,255,0.7);font-size:13px;text-decoration:none">← 迭错题本</a>
+  </div>
+</div>
+
+<div class="main">
+  <div id="view-content"></div>
+</div>
+
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal" id="modal"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ==================== Config ====================
+const SUPABASE_URL = 'https://mixuqjognbdrafrrlivc.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_D0ha7g4X4LutG-3hxCguSA_pwyQLrVX';
+const TABLE = 'gaokao_state';
+const ROW_PREFIX = 'card-lib-';
+
+// ==================== State ====================
+let state = {
+  cards: [],
+  view: 'dashboard',
+  filter: { search: '', chapter: '', source: '' },
+  loaded: false
+};
+
+// ==================== Init ====================
+async function init() {
+  // Load Excel cards
+  if (typeof CARDS_DATA !== 'undefined') {
+    state.cards = CARDS_DATA.map(c => ({ ...c, origin: 'excel' }));
+  }
+  // Load user-created / error-generated cards from Supabase
+  await cloudPull();
+  state.loaded = true;
+  updateNavBadges();
+  render();
+}
+
+// ==================== Supabase ====================
+async function cloudPushOne(card) {
+  const rowId = ROW_PREFIX + card.id;
+  const payload = { id: rowId, data: card, updated_at: new Date().toISOString() };
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}`, {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates' },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) console.warn(`cloudPushOne(${card.id}) failed:`, res.status);
+  } catch(e) { console.warn('cloudPushOne error:', e); }
+}
+
+async function cloudPull() {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?id=like.${ROW_PREFIX}*&select=*&order=data->>created_at.asc`, {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+    });
+    const rows = await res.json();
+    if (rows.length > 0) {
+      const userCards = rows.map(r => r.data).filter(d => d && d.id);
+      // Merge: user cards override Excel cards with same id
+      const excelIds = new Set(state.cards.map(c => c.id));
+      userCards.forEach(uc => {
+        const idx = state.cards.findIndex(c => c.id === uc.id);
+        if (idx >= 0) { state.cards[idx] = { ...uc, origin: 'error' }; }
+        else { state.cards.push({ ...uc, origin: 'error' }); }
+      });
+    }
+  } catch(e) { console.warn('cloudPull error:', e); }
+}
+
+async function cloudDeleteOne(cardId) {
+  const rowId = ROW_PREFIX + cardId;
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?id=eq.${rowId}`, {
+      method: 'DELETE',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+    });
+  } catch(e) { console.warn(`cloudDeleteOne(${cardId}) error:`, e); }
+}
+
+// Also pull error book cards (generated from errors)
+async function pullErrorBookCards() {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?id=like.error-book-*&select=data`, {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+    });
+    const rows = await res.json();
+    const errorCards = [];
+    rows.forEach(r => {
+      const d = r.data;
+      if (d && d.generated_card) {
+        errorCards.push({
+          id: d.generated_card.id,
+          subject: d.subject || '数学',
+          chapter: '错题生成',
+          problem: d.problem_text || '',
+          signal: d.generated_card.signal || '',
+          conclusion: d.generated_card.conclusion || '',
+          source: d.source || '',
+          note: '',
+          link: '',
+          origin: 'error',
+          source_err_id: d.id,
+          source_err_qnum: d.problem_number
+        });
+      }
+    });
+    // Merge error-generated cards
+    errorCards.forEach(ec => {
+      if (!state.cards.find(c => c.id === ec.id)) {
+        state.cards.push(ec);
+      }
+    });
+  } catch(e) { console.warn('pullErrorBookCards error:', e); }
+}
+
+// ==================== Navigation ====================
+function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+
+function showView(view) {
+  state.view = view;
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const navEl = document.querySelector(`[data-view="${view}"]`);
+  if (navEl) navEl.classList.add('active');
+  if (window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
+  render();
+}
+
+function updateNavBadges() {
+  const excelCount = state.cards.filter(c => c.origin === 'excel').length;
+  const errorCount = state.cards.filter(c => c.origin === 'error').length;
+  const linkedCount = state.cards.filter(c => c.source_err_id || c.linked_errors).length;
+  document.getElementById('nav-total').textContent = state.cards.length;
+  document.getElementById('nav-excel').textContent = excelCount;
+  document.getElementById('nav-error').textContent = errorCount;
+  document.getElementById('nav-linked').textContent = linkedCount;
+}
+
+// ==================== MathJax ====================
+function typesetMath() {
+  if (window.MathJax && window.MathJax.typesetPromise) {
+    window.MathJax.typesetPromise().catch(()=>{});
+  } else { setTimeout(typesetMath, 200); }
+}
+
+// ==================== Render ====================
+function render() {
+  const container = document.getElementById('view-content');
+  if (state.view === 'dashboard') container.innerHTML = renderDashboard();
+  else container.innerHTML = renderGrid();
+  typesetMath();
+  bindCardClicks();
+}
+
+function renderDashboard() {
+  const total = state.cards.length;
+  const excelCount = state.cards.filter(c => c.origin === 'excel').length;
+  const errorCount = state.cards.filter(c => c.origin === 'error').length;
+  const chapters = {};
+  state.cards.forEach(c => {
+    const ch = (c.chapter || '').split('·')[0] || '未分类';
+    chapters[ch] = (chapters[ch] || 0) + 1;
+  });
+  const chSorted = Object.entries(chapters).sort((a,b) => b[1]-a[1]).slice(0, 15);
+  const maxCh = chSorted.length > 0 ? chSorted[0][1] : 1;
+
+  return `
+    <div class="page-header"><div class="page-title">📊 仪表盘</div></div>
+    <div class="stats-grid">
+      <div class="stat-card" onclick="showView('grid')"><div class="label">总卡片数</div><div class="value">${total}</div><div class="sub">全部记忆卡</div></div>
+      <div class="stat-card" onclick="showView('excel')"><div class="label">Excel导入</div><div class="value" style="color:var(--info)">${excelCount}</div><div class="sub">数一轮复习</div></div>
+      <div class="stat-card" onclick="showView('error')"><div class="label">错题生成</div><div class="value" style="color:var(--secondary)">${errorCount}</div><div class="sub">来自错题本</div></div>
+      <div class="stat-card" onclick="showView('linked')"><div class="label">已关联错题</div><div class="value" style="color:var(--success)">${state.cards.filter(c=>c.source_err_id).length}</div><div class="sub">可回溯</div></div>
+      <div class="stat-card"><div class="label">章节数</div><div class="value" style="color:var(--warning)">${Object.keys(chapters).length}</div><div class="sub">知识点覆盖</div></div>
+      <div class="stat-card"><div class="label">有视频备注</div><div class="value" style="color:#8b5cf6">${state.cards.filter(c=>c.note && c.note.includes('视频')).length}</div><div class="sub">可回看</div></div>
+    </div>
+    <div class="chapter-list">
+      <h3>📖 章节分布 Top 15</h3>
+      ${chSorted.map(([ch, cnt]) => `
+        <div class="chapter-bar">
+          <div class="ch-name" title="${ch}">${ch}</div>
+          <div class="ch-bar-bg"><div class="ch-bar-fg" style="width:${(cnt/maxCh*100).toFixed(0)}%"></div></div>
+          <div class="ch-count">${cnt}</div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function renderGrid() {
+  const isFiltered = state.view !== 'grid';
+  let cards = state.cards;
+  if (state.view === 'excel') cards = cards.filter(c => c.origin === 'excel');
+  else if (state.view === 'error') cards = cards.filter(c => c.origin === 'error');
+  else if (state.view === 'linked') cards = cards.filter(c => c.source_err_id);
+
+  // Apply filters
+  const { search, chapter, source } = state.filter;
+  if (search) {
+    const q = search.toLowerCase();
+    cards = cards.filter(c =>
+      (c.id||'').toLowerCase().includes(q) ||
+      (c.chapter||'').toLowerCase().includes(q) ||
+      (c.signal||'').toLowerCase().includes(q) ||
+      (c.conclusion||'').toLowerCase().includes(q) ||
+      (c.problem||'').toLowerCase().includes(q) ||
+      (c.source||'').toLowerCase().includes(q)
+    );
+  }
+  if (chapter) cards = cards.filter(c => (c.chapter||'').includes(chapter));
+  if (source) cards = cards.filter(c => (c.source||'').includes(source));
+
+  // Chapters for filter dropdown
+  const chapters = [...new Set(state.cards.map(c => (c.chapter||'').split('·')[0]).filter(Boolean))].sort();
+  const sources = [...new Set(state.cards.map(c => c.source).filter(Boolean))].sort().slice(0, 20);
+
+  const viewTitle = { dashboard:'仪表盘', grid:'全部卡片', excel:'Excel导入卡', error:'错题生成卡', linked:'已关联错题' }[state.view] || '卡片';
+
+  return `
+    <div class="page-header">
+      <div class="page-title">${viewTitle}（${cards.length}）</div>
+      <button class="btn btn-primary" onclick="openAddModal()">➕ 新建记忆卡</button>
+    </div>
+    <div class="search-bar">
+      <input type="text" placeholder="搜索编号/章节/信号/结论/题干..." value="${search}" oninput="onFilter('search', this.value)">
+      <select onchange="onFilter('chapter', this.value)">
+        <option value="">全部章节</option>
+        ${chapters.map(ch => `<option value="${ch}" ${chapter===ch?'selected':''}>${ch}</option>`).join('')}
+      </select>
+      <select onchange="onFilter('source', this.value)">
+        <option value="">全部出处</option>
+        ${sources.map(s => `<option value="${s}" ${source===s?'selected':''}>${s}</option>`).join('')}
+      </select>
+    </div>
+    <div class="card-grid">
+      ${cards.length === 0 ? '<p style="color:var(--text-light);padding:40px;text-align:center">没有匹配的卡片</p>' :
+        cards.map(c => renderCard(c)).join('')}
+    </div>
+  `;
+}
+
+function renderCard(c) {
+  const isFromError = c.origin === 'error';
+  const linkedHtml = c.source_err_id ?
+    `<span class="tag tag-link">🔗 错题 ${c.source_err_qnum||''}</span>` : '';
+  return `
+    <div class="card-item ${isFromError?'from-error':''}" onclick="openDetailModal('${c.id}')">
+      <div class="card-top">
+        <span class="card-id">${c.id}</span>
+        <span class="tag ${isFromError?'tag-error':'tag-excel'}">${isFromError?'错题生成':'Excel'}</span>
+        ${linkedHtml}
+        <span class="card-source">${(c.source||'').substring(0,20)}</span>
+      </div>
+      <div class="card-chapter">${c.chapter||''}</div>
+      <div class="card-signal"><span class="label">信号</span>${(c.signal||'').substring(0,120)}${(c.signal||'').length>120?'...':''}</div>
+      <div class="card-conclusion"><span class="label">结论</span>${(c.conclusion||'').substring(0,120)}${(c.conclusion||'').length>120?'...':''}</div>
+      <div class="card-footer">
+        ${c.note ? `<span class="card-note">🎬 ${c.note}</span>` : ''}
+        ${c.source_err_id ? `<span class="card-linked-errors"><a href="error_book.html" onclick="event.stopPropagation()">→ 查看错题</a></span>` : ''}
+      </div>
+    </div>
+  `;
+}
+
+function onFilter(key, val) {
+  state.filter[key] = val;
+  render();
+}
+
+function bindCardClicks() {}
+
+// ==================== Detail Modal ====================
+function openDetailModal(id) {
+  const c = state.cards.find(x => x.id === id);
+  if (!c) return;
+  const isFromError = c.origin === 'error';
+  const modal = document.getElementById('modal');
+  modal.innerHTML = `
+    <div class="modal-header">
+      <span class="card-id">${c.id}</span>
+      <span class="tag ${isFromError?'tag-error':'tag-excel'}">${isFromError?'错题生成':'Excel导入'}</span>
+      <h3>${c.chapter||''}</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-section"><h4>章节知识点</h4><div class="content">${c.chapter||'-'}</div></div>
+      <div class="detail-section"><h4>原题题干</h4><div class="content">${c.problem||'-'}</div></div>
+      <div class="detail-section"><h4>题干信号（看到…）</h4><div class="content bg-info">${c.signal||'-'}</div></div>
+      <div class="detail-section"><h4>结论/易错点（想到…；警惕…）</h4><div class="content bg-success">${c.conclusion||'-'}</div></div>
+      <div class="detail-section"><h4>出处</h4><div class="content">${c.source||'-'}</div></div>
+      <div class="detail-section"><h4>备注</h4><div class="content">${c.note||'-'}</div></div>
+      ${c.link ? `<div class="detail-section"><h4>题目链接</h4><div class="content"><a href="${c.link}" target="_blank">${c.link}</a></div></div>` : ''}
+      ${c.source_err_id ? `
+        <div class="detail-section"><h4>关联错题</h4><div class="content">
+          <a href="error_book.html" style="color:var(--primary)">→ 查看错题 ${c.source_err_qnum||''}</a>
+        </div></div>
+      ` : ''}
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="openEditModal('${c.id}')">编辑</button>
+      ${isFromError ? `<button class="btn btn-danger" onclick="deleteCard('${c.id}')">删除</button>` : ''}
+      <button class="btn btn-primary" onclick="closeModal()">关闭</button>
+    </div>
+  `;
+  document.getElementById('modal-overlay').classList.add('show');
+  typesetMath();
+}
+
+// ==================== Edit Modal ====================
+function openEditModal(id) {
+  const c = id ? state.cards.find(x => x.id === id) : null;
+  const isNew = !c;
+  const data = c || { id: '', subject: '数学', chapter: '', problem: '', signal: '', conclusion: '', source: '', note: '', link: '', origin: 'error' };
+  const modal = document.getElementById('modal');
+  modal.innerHTML = `
+    <div class="modal-header">
+      <h3>${isNew?'新建记忆卡':'编辑记忆卡'}</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">编号</label><input class="form-input" id="edit-id" value="${data.id}" placeholder="如 mat0932" ${!isNew?'readonly':''}></div>
+        <div class="form-group"><label class="form-label">科目</label><input class="form-input" id="edit-subject" value="${data.subject||'数学'}"></div>
+      </div>
+      <div class="form-group"><label class="form-label">章节知识点</label><input class="form-input" id="edit-chapter" value="${data.chapter||''}" placeholder="如 函数·奇偶性判断"></div>
+      <div class="form-group"><label class="form-label">原题题干</label><textarea class="form-textarea" id="edit-problem">${data.problem||''}</textarea></div>
+      <div class="form-group"><label class="form-label">题干信号（看到…）</label><textarea class="form-textarea" id="edit-signal">${data.signal||''}</textarea></div>
+      <div class="form-group"><label class="form-label">结论/易错点（想到…；警惕…）</label><textarea class="form-textarea" id="edit-conclusion">${data.conclusion||''}</textarea></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">出处</label><input class="form-input" id="edit-source" value="${data.source||''}"></div>
+        <div class="form-group"><label class="form-label">备注</label><input class="form-input" id="edit-note" value="${data.note||''}"></div>
+      </div>
+      <div class="form-group"><label class="form-label">题目链接</label><input class="form-input" id="edit-link" value="${data.link||''}" placeholder="URL（可选）"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal()">取消</button>
+      <button class="btn btn-primary" onclick="saveCard('${id}')">保存</button>
+    </div>
+  `;
+  document.getElementById('modal-overlay').classList.add('show');
+}
+
+function openAddModal() { openEditModal(''); }
+
+function saveCard(oldId) {
+  const id = document.getElementById('edit-id').value.trim();
+  if (!id) { showToast('编号不能为空'); return; }
+  const cardData = {
+    id, subject: document.getElementById('edit-subject').value,
+    chapter: document.getElementById('edit-chapter').value,
+    problem: document.getElementById('edit-problem').value,
+    signal: document.getElementById('edit-signal').value,
+    conclusion: document.getElementById('edit-conclusion').value,
+    source: document.getElementById('edit-source').value,
+    note: document.getElementById('edit-note').value,
+    link: document.getElementById('edit-link').value,
+    origin: 'error', created_at: new Date().toISOString()
+  };
+  if (oldId) {
+    const idx = state.cards.findIndex(c => c.id === oldId);
+    if (idx >= 0) state.cards[idx] = cardData;
+  } else {
+    if (state.cards.find(c => c.id === id)) { showToast('编号已存在'); return; }
+    state.cards.push(cardData);
+  }
+  cloudPushOne(cardData);
+  closeModal();
+  updateNavBadges();
+  render();
+  showToast(oldId ? '已更新' : '已添加');
+}
+
+function deleteCard(id) {
+  if (!confirm('确定删除这张记忆卡？')) return;
+  state.cards = state.cards.filter(c => c.id !== id);
+  cloudDeleteOne(id);
+  closeModal();
+  updateNavBadges();
+  render();
+  showToast('已删除');
+}
+
+function closeModal() { document.getElementById('modal-overlay').classList.remove('show'); }
+
+// ==================== Export / Import ====================
+function exportData() {
+  const userCards = state.cards.filter(c => c.origin === 'error');
+  const blob = new Blob([JSON.stringify({ cards: userCards }, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `card_library_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  showToast('已导出');
+}
+
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async ev => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (data.cards) {
+        data.cards.forEach(c => {
+          if (!state.cards.find(x => x.id === c.id)) {
+            state.cards.push({ ...c, origin: 'error' });
+            cloudPushOne(c);
+          }
+        });
+        updateNavBadges();
+        render();
+        showToast(`已导入 ${data.cards.length} 张卡`);
+      }
+    } catch(err) { showToast('导入失败：格式错误'); }
+  };
+  reader.readAsText(file);
+}
+
+// ==================== Toast ====================
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ==================== Init ====================
+document.getElementById('modal-overlay').addEventListener('click', (e) => {
+  if (e.target.id === 'modal-overlay') closeModal();
+});
+
+(async () => {
+  await init();
+  await pullErrorBookCards();
+  updateNavBadges();
+  render();
+})();
+</script>
+</body>
+</html>
