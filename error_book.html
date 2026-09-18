@@ -733,13 +733,20 @@ function applyQuickFilter(filter) {
 }
 
 // ==================== Render ====================
+function typesetMath() {
+  if (window.MathJax && window.MathJax.typesetPromise) {
+    window.MathJax.typesetPromise().catch(()=>{});
+  } else {
+    setTimeout(typesetMath, 200);
+  }
+}
 function render() {
   const container = document.getElementById('view-content');
   if (state.view === 'dashboard') container.innerHTML = renderDashboard();
   else if (state.view === 'list') container.innerHTML = renderList();
   else if (state.view === 'assembly') container.innerHTML = renderAssembly();
   else if (state.view === 'courseware') container.innerHTML = renderCoursewareView();
-  if (window.MathJax && window.MathJax.typesetPromise) window.MathJax.typesetPromise();
+  typesetMath();
   bindEvents();
 }
 
@@ -900,7 +907,7 @@ function renderErrorCard(e) {
         <span class="date">${e.created_at.slice(0,10)}</span>
       </div>
       <div class="error-card-body">
-        <div class="problem-text">${e.problem_text.replace(/\$/g,'')}</div>
+        <div class="problem-text">${e.problem_text}</div>
       </div>
       <div class="error-card-footer">
         <span class="stars" onclick="event.stopPropagation()">${stars}</span>
@@ -936,7 +943,7 @@ function renderCoursewareView() {
             <span class="stars" style="margin-left:auto">${Array(5).fill(0).map((_,i)=>`<span class="star ${i<e.proficiency?'filled':''}">★</span>`).join('')}</span>
           </div>
           <div class="error-card-body">
-            <div class="problem-text">${e.problem_text.replace(/\$/g,'')}</div>
+            <div class="problem-text">${e.problem_text}</div>
           </div>
           <div class="error-card-footer">
             <span class="tag tag-kp">${e.knowledge_points[0]||''}</span>
@@ -1018,7 +1025,7 @@ function openDetailModal(id) {
     </div>
   `;
   document.getElementById('modal-overlay').classList.add('show');
-  if (window.MathJax) window.MathJax.typesetPromise();
+  typesetMath();
 }
 
 // ==================== Edit Modal ====================
@@ -1245,7 +1252,7 @@ function openCoursewareModal(id) {
     </div>
   `;
   document.getElementById('modal-overlay').classList.add('show');
-  if (window.MathJax) window.MathJax.typesetPromise();
+  typesetMath();
 }
 
 function generateSteps(e) {
