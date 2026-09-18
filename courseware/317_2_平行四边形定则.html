@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>题2·平行四边形定则（验证）</title>
+<link rel="stylesheet" href="_shared/style.css">
+<style>
+  .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+  .tab{padding:9px 16px;border-radius:999px;border:1.5px solid var(--border);background:#fff;font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;color:var(--text-light);transition:all .15s}
+  .tab.on{background:var(--primary);border-color:var(--primary);color:#fff}
+  .mini{font-size:12px;color:var(--text-light);line-height:1.8;margin-top:8px}
+  .highlight{background:var(--warning-light);border:1px dashed var(--warning);border-radius:8px;padding:10px 12px;margin-top:10px;font-size:13px;line-height:1.8}
+  .grid-l{stroke:#eef2f7;stroke-width:1}
+  .ax-l{stroke:#cbd5e1;stroke-width:1.4}
+  .cv-panel{border:1px solid var(--border);border-radius:10px;padding:10px;margin-bottom:12px}
+  .cv-panel.bad{border-color:var(--danger-light);background:var(--danger-light)}
+  .cv-panel.good{border-color:var(--success-light);background:var(--success-light)}
+</style>
+</head>
+<body>
+<div class="cw">
+
+  <header>
+    <div class="crumb">互动课件 · 物理 · 平行四边形定则</div>
+    <h1>验证力的平行四边形定则</h1>
+    <p class="sub">第 317 题 · 等效原理 + 误差分析 + 图甲/图乙辨析 · 拖拽沙盘交互</p>
+    <a class="back" href="error_book.html">← 返回互动课件</a>
+  </header>
+
+  <!-- 原题 -->
+  <section class="card">
+    <h2><span class="dot"></span>原题</h2>
+    <div class="problem">
+      <div>某同学用两只弹簧测力计探究“力的平行四边形定则”，结点 O 与橡皮条、细绳套构成拉力系统。</div>
+      <div style="margin-top:6px">(1) 本实验遵循<b>等效原理</b>，这里的“等效性”是指 <b>____</b>。</div>
+      <div>(2) 下列能<b>减小实验误差</b>的操作是 <b>____</b>（多选）。</div>
+      <div>(3) 如图 2 中甲乙两种作图结果，其中<b>尊重实验事实</b>的是 <b>____</b>（选填“甲”或“乙”）。</div>
+    </div>
+  </section>
+
+  <!-- 沙盘 -->
+  <section class="card">
+    <h2><span class="dot"></span>互动沙盘：结点 O 的分力与合力</h2>
+    <div class="stage">
+      <span class="tip">拖动 F₁ / F₂ 端点 → 合力 F（红色虚线）与实测 F′（绿色实线）实时更新</span>
+      <svg id="stage" viewBox="0 0 760 520" width="760" height="520"
+           style="touch-action:none;user-select:none">
+        <defs>
+          <marker id="mF1" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 z" fill="#3b82f6"/></marker>
+          <marker id="mF2" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 z" fill="#f59e0b"/></marker>
+          <marker id="mFR" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 z" fill="#dc2626"/></marker>
+          <marker id="mFP" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 z" fill="#16a34a"/></marker>
+        </defs>
+        <g id="grid"></g>
+        <line id="axX" class="ax-l" x1="0" y1="330" x2="746" y2="330"/>
+        <line id="axY" class="ax-l" x1="170" y1="14" x2="170" y2="506"/>
+
+        <!-- AO 参考线 -->
+        <line id="aoRef" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="4 6"/>
+        <!-- 平行四边形轮廓 -->
+        <line id="par1" stroke="#3b82f6" stroke-width="2" stroke-dasharray="5 5" opacity="0.6"/>
+        <line id="par2" stroke="#f59e0b" stroke-width="2" stroke-dasharray="5 5" opacity="0.5"/>
+        <!-- 合力 F（红虚对角线） -->
+        <line id="diag" stroke="#dc2626" stroke-width="3.2" stroke-dasharray="7 5" marker-end="url(#mFR)"/>
+        <!-- 实测 F'（绿色实线） -->
+        <line id="fprime" stroke="#16a34a" stroke-width="5" marker-end="url(#mFP)" opacity="0.9"/>
+        <!-- 分力 F1 F2 -->
+        <line id="f1" stroke="#3b82f6" stroke-width="4.5" marker-end="url(#mF1)"/>
+        <line id="f2" stroke="#f59e0b" stroke-width="4.5" marker-end="url(#mF2)"/>
+        <circle id="O" r="6" fill="#1e293b"/>
+        <circle id="tip" r="6" fill="#dc2626"/>
+        <circle id="h1" r="9" fill="#3b82f6" stroke="#fff" stroke-width="2.5" style="cursor:grab"/>
+        <circle id="h2" r="9" fill="#f59e0b" stroke="#fff" stroke-width="2.5" style="cursor:grab"/>
+        <text id="lO" font-size="15" font-weight="800" fill="#1e293b">O</text>
+        <text id="lF1" font-size="15" font-weight="800" fill="#3b82f6">F₁</text>
+        <text id="lF2" font-size="15" font-weight="800" fill="#f59e0b">F₂</text>
+        <text id="lF" font-size="16" font-weight="800" fill="#dc2626">F</text>
+        <text id="lFP" font-size="16" font-weight="800" fill="#16a34a">F′</text>
+        <text id="lAO" font-size="13" font-weight="700" fill="#94a3b8">AO</text>
+        <text id="eqBadge" font-size="15" font-weight="800" text-anchor="middle" x="420" y="50"></text>
+      </svg>
+      <div class="legend">
+        <span><i style="background:#3b82f6"></i>分力 F₁</span>
+        <span><i style="background:#f59e0b"></i>分力 F₂</span>
+        <span><i style="background:#dc2626"></i>合力 F（理论对角线）</span>
+        <span><i style="background:#16a34a"></i>实测力 F′（恒沿 AO）</span>
+        <span><i style="border-top:2px dashed #cbd5e1"></i>AO 方向</span>
+      </div>
+    </div>
+
+    <div class="readouts" style="grid-template-columns:1fr 1fr 1fr;margin-top:14px">
+      <div class="ro"><div class="k">分力 F₁</div><div class="v" id="rF1">2.0</div><div class="u">N</div></div>
+      <div class="ro"><div class="k">分力 F₂</div><div class="v" id="rF2">2.0</div><div class="u">N</div></div>
+      <div class="ro"><div class="k">合力 |F|</div><div class="v" id="rFm">3.5</div><div class="u">N</div></div>
+      <div class="ro"><div class="k">实测 |F′|</div><div class="v" id="rFp">3.0</div><div class="u">N</div></div>
+      <div class="ro"><div class="k">合力方向 θ</div><div class="v" id="rFa">0</div><div class="u">°</div></div>
+      <div class="ro"><div class="k">A/O 重合验证</div><div class="v" id="rEq">—</div><div class="u"></div></div>
+    </div>
+
+    <div class="ctrl" style="margin-top:14px">
+      <label>分力 F₁ 大小（N）<b id="v_im1">2.0</b></label>
+      <input id="s_im1" type="range" min="0.5" max="3.5" step="0.1" value="2.0">
+    </div>
+    <div class="ctrl">
+      <label>分力 F₁ 方向 θ₁（°）<b id="v_a1">35</b></label>
+      <input id="s_a1" type="range" min="0" max="360" step="1" value="35">
+    </div>
+    <div class="ctrl">
+      <label>分力 F₂ 大小（N）<b id="v_im2">2.0</b></label>
+      <input id="s_im2" type="range" min="0.5" max="3.5" step="0.1" value="2.0">
+    </div>
+    <div class="ctrl">
+      <label>分力 F₂ 方向 θ₂（°）<b id="v_a2">95</b></label>
+      <input id="s_a2" type="range" min="0" max="360" step="1" value="95">
+    </div>
+    <div class="ctrl">
+      <label>实测力大小 |F′|（N，方向恒沿 AO）<b id="v_fp">3.0</b></label>
+      <input id="s_fp" type="range" min="0.5" max="5" step="0.1" value="3.0">
+    </div>
+    <div class="btns">
+      <button class="btn go" id="btnReset">重置初始</button>
+      <button class="btn" id="btnAObs">对齐 AO（等效演示）</button>
+    </div>
+
+    <div class="highlight">
+      <b>等效原理演示：</b>当合力 <b>F</b> 与实测力 <b>F′</b> 在同一直线且大小相等时，等效成立——即单独一个力与两个分力对<u>结点 O 的作用效果完全相同</u>（两次都把结点拉到同一位置 O）。这正对应第 (1) 问的原理。点击“对齐 AO”按钮可自动把两分力调为沿同方向、合力与 F′ 重合。
+    </div>
+  </section>
+
+  <!-- 交叉验证：图甲 / 图乙 -->
+  <section class="card">
+    <h2><span class="dot"></span>交叉验证：图甲与图乙，谁尊重实验事实？</h2>
+    <p class="mini">同一组分力 F₁、F₂ 与理论合力 F（红色虚线对角线）。区别在于实测力 F′ 的画法：<b>图甲</b>把 F′ 画在 AO 延长线方向；<b>图乙</b>把 F′ 画偏离了 AO 方向。请判断哪种画法尊重实验事实。</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="cv-panel good" id="cvA">
+        <div style="text-align:center;font-weight:800;color:var(--success)">图 甲</div>
+        <svg id="svgA" viewBox="0 0 300 220" width="300" height="220">
+          <defs>
+            <marker id="mA1" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 z" fill="#3b82f6"/></marker>
+            <marker id="mA2" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 z" fill="#f59e0b"/></marker>
+            <marker id="mAR" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 z" fill="#dc2626"/></marker>
+            <marker id="mAP" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 z" fill="#16a34a"/></marker>
+          </defs>
+          <line x1="40" y1="150" x2="175" y2="150" stroke="#cbd5e1" stroke-width="1.4"/>
+          <line x1="40" y1="150" x2="40" y2="40" stroke="#cbd5e1" stroke-width="1.4"/>
+          <!-- F1 F2 -->
+          <line x1="35" y1="150" x2="95" y2="75" stroke="#3b82f6" stroke-width="4" marker-end="url(#mA1)"/>
+          <line x1="35" y1="150" x2="80" y2="90" stroke="#f59e0b" stroke-width="4" marker-end="url(#mA2)"/>
+          <!-- parallelogram -->
+          <polyline points="95,75 150,25 80,90" fill="none" stroke="#93c5fd" stroke-dasharray="5 5" stroke-width="2"/>
+          <!-- F diagonal -->
+          <line x1="35" y1="150" x2="150" y2="25" stroke="#dc2626" stroke-width="3" stroke-dasharray="7 5" marker-end="url(#mAR)"/>
+          <!-- F' along AO (coincident with diagonal) -->
+          <line x1="35" y1="150" x2="150" y2="25" stroke="#16a34a" stroke-width="5" opacity="0.85" marker-end="url(#mAP)"/>
+          <text x="150" y="20" font-size="14" font-weight="800" fill="#dc2626">F</text>
+          <text x="120" y="52" font-size="13" font-weight="800" fill="#16a34a">F′ 沿 AO</text>
+          <text x="30" y="175" font-size="15" font-weight="800" fill="#1e293b">O</text>
+          <text x="160" y="175" font-size="13" font-weight="800" fill="#16a34a">✓ 合理的</text>
+        </svg>
+      </div>
+      <div class="cv-panel bad" id="cvB">
+        <div style="text-align:center;font-weight:800;color:var(--danger)">图 乙</div>
+        <svg id="svgB" viewBox="0 0 300 220" width="300" height="220">
+          <defs>
+            <marker id="mB1" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 z" fill="#3b82f6"/></marker>
+            <marker id="mB2" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 z" fill="#f59e0b"/></marker>
+            <marker id="mBR" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 z" fill="#dc2626"/></marker>
+            <marker id="mBP" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 z" fill="#16a34a"/></marker>
+          </defs>
+          <line x1="40" y1="150" x2="175" y2="150" stroke="#cbd5e1" stroke-width="1.4"/>
+          <line x1="40" y1="150" x2="40" y2="40" stroke="#cbd5e1" stroke-width="1.4"/>
+          <line x1="35" y1="150" x2="95" y2="75" stroke="#3b82f6" stroke-width="4" marker-end="url(#mB1)"/>
+          <line x1="35" y1="150" x2="80" y2="90" stroke="#f59e0b" stroke-width="4" marker-end="url(#mB2)"/>
+          <polyline points="95,75 150,25 80,90" fill="none" stroke="#93c5fd" stroke-dasharray="5 5" stroke-width="2"/>
+          <line x1="35" y1="150" x2="150" y2="25" stroke="#dc2626" stroke-width="3" stroke-dasharray="7 5" marker-end="url(#mBR)"/>
+          <!-- F' slanted, NOT along AO -->
+          <line x1="35" y1="150" x2="120" y2="60" stroke="#16a34a" stroke-width="5" opacity="0.85" marker-end="url(#mBP)"/>
+          <text x="150" y="20" font-size="14" font-weight="800" fill="#dc2626">F</text>
+          <text x="88" y="52" font-size="13" font-weight="800" fill="#16a34a">F′ 偏离 AO</text>
+          <text x="30" y="175" font-size="15" font-weight="800" fill="#1e293b">O</text>
+          <text x="160" y="175" font-size="13" font-weight="800" fill="#dc2626">✗ 不合理的</text>
+          <text x="30" y="205" font-size="12" fill="#64748b">F′ 应沿 AO，图中被画斜</text>
+        </svg>
+      </div>
+    </div>
+
+    <div class="tabs" style="margin-top:8px">
+      <button class="tab" data-cv="a">图甲合理 ✓</button>
+      <button class="tab" data-cv="b">图乙合理 ✗</button>
+      <button class="tab" data-cv="show">显示解析</button>
+    </div>
+    <p class="mini" id="cvNote" style="display:none">
+      <b>正确答案：图甲（甲尊重实验事实）。</b>实验中单独一个弹簧测力计把结点拉到 O 时，其拉力方向一定与橡皮条拉伸方向（AO）共线，故实测力 <b>F′ 一定沿 AO</b>。图甲的 F′ 确实画在 AO 方向（与 AO 重合），符合实验事实；图乙把 F′ 画得偏离了 AO 方向，与实际不符，故不尊重实验事实。
+    </p>
+  </section>
+
+  <!-- 三问判定 -->
+  <section class="card opts">
+    <h2><span class="dot"></span>三问判定</h2>
+    <div class="tabs">
+      <button class="tab on" data-q="q1">问题 1 · 等效性</button>
+      <button class="tab" data-q="q2">问题 2 · 减小误差</button>
+      <button class="tab" data-q="q3">问题 3 · 甲乙辨析</button>
+    </div>
+
+    <div class="qunit" id="q1">
+      <div class="problem">(1) 实验原理是等效原理，其“等效性”是指 ____。</div>
+      <div class="opt" data-badge="A"><div class="row"><div class="k">A</div><div class="t">两次橡皮条的伸长长度相等</div></div><div class="reveal"></div></div>
+      <div class="opt" data-badge="B"><div class="row"><div class="k">B</div><div class="t">两次弹簧测力计发生相同形变</div></div><div class="reveal"></div></div>
+      <div class="opt" data-badge="C"><div class="row"><div class="k">C</div><div class="t">两分力与合力满足平行四边形定则</div></div><div class="reveal"></div></div>
+      <div class="opt" data-badge="D"><div class="row"><div class="k">D</div><div class="t">使两次橡皮条与细绳套的结点都与某点 O 重合</div></div><div class="reveal"><b>◆ 正确答案：</b><span class="ok">D</span><br>等效性指<b>两次把结点拉到完全相同的位置 O</b>：一次由两个分力 F₁、F₂ 共同拉，一次由单个力 F′ 单独拉，两次结点都落在同一点 O，说明单个力与两个分力的作用效果相等，从而可以比较 F′ 与 F₁、F₂ 的合力（平行四边形对角线）。</div></div>
+    </div>
+
+    <div class="qunit" id="q2" style="display:none">
+      <div class="problem">(2) 下列可以减小实验误差的操作是 ____（多选）。</div>
+      <div class="opt" data-badge="A"><div class="row"><div class="k">A</div><div class="t">两分力夹角越小越好</div></div><div class="reveal"><span class="no">✗ 错误。</span>夹角过小时，平行四边形过于“扁”，合力确定的误差反而增大，通常取夹角较大且适中（60°~120°）为宜。</div></div>
+      <div class="opt" data-badge="B"><div class="row"><div class="k">B</div><div class="t">两分力大小相差越大越好</div></div><div class="reveal"><span class="no">✗ 错误。</span>两分力大小差距过大时，小的力读数相对误差大，作图比例也难兼顾，应取大小相差不多。</div></div>
+      <div class="opt" data-badge="C"><div class="row"><div class="k">C</div><div class="t">细绳适当长一些，便于确定拉力的方向</div></div><div class="reveal"><b>◆ 其中一个正确答案：</b><span class="ok">C ✓</span><br>细绳适当长些，两绳套末端（描点）相距较远，作方向线更准确，可减小方向误差。</div></div>
+      <div class="opt" data-badge="D"><div class="row"><div class="k">D</div><div class="t">弹簧测力计要与木板平行，且正对刻度读数</div></div><div class="reveal"><b>◆ 另一个正确答案：</b><span class="ok">D ✓</span><br>保证测力计轴线与拉力方向一致、正对刻度，可避免倾斜造成的读数与方向误差。<br><br><b>本题答案为 CD。</b></div></div>
+    </div>
+
+    <div class="qunit" id="q3" style="display:none">
+      <div class="problem">(3) 如图 2 中甲乙两种作图结果，尊重实验事实的是 ____（选填“甲”或“乙”）。</div>
+      <div class="opt" data-badge="甲"><div class="row"><div class="k">甲</div><div class="t">F′ 画在 AO 延长方向（沿 AO）</div></div><div class="reveal"><b>◆ 正确答案：</b><span class="ok">甲</span><br>实测力 F′ 是由单独一个弹簧测力计沿 AO 方向把结点拉到 O 时测得的，因此 <b>F′ 一定沿 AO</b>。甲图中 F′ 与 AO 重合，尊重实验事实。</div></div>
+      <div class="opt" data-badge="乙"><div class="row"><div class="k">乙</div><div class="t">F′ 被画得偏离了 AO 方向</div></div><div class="reveal"><span class="no">✗ 乙不合理。</span>乙图把 F′ 画歪（未沿 AO），违反了“实测力必沿 AO”这一实验事实，故不尊重实验事实。</div></div>
+    </div>
+  </section>
+
+  <!-- 分步讲解 -->
+  <section class="card">
+    <h2><span class="dot"></span>分步讲解 · 实验四步</h2>
+    <div class="step"><div class="hd"><i>①</i>等效点 O</div><div class="bd">用两只弹簧测力计把结点拉到 O，再换用一只把结点<b>再次拉到同一点 O</b>，记录该力为实测力 <b>F′</b>（方向沿 AO）。这是“等效性”的体现。</div></div>
+    <div class="step"><div class="hd"><i>②</i>记录两分力</div><div class="bd">两只测力计互成角度拉至 O，记录 F₁、F₂ 的大小与方向，沿绳套在纸上描出方向线，建立力的图示。</div></div>
+    <div class="step"><div class="hd"><i>③</i>作平行四边形</div><div class="bd">以 F₁、F₂ 为邻边作平行四边形，对角线即为理论合力 <b>F</b>（保持与 F′ 相同比例尺作对角线以便比较大小）。</div></div>
+    <div class="step"><div class="hd"><i>④</i>比较与结论</div><div class="bd">将对角线 F 与实测 F′ 比较大小与方向：误差允许范围内两者基本一致，且 <b>F′ 一定沿 AO</b>。若画出的作图把 F′ 画歪（如乙图），则未尊重实验事实（即甲图正确）。</div></div>
+    <div class="note" style="margin-top:8px"><b>易错提醒：</b>F 是平行四边形的“理论”对角线，可能不沿 AO；F′ 是“实测”拉力，一定沿 AO。据此可快速判断题图是否尊重实验事实。</div>
+  </section>
+
+  <!-- 计算面板 -->
+  <section class="card">
+    <h2><span class="dot"></span>计算面板</h2>
+    <span class="formula">分力分解：F₁x=F₁cosθ₁, F₁y=F₁sinθ₁;  F₂x=F₂cosθ₂, F₂y=F₂sinθ₂</span>
+    <span class="formula">合力：Fx=F₁x+F₂x, Fy=F₁y+F₂y;  |F|=√(Fx²+Fy²)</span>
+    <span class="formula">等效判据：|F| ≈ |F′| 且 θF ≈ θAO  ⇒ 两个分力与一个实测力等效，平行四边形定则成立</span>
+    <p class="note">拖动滑块或端点，读取读数代入上式，可验证对角线合力与实测力是否“等效（指向 AO 且大小相等）”。</p>
+  </section>
+
+  <div class="footer">互动课件 · 物理《验证力的平行四边形定则》 · 纯 SVG + 原生 JS · 由错题本网站生成</div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  var NS="http://www.w3.org/2000/svg", svg=document.getElementById('stage');
+  var OX=170, OY=330, SC=62, MAX=4;
+  var AO=-10*Math.PI/180;
+  function el(id){return document.getElementById(id);}
+  function toSc(v){return {x:OX+v.x*SC, y:OY-v.y*SC};}
+  function toPhys(px,py){return {x:(px-OX)/SC, y:(OY-py)/SC};}
+  function setL(id,x1,y1,x2,y2){var L=el(id);L.setAttribute('x1',x1);L.setAttribute('y1',y1);L.setAttribute('x2',x2);L.setAttribute('y2',y2);}
+  var D2R=Math.PI/180, R2D=180/Math.PI;
+
+  var F1m=2.0, F1a=35*D2R, F2m=2.0, F2a=95*D2R, LP=3.0;
+
+  (function(){
+    var g=el('grid');
+    for(var i=0;i<=15;i++){ var x=170-6*62+i*62; var l=document.createElementNS(NS,'line'); l.setAttribute('class','grid-l'); l.setAttribute('x1',x);l.setAttribute('y1',12);l.setAttribute('x2',x);l.setAttribute('y2',508); g.appendChild(l); }
+    for(var j=0;j<=10;j++){ var y=330-5*62+j*62; var l2=document.createElementNS(NS,'line'); l2.setAttribute('class','grid-l'); l2.setAttribute('x1',8);l2.setAttribute('y1',y);l2.setAttribute('x2',752);l2.setAttribute('y2',y); g.appendChild(l2);}
+  })();
+
+  var rEq=el('rEq');
+  function render(){
+    var v1={x:F1m*Math.cos(F1a), y:F1m*Math.sin(F1a)};
+    var v2={x:F2m*Math.cos(F2a), y:F2m*Math.sin(F2a)};
+    var F={x:v1.x+v2.x, y:v1.y+v2.y};
+    var O=toSc({x:0,y:0}), P1=toSc(v1), P2=toSc(v2), T=toSc(F);
+    var u={x:Math.cos(AO),y:Math.sin(AO)};
+    var Lr=4.8, Qr=toSc({x:u.x*Lr,y:u.y*Lr});
+    var Q=toSc({x:u.x*LP,y:u.y*LP});
+    setL('aoRef',O.x,O.y,Qr.x,Qr.y);
+    setL('f1',O.x,O.y,P1.x,P1.y); setL('f2',O.x,O.y,P2.x,P2.y);
+    el('h1').setAttribute('cx',P1.x);el('h1').setAttribute('cy',P1.y);
+    el('h2').setAttribute('cx',P2.x);el('h2').setAttribute('cy',P2.y);
+    setL('par1',P1.x,P1.y,T.x,T.y); setL('par2',P2.x,P2.y,T.x,T.y);
+    setL('diag',O.x,O.y,T.x,T.y); el('tip').setAttribute('cx',T.x);el('tip').setAttribute('cy',T.y);
+    setL('fprime',O.x,O.y,Q.x,Q.y);
+    el('O').setAttribute('cx',O.x);el('O').setAttribute('cy',O.y);
+    posText('lO',O,9,16); posText('lAO',O,20,-18);
+    posText('lF1',P1,12,-10); posText('lF2',P2,12,-10); posText('lF',T,-22,-8); posText('lFP',Q,12,-12);
+
+    var Fm=Math.hypot(F.x,F.y), theta=Math.atan2(F.y,F.x);
+    var devDeg=Math.abs(wrapRad(theta-AO)*R2D);
+    el('rF1').textContent=F1m.toFixed(1);
+    el('rF2').textContent=F2m.toFixed(1);
+    el('rFm').textContent=Fm.toFixed(2);
+    el('rFp').textContent=LP.toFixed(1);
+    el('rFa').textContent=normDeg(theta).toFixed(1);
+    var eq=(devDeg<3)&&(Math.abs(Fm-LP)<0.12);
+    var badge=el('eqBadge');
+    if(eq){ badge.textContent='✓ 等效：F 与 F′ 沿 AO 且等大'; badge.setAttribute('fill','#16a34a'); rEq.textContent='重合 ✓'; }
+    else if(devDeg<3){ badge.textContent='方向沿 AO，但大小不等'; badge.setAttribute('fill','#f59e0b'); rEq.textContent='方向 OK·大小差'; }
+    else { badge.textContent='F 未沿 AO（不对齐）'; badge.setAttribute('fill','#dc2626'); rEq.textContent='未对齐'; }
+  }
+  function posText(id,sp,dx,dy){var t=el(id);t.setAttribute('x',sp.x+dx);t.setAttribute('y',sp.y+dy);}
+  function normDeg(th){var d=th*R2D;return ((d%360)+360)%360;}
+  function wrapRad(d){var a=((d+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI;return a;}
+
+  function bindSlider(id,axis){ var s=el(id), lbl=el('v_'+axis);
+    s.addEventListener('input',function(){ var v=parseFloat(s.value); if(lbl)lbl.textContent=v;
+      if(axis==='im1')F1m=v; else if(axis==='a1')F1a=v*D2R;
+      else if(axis==='im2')F2m=v; else if(axis==='a2')F2a=v*D2R;
+      else if(axis==='fp')LP=v; render(); }); }
+  ['im1','a1','im2','a2','fp'].forEach(function(a){ bindSlider('s_'+a,a); });
+
+  var dragId=null;
+  svg.addEventListener('pointerdown',function(ev){ var t=ev.target; if(t.id!=='h1'&&t.id!=='h2')return; ev.preventDefault(); dragId=t.id; svg.setPointerCapture(ev.pointerId); });
+  svg.addEventListener('pointermove',function(ev){ if(!dragId)return; var r=svg.getBoundingClientRect(); var px=(ev.clientX-r.left)*(760/svg.clientWidth); var py=(ev.clientY-r.top)*(520/svg.clientHeight); var p=toPhys(px,py); if(Math.hypot(p.x,p.y)>MAX){var m=Math.hypot(p.x,p.y)||1;p.x=p.x/m*MAX;p.y=p.y/m*MAX;} if(dragId==='h1'){F1m=Math.hypot(p.x,p.y);F1a=Math.atan2(p.y,p.x);}else{F2m=Math.hypot(p.x,p.y);F2a=Math.atan2(p.y,p.x);} sync(); render(); });
+  ['pointerup','pointercancel'].forEach(function(e){ svg.addEventListener(e,function(){dragId=null;}); });
+
+  function sync(){ el('s_im1').value=F1m; el('s_a1').value=F1a*R2D; el('s_im2').value=F2m; el('s_a2').value=F2a*R2D; el('v_im1').textContent=F1m.toFixed(1); el('v_a1').textContent=Math.round(F1a*R2D); el('v_im2').textContent=F2m.toFixed(1); el('v_a2').textContent=Math.round(F2a*R2D); }
+
+  el('btnReset').addEventListener('click',function(){ F1m=2.0;F1a=35*D2R;F2m=2.0;F2a=95*D2R;LP=3.0;resetAll();render(); });
+  el('btnAObs').addEventListener('click',function(){ // 两分力同方向，合力=F1+F2，令其沿AO
+    F1a=AO; F2a=AO; F1m=2.0; F2m=2.0; LP=F1m+F2m; resetAll(); render(); });
+  function resetAll(){ ['im1','a1','im2','a2','fp'].forEach(function(a){ el('s_'+a).value = a==='im1'?F1m:(a==='a1'?F1a*R2D:(a==='im2'?F2m:(a==='a2'?F2a*R2D:LP))); el('v_'+a).textContent = a==='im1'?F1m.toFixed(1):(a==='a1'?Math.round(F1a*R2D):(a==='im2'?F2m.toFixed(1):(a==='a2'?Math.round(F2a*R2D):LP.toFixed(1)))); }); }
+
+  // 选项卡
+  var tabs=document.querySelectorAll('.tab');
+  tabs.forEach(function(tb){ tb.addEventListener('click',function(){
+    if(tb.dataset.q){ tabs.forEach(function(x){x.classList.remove('on');}); tb.classList.add('on'); ['q1','q2','q3'].forEach(function(id){ el(id).style.display=(id===tb.dataset.q)?'block':'none'; }); }
+    else if(tb.dataset.cv){ el('cvNote').style.display='block';
+      if(tb.dataset.cv==='a'){ el('cvA').classList.add('good'); el('cvB').classList.remove('good'); }
+      else if(tb.dataset.cv==='b'){ } el('cvB').classList.add('bad');
+    }
+  }); });
+
+  document.querySelectorAll('.opt').forEach(function(o){ o.addEventListener('click',function(){
+    document.querySelectorAll('.opt').forEach(function(x){ x.classList.remove('match','open'); });
+    o.classList.add('open');
+    if(o.querySelector('.reveal')){ var r=o.querySelector('.reveal').textContent.trim();
+      if(r.indexOf('正确答案')!==-1 || r.indexOf('✔')!==-1 || (r.indexOf('✓')!==-1&&r.indexOf('错误')===-1)) o.classList.add('match'); }
+  }); });
+
+  render(); resetAll();
+})();
+</script>
+</body>
+</html>

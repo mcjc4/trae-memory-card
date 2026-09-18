@@ -988,10 +988,37 @@ function renderAssembly() {
 }
 
 function renderCoursewareView() {
+  const curated = [
+    { icon:'⚖️', file:'courseware/317_1_力的合成.html', title:'力的合成 · 两分力与合力', desc:'拖动 F₁、F₂ 看合力与实测 F′ 的关系，含读数与"沿 AO 的力"', kp:'力的合成' },
+    { icon:'🪞', file:'courseware/317_2_平行四边形定则.html', title:'平行四边形定则 · 等效原理', desc:'结点 O 等效替代演示，交叉验证甲/乙作图谁合理，减误差选 CD', kp:'平行四边形定则' },
+    { icon:'🛝', file:'courseware/317_3_滑轮三力平衡.html', title:'光滑滑轮 · 三力平衡判定', desc:'改钩码个数，实时判三力能否闭合，练(2,2,5)/(4,4,4)/(3,4,5)', kp:'三力平衡' },
+    { icon:'🔍', file:'courseware/318_4_实验选择与误差.html', title:'实验选择 · 天平与误差分析', desc:'哪组实验必须用天平、哪些操作增误差、橡皮筋等效替代', kp:'实验误差' },
+    { icon:'🚀', file:'courseware/318_5_超量程测重力.html', title:'超量程测重 · 力的分解', desc:'5N 测力计测超量程重力：读数 2.6N + 合力合成演示', kp:'力的分解' },
+    { icon:'🏠', file:'courseware/318_6_家庭实验验证.html', title:'家庭实验 · 三力验证', desc:'茶杯重力 G=3.0N 三力平衡，判断哪个力记录有误', kp:'三力验证' }
+  ];
   const candidates = state.errors.filter(e => e.proficiency <= 2);
   return `
     <div class="topbar"><h2>互动解题课件</h2></div>
-    <p style="color:var(--text-light);margin-bottom:16px">以下为熟练度≤2星的难题，点击生成步骤式互动解题课件：</p>
+    <p style="color:var(--text-light);margin-bottom:16px"><b style="color:var(--primary)">精选互动课件</b>（验证力的平行四边形定则 · 实验系列，点击直接进入可拖拽沙盘）：</p>
+    <div class="error-grid">
+      ${curated.map(c => `
+        <a class="error-card" href="${c.file}" style="text-decoration:none;color:var(--text);cursor:pointer;display:block">
+          <div class="error-card-header">
+            <span class="q-badge unsolved" style="min-width:auto;padding:3px 10px">${c.icon}</span>
+            <span class="source" style="font-style:normal">实验 · 力的合成</span>
+          </div>
+          <div class="error-card-body">
+            <div class="problem-text" style="font-weight:700;color:var(--text);-webkit-line-clamp:2">${c.title}</div>
+            <div class="problem-text" style="margin-top:6px">${c.desc}</div>
+          </div>
+          <div class="error-card-footer">
+            <span class="tag tag-kp">${c.kp}</span>
+            <span style="font-size:12px;color:var(--primary);margin-left:auto">打开课件 →</span>
+          </div>
+        </a>
+      `).join('')}
+    </div>
+    <p style="color:var(--text-light);margin:20px 0 14px"><b style="color:var(--text)">根据错题生成的步骤式课件</b>（熟练度≤2星，点击展开）：</p>
     <div class="error-grid">
       ${candidates.map(e => `
         <div class="error-card" onclick="openCoursewareModal('${e.id}')">

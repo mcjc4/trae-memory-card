@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>题1·力的合成（验证互成角度两力合成规律）</title>
+<link rel="stylesheet" href="_shared/style.css">
+<style>
+  /* 课件局部补充样式：选项卡 + 沙盘徽标 */
+  .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+  .tab{padding:9px 16px;border-radius:999px;border:1.5px solid var(--border);background:#fff;font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;color:var(--text-light);transition:all .15s}
+  .tab.on{background:var(--primary);border-color:var(--primary);color:#fff}
+  .stab{position:absolute;padding:4px 10px;font-size:11px;font-weight:800;border-radius:999px;color:#fff}
+  .tag-ok{background:var(--success)} .tag-warn{background:var(--accent)}
+  .mini{font-size:12px;color:var(--text-light);line-height:1.8;margin-top:8px}
+  .highlight{background:var(--warning-light);border:1px dashed var(--warning);border-radius:8px;padding:10px 12px;margin-top:10px;font-size:13px;line-height:1.8}
+  .grid-l{stroke:#eef2f7;stroke-width:1}
+  .ax-l{stroke:#cbd5e1;stroke-width:1.4}
+</style>
+</head>
+<body>
+<div class="cw">
+
+  <header>
+    <div class="crumb">互动课件 · 物理 · 力的合成</div>
+    <h1>验证互成角度的两个力的合成规律</h1>
+    <p class="sub">2026 福建龙岩模拟 · 课后达标检测 · 第 317 题 · 拖拽沙盘交互</p>
+    <a class="back" href="error_book.html">← 返回互动课件</a>
+  </header>
+
+  <!-- 原题 -->
+  <section class="card">
+    <h2><span class="dot"></span>原题（实验：验证力的合成规律）</h2>
+    <div class="problem">
+      <div>某实验小组用<span class="key">橡皮条 + 两只弹簧测力计</span>做“验证互成角度的两个力的合成规律”实验。</div>
+      <div style="margin-top:6px">(1) 本次实验需要用到<span class="key">带细绳套的橡皮条</span>，图乙中绳套最合适的是 <b>____</b>（选填“甲/乙/丙”）。</div>
+      <div>(2) 步骤①中某个弹簧测力计的指针位置如图丙所示，其读数为 <b>____ N</b>。</div>
+      <div>(3) 如图丁所示，一定沿 <b>AO</b> 方向的力是 <b>____</b>（选填“F”或“F′”）。</div>
+    </div>
+  </section>
+
+  <!-- 沙盘 -->
+  <section class="card">
+    <h2><span class="dot"></span>互动沙盘：合力 F 与实测力 F′</h2>
+    <div class="stage">
+      <span class="tip">拖动 F₁ / F₂ 箭头端点 → 平行四边形与合力 F 实时更新</span>
+      <svg id="stage" viewBox="0 0 760 520" width="760" height="520"
+           style="touch-action:none;user-select:none">
+        <defs>
+          <marker id="mF1" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+            <path d="M0,0 L8,3 L0,6 z" fill="#3b82f6"/>
+          </marker>
+          <marker id="mF2" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+            <path d="M0,0 L8,3 L0,6 z" fill="#f59e0b"/>
+          </marker>
+          <marker id="mFR" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+            <path d="M0,0 L8,3 L0,6 z" fill="#dc2626"/>
+          </marker>
+          <marker id="mFP" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+            <path d="M0,0 L8,3 L0,6 z" fill="#16a34a"/>
+          </marker>
+        </defs>
+
+        <!-- 网格 -->
+        <g id="grid"></g>
+        <!-- 坐标轴 -->
+        <line id="axX" class="ax-l" x1="0" y1="330" x2="746" y2="330"/>
+        <line id="axY" class="ax-l" x1="170" y1="14" x2="170" y2="506"/>
+
+        <!-- AO 参考方向线（固定方向，薄虚线） -->
+        <line id="aoRef" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="4 6"/>
+
+        <!-- 平行四边形轮廓（蓝色虚线） -->
+        <line id="par1" stroke="#3b82f6" stroke-width="2" stroke-dasharray="5 5" opacity="0.65"/>
+        <line id="par2" stroke="#f59e0b" stroke-width="2" stroke-dasharray="5 5" opacity="0.55"/>
+
+        <!-- 合力 F（理论对角线，红色虚线） -->
+        <line id="diag"  stroke="#dc2626" stroke-width="3.2" stroke-dasharray="7 5" marker-end="url(#mFR)"/>
+
+        <!-- 实测力 F'（绿色实线，恒沿 AO） -->
+        <line id="fprime" stroke="#16a34a" stroke-width="5" marker-end="url(#mFP)" opacity="0.9"/>
+
+        <!-- 分力 F1 F2（实线箭头） -->
+        <line id="f1" stroke="#3b82f6" stroke-width="4.5" marker-end="url(#mF1)"/>
+        <line id="f2" stroke="#f59e0b" stroke-width="4.5" marker-end="url(#mF2)"/>
+
+        <!-- 原点与向量端点 -->
+        <circle id="O"  r="6" fill="#1e293b"/>
+        <circle id="tip" r="6" fill="#dc2626"/>
+        <circle id="h1" r="9" fill="#3b82f6" stroke="#fff" stroke-width="2.5" style="cursor:grab"/>
+        <circle id="h2" r="9" fill="#f59e0b" stroke="#fff" stroke-width="2.5" style="cursor:grab"/>
+
+        <!-- 标签 -->
+        <text id="lO"  font-size="15" font-weight="800" fill="#1e293b">O</text>
+        <text id="lF1" font-size="15" font-weight="800" fill="#3b82f6">F₁</text>
+        <text id="lF2" font-size="15" font-weight="800" fill="#f59e0b">F₂</text>
+        <text id="lF"  font-size="16" font-weight="800" fill="#dc2626">F</text>
+        <text id="lFP" font-size="16" font-weight="800" fill="#16a34a">F′</text>
+        <text id="lAO" font-size="13" font-weight="700" fill="#94a3b8">AO 方向</text>
+
+        <!-- 等效判定徽标 -->
+        <text id="eqBadge" font-size="16" font-weight="800" text-anchor="middle" x="420" y="52"></text>
+      </svg>
+      <div class="legend">
+        <span><i style="background:#3b82f6"></i>分力 F₁</span>
+        <span><i style="background:#f59e0b"></i>分力 F₂</span>
+        <span><i style="background:#dc2626"></i>合力 F（理论对角线）</span>
+        <span><i style="background:#16a34a"></i>实测力 F′（恒沿 AO）</span>
+        <span><i style="border-top:2px dashed #cbd5e1"></i>AO 参考方向</span>
+      </div>
+    </div>
+
+    <!-- 参数控制台 -->
+    <div class="readouts" style="grid-template-columns:1fr 1fr 1fr;margin-top:14px">
+      <div class="ro"><div class="k">分力 F₁</div><div class="v" id="rF1">2.0</div><div class="u">N</div></div>
+      <div class="ro"><div class="k">分力 F₂</div><div class="v" id="rF2">2.0</div><div class="u">N</div></div>
+      <div class="ro"><div class="k">合力大小 |F|</div><div class="v" id="rFm">3.5</div><div class="u">N</div></div>
+      <div class="ro"><div class="k">合力方向 θ</div><div class="v" id="rFa">0</div><div class="u">°</div></div>
+      <div class="ro"><div class="k">两分力夹角 Δθ</div><div class="v" id="rD">60</div><div class="u">°</div></div>
+      <div class="ro"><div class="k">合力与 AO 夹角</div><div class="v" id="rDev">0</div><div class="u">°</div></div>
+      <div class="ro full" style="grid-column:1/-1"><div class="k">等效判定</div><div class="v" id="rEq">读取中…</div></div>
+    </div>
+
+    <div class="ctrl" style="margin-top:14px">
+      <label>分力 F₁ 大小（N）<b id="v_im1">2.0</b></label>
+      <input id="s_im1" type="range" min="0.5" max="3.5" step="0.1" value="2.0">
+    </div>
+    <div class="ctrl">
+      <label>分力 F₁ 方向 θ₁（°）<b id="v_a1">35</b></label>
+      <input id="s_a1" type="range" min="0" max="360" step="1" value="35">
+    </div>
+    <div class="ctrl">
+      <label>分力 F₂ 大小（N）<b id="v_im2">2.0</b></label>
+      <input id="s_im2" type="range" min="0.5" max="3.5" step="0.1" value="2.0">
+    </div>
+    <div class="ctrl">
+      <label>分力 F₂ 方向 θ₂（°）<b id="v_a2">95</b></label>
+      <input id="s_a2" type="range" min="0" max="360" step="1" value="95">
+    </div>
+    <div class="ctrl">
+      <label>实测力大小 |F′|（N，仅沿 AO，方向固定）<b id="v_fp">3.0</b></label>
+      <input id="s_fp" type="range" min="0.5" max="5" step="0.1" value="3.0">
+    </div>
+    <div class="btns">
+      <button class="btn go" id="btnReset">重置初始</button>
+      <button class="btn" id="btnRandom">随机一组</button>
+    </div>
+
+    <div class="highlight">
+      <b>互动重点（对应第 3 问）：</b>拖动 F₁、F₂ 时，合力 <b>F</b>（红色虚对角线）会不断随两分力变化，<span class="ok" style="color:var(--success)">不一定沿 AO</span>；而单独用一个弹簧测力计实际测出的力 <b>F′</b>（绿色实线）的<span style="color:var(--danger)">方向恒定沿 AO</span>。正是因此，实验规定用实际力 F′ 与理论合力 F 比较来验证规律，且 <b>F′ 一定沿 AO、F 不一定</b>。
+    </div>
+  </section>
+
+  <!-- 三问判定 -->
+  <section class="card opts">
+    <h2><span class="dot"></span>三问判定</h2>
+    <div class="tabs">
+      <button class="tab on" data-q="q1">问题 1 · 绳套选择</button>
+      <button class="tab" data-q="q2">问题 2 · 力的读数</button>
+      <button class="tab" data-q="q3">问题 3 · 沿 AO 的力</button>
+    </div>
+
+    <div class="qunit" id="q1">
+      <div class="problem">(1) 本次实验需要用到带细绳套的橡皮条，图乙中绳套最合适的是 __（选填“甲/乙/丙”，其中绳套分别约为：等长 / 稍长 / 很短）。其设计目的是便于把细绳套套到弹簧测力计挂钩上并保持两绳夹角稳定。</div>
+      <div class="opt" data-ans data-badge="甲"><div class="row"><div class="k">甲</div><div class="t">使用与橡皮条等长的细绳套</div></div><div class="reveal"></div></div>
+      <div class="opt" data-ans data-badge="乙"><div class="row"><div class="k">乙</div><div class="t">使用稍长的细绳套</div></div><div class="reveal"><b>◆ 正确答案：</b><span class="ok">乙（稍长的细绳套）</span><br>较长的细绳套套在弹簧测力计挂钩时更可靠、便于留出余量对准结点与拉线方向，能减小由绳套过短导致的方向误差。</div></div>
+      <div class="opt" data-ans data-badge="丙"><div class="row"><div class="k">丙</div><div class="t">使用很短的细绳套</div></div><div class="reveal"></div></div>
+    </div>
+
+    <div class="qunit" id="q2" style="display:none">
+      <div class="problem">(2) 步骤①中某个弹簧测力计指针位置如图丙所示（量程 0~5 N，分度 0.1 N），其读数为 __ N。</div>
+      <div class="opt" data-ans data-badge="A"><div class="row"><div class="k">A</div><div class="t">3.35 N</div></div><div class="reveal"></div></div>
+      <div class="opt" data-ans data-badge="B"><div class="row"><div class="k">B</div><div class="t">3.40 N</div></div><div class="reveal"><b>◆ 正确答案：</b><span class="ok">B · 3.40 N</span><br>指针约指在 3.40 N 处。该弹簧测力计分度值为 0.1 N，<b>需估读到分度值下一位</b>，即精确到 0.01 N，故读数为 3.40 N（预估指针在 3.4 刻度与 3.4 之间靠近 3.4）。</div></div>
+      <div class="opt" data-ans data-badge="C"><div class="row"><div class="k">C</div><div class="t">3.50 N</div></div><div class="reveal"></div></div>
+      <div class="opt" data-ans data-badge="D"><div class="row"><div class="k">D</div><div class="t">3.00 N</div></div><div class="reveal"></div></div>
+    </div>
+
+    <div class="qunit" id="q3" style="display:none">
+      <div class="problem">(3) 如图丁所示（O 为结点，AO 为橡皮条拉伸方向），一定沿 AO 方向的力是 __（选填“F”或“F′”）。</div>
+      <div class="opt" data-ans data-badge="F"><div class="row"><div class="k">F</div><div class="t">理论合力 F（两分力的对角线）</div></div><div class="reveal"></div></div>
+      <div class="opt" data-ans data-badge="F′"><div class="row"><div class="k">F′</div><div class="t">单独用一个弹簧测力计实际测出的力 F′</div></div><div class="reveal"><b>◆ 正确答案：</b><span class="ok">F′</span><br>实验事实中，单独一个弹簧测力计把结点拉到同一点 O 时，测出的力 <b>F′</b> 一定与橡皮条的拉力方向（即 AO）共线，所以 <b>F′ 一定沿 AO</b>；而两分力合力 F 是理论研究值（对角线），只有当两分力大小方向恰好合适时才可能沿 AO，因此 <b>F 不一定沿 AO</b>。回到上方沙盘拖动 F₁、F₂ 即可直观看到这一规律。</div></div>
+    </div>
+  </section>
+
+  <!-- 分步讲解 -->
+  <section class="card">
+    <h2><span class="dot"></span>分步讲解 · 实验步骤</h2>
+    <div class="step"><div class="hd"><i>①</i>确定合力方向</div><div class="bd">先用两只弹簧测力计把结点拉到 O，再换用一只弹簧测力计把结点再次拉到同一点 O，记下这只测力计的大小与方向，即实测力 <b>F′</b>（其方向即橡皮条拉伸方向 AO）。</div></div>
+    <div class="step"><div class="hd"><i>②</i>记录两分力</div><div class="bd">用两只弹簧测力计<u>互成角度</u>地共同拉，使结点到达 O，读出并记录 F₁、F₂ 的大小，并在白纸上沿绳套方向画出力的方向线。</div></div>
+    <div class="step"><div class="hd"><i>③</i>画平行四边形</div><div class="bd">按 <b>1 cm = 若干 N</b> 的比例用力的图示画出 F₁、F₂，以它们为邻边作出平行四边形，其对角线即为理论合力 <b>F</b>。</div></div>
+    <div class="step"><div class="hd"><i>④</i>比较 F 与 F′</div><div class="bd">把对角线表示的合力 F 与实测力 F′（同取相同比例）比较：若<b>大小相近、方向基本重合（误差允许范围内）</b>，则平行四边形定则得到验证。</div></div>
+    <div class="step"><div class="hd"><i>⑤</i>多次试验</div><div class="bd">改变两分力夹角与大小，重复多组，取多组结果综合分析，从而验证互成角度两力合成满足平行四边形定则。</div></div>
+    <div class="note" style="margin-top:8px"><b>要点：</b>拉线时铅笔沿绳套方向画线要紧靠白纸；弹簧测力计要与纸面平行且轴线对准绳套方向；结点必须拉到完全相同的位置 O（等效）。</div>
+  </section>
+
+  <!-- 计算面板 -->
+  <section class="card">
+    <h2><span class="dot"></span>计算面板</h2>
+    <span class="formula">分力分解：F₁x=F₁cosθ₁, F₁y=F₁sinθ₁;  F₂x=F₂cosθ₂, F₂y=F₂sinθ₂</span>
+    <span class="formula">合力：Fx=F₁x+F₂x,  Fy=F₁y+F₂y;  |F|=√(Fx²+Fy²),  θ=atan2(Fy,Fx)</span>
+    <span class="formula">结果形式：|F| = √(F₁²+F₂²+2·F₁·F₂·cosΔθ)　(Δθ = θ₂-θ₁ 为两分力夹角)</span>
+    <span class="formula">与 AO 偏差：δ = θ - θAO　（θAO 为 AO 方位角），当 δ≈0 且 |F|≈|F′| 时 F 与 F′ 等效</span>
+    <p class="note">在下方控制台拖动滑块，读取数值代入上述公式即可现场验算合力；数值与沙盘同步。</p>
+  </section>
+
+  <div class="footer">互动课件 · 物理《力的合成》 · 纯 SVG + 原生 JS · 由错题本网站生成</div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  var NS="http://www.w3.org/2000/svg", svg=document.getElementById('stage');
+  var OX=170, OY=330, SC=62, MAX=4;            // 原点(物理坐标对应屏幕)与缩放(px/N)
+  var AO=-10*Math.PI/180;                        // AO 方位角(物理,逆时针为正)
+
+  function el(id){return document.getElementById(id);}
+  function $(id){return document.getElementById(id);}
+  // 物理->屏幕
+  function toSc(v){return {x:OX+v.x*SC, y:OY-v.y*SC};}
+  function toPhys(px,py){return {x:(px-OX)/SC, y:(OY-py)/SC};}
+  function setL(id,x1,y1,x2,y2){var L=document.getElementById(id);L.setAttribute('x1',x1);L.setAttribute('y1',y1);L.setAttribute('x2',x2);L.setAttribute('y2',y2);}
+  var D2R=Math.PI/180, R2D=180/Math.PI;
+
+  // 状态
+  var F1m=2.0, F1a=35*D2R, F2m=2.0, F2a=95*D2R, LP=3.0;
+
+  // 网格
+  (function(){
+    var g=document.getElementById('grid');
+    for(var i=0;i<=15;i++){ var x=170-6*62+i*62; var line=document.createElementNS(NS,'line'); line.setAttribute('class','grid-l'); line.setAttribute('x1',x);line.setAttribute('y1',12);line.setAttribute('x2',x);line.setAttribute('y2',508); g.appendChild(line); }
+    for(var j=0;j<=10;j++){ var y=330-5*62+j*62; var line2=document.createElementNS(NS,'line'); line2.setAttribute('class','grid-l'); line2.setAttribute('x1',8);line2.setAttribute('y1',y);line2.setAttribute('x2',752);line2.setAttribute('y2',y); g.appendChild(line2);}
+  })();
+
+  function setupBody(){
+    var ux=Math.cos(AO), uy=Math.sin(AO), L=4.8;
+    var P=toSc({x:0,y:0}), Q=toSc({x:ux*L, y:uy*L});
+    setL('aoRef', P.x,P.y,Q.x,Q.y);
+    var lAO=document.getElementById('lAO');
+    lAO.setAttribute('x',Ox()+40); lAO.setAttribute('y',Oy()-18);
+    var lO=document.getElementById('lO'); lO.setAttribute('x',P.x+9); lO.setAttribute('y',P.y+16);
+  }
+  function Ox(){return OX;} function Oy(){return OY;}
+
+  function render(){
+    var v1={x:F1m*Math.cos(F1a), y:F1m*Math.sin(F1a)};
+    var v2={x:F2m*Math.cos(F2a), y:F2m*Math.sin(F2a)};
+    var F={x:v1.x+v2.x, y:v1.y+v2.y};
+    var O=toSc({x:0,y:0});
+    var P1=toSc(v1), P2=toSc(v2), T=toSc(F);
+
+    // 网格坐标轴
+    // 分力 F1
+    setL('f1', O.x,O.y,P1.x,P1.y);
+    setL('f2', O.x,O.y,P2.x,P2.y);
+    el('h1').setAttribute('cx',P1.x); el('h1').setAttribute('cy',P1.y);
+    el('h2').setAttribute('cx',P2.x); el('h2').setAttribute('cy',P2.y);
+    // 平行四边形轮廓
+    setL('par1', P1.x,P1.y,T.x,T.y);
+    setL('par2', P2.x,P2.y,T.x,T.y);
+    // 合力对角线
+    setL('diag', O.x,O.y,T.x,T.y);
+    el('tip').setAttribute('cx',T.x); el('tip').setAttribute('cy',T.y);
+    // 实测力 F' 沿 AO
+    var u={x:Math.cos(AO),y:Math.sin(AO)}, Q=toSc({x:u.x*LP, y:u.y*LP});
+    setL('fprime', O.x,O.y,Q.x,Q.y);
+    // 原点
+    el('O').setAttribute('cx',O.x); el('O').setAttribute('cy',O.y);
+    // 标签
+    posText('lF1', P1, 12,-10);
+    posText('lF2', P2, 12,-10);
+    posText('lF',  T, -22,-8);
+    posText('lFP', Q, 12,-12);
+
+    // 数值
+    var Fm=Math.hypot(F.x,F.y);
+    var theta=Math.atan2(F.y,F.x);
+    var devRad=wrapRad(theta-AO);
+    var deltaRad=wrapRad(F2a-F1a);
+    var devDeg=Math.abs(devRad*R2D), deltaDeg=Math.abs(deltaRad*R2D);
+    rF1.textContent=F1m.toFixed(1);
+    rF2.textContent=F2m.toFixed(1);
+    rFm.textContent=Fm.toFixed(2);
+    rFa.textContent=normDeg(theta).toFixed(1);
+    rD.textContent=deltaDeg.toFixed(1);
+    rDev.textContent=devDeg.toFixed(1);
+
+    var eq=(devDeg<3)&&(Math.abs(Fm-LP)<0.12);
+    var badge=document.getElementById('eqBadge');
+    if(eq){ badge.textContent='✓ 等效成立 |F|≈|F′| 且方向沿 AO'; badge.setAttribute('fill','#16a34a'); rEq.textContent='等效成立 ✓'; }
+    else if(devDeg<3 && Math.abs(Fm-LP)>=0.12){ badge.textContent='方向沿 AO，但大小不匹配'; badge.setAttribute('fill','#f59e0b'); rEq.textContent='方向沿 AO，大小不匹配'; }
+    else { badge.textContent='F 偏离 AO，验证不成立'; badge.setAttribute('fill','#dc2626'); rEq.textContent='F 偏离 AO（验证不成立）'; }
+  }
+
+  function posText(id,sp,dx,dy){ var t=document.getElementById(id); t.setAttribute('x',sp.x+dx); t.setAttribute('y',sp.y+dy); }
+  function normDeg(th){ var d=th*R2D; d=((d%360)+360)%360; return d; }
+  function wrapRad(d){ var a=((d+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI; return a; }
+
+  // 读数字段
+  var rF1=el('rF1'), rF2=el('rF2'), rFm=el('rFm'), rFa=el('rFa'), rD=el('rD'), rDev=el('rDev'), rEq=el('rEq');
+
+  // 滑块事件（滑块改变时读入状态）
+  function bindSlider(id, fid, axis, toRad){
+    var s=el(id), lbl=el('v_'+axis);
+    s.addEventListener('input', function(){
+      var v=parseFloat(s.value);
+      if(lbl) lbl.textContent=v;
+      if(axis==='im1'){F1m=v;} else if(axis==='a1'){F1a=v*D2R;}
+      else if(axis==='im2'){F2m=v;} else if(axis==='a2'){F2a=v*D2R;}
+      else if(axis==='fp'){LP=v;}
+      render();
+    });
+  }
+  bindSlider('s_im1','','im1'); bindSlider('s_a1','','a1');
+  bindSlider('s_im2','','im2'); bindSlider('s_a2','','a2'); bindSlider('s_fp','','fp');
+
+  // 拖拽
+  var dragId=null;
+  svg.addEventListener('pointerdown', function(ev){
+    var t=ev.target;
+    if(t.id!=='h1' && t.id!=='h2') return;
+    ev.preventDefault();
+    dragId=t.id; t.setPointerCapture(ev.pointerId);
+    svg.setPointerCapture(ev.pointerId);
+  });
+  svg.addEventListener('pointermove', function(ev){
+    if(!dragId) return;
+    var rect=svg.getBoundingClientRect();
+    var px=(ev.clientX-rect.left)*(760/svg.clientWidth);
+    var py=(ev.clientY-rect.top)*(520/svg.clientHeight);
+    var p=toPhys(px,py);
+    if(Math.hypot(p.x,p.y)>MAX){ var m=Math.hypot(p.x,p.y)||1; p.x=p.x/m*MAX; p.y=p.y/m*MAX; }
+    if(dragId==='h1'){ F1m=Math.hypot(p.x,p.y); F1a=Math.atan2(p.y,p.x); }
+    else { F2m=Math.hypot(p.x,p.y); F2a=Math.atan2(p.y,p.x); }
+    syncSliders();
+    render();
+  });
+  ['pointerup','pointercancel'].forEach(function(evt){ svg.addEventListener(evt,function(){ dragId=null; }); });
+
+  function syncSliders(){ el('s_im1').value=F1m; el('s_a1').value=F1a*R2D; el('s_im2').value=F2m; el('s_a2').value=F2a*R2D; el('v_im1').textContent=F1m.toFixed(1); el('v_a1').textContent=F1a*R2D|0; el('v_im2').textContent=F2m.toFixed(1); el('v_a2').textContent=F2a*R2D|0; }
+
+  // 按钮
+  el('btnReset').addEventListener('click', function(){
+    F1m=2.0; F1a=35*D2R; F2m=2.0; F2a=95*D2R; LP=3.0;
+    resetSliders(); render();
+  });
+  el('btnRandom').addEventListener('click', function(){
+    F1m=+(0.8+Math.random()*2.2).toFixed(1); F1a=Math.random()*180*D2R;
+    F2m=+(0.8+Math.random()*2.2).toFixed(1); F2a=(F1a+(Math.random()*100+20)*D2R);
+    LP=3.0; resetSliders(); render();
+  });
+  function resetSliders(){
+    el('s_im1').value=F1m; el('s_a1').value=F1a*R2D; el('s_im2').value=F2m; el('s_a2').value=F2a*R2D; el('s_fp').value=LP;
+    el('v_im1').textContent=F1m.toFixed(1); el('v_a1').textContent=F1a*R2D|0; el('v_im2').textContent=F2m.toFixed(1); el('v_a2').textContent=F2a*R2D|0; el('v_fp').textContent=LP.toFixed(1);
+  }
+
+  // 选项卡
+  var tabs=document.querySelectorAll('.tab');
+  tabs.forEach(function(tb){
+    tb.addEventListener('click', function(){
+      tabs.forEach(function(x){x.classList.remove('on');});
+      tb.classList.add('on');
+      ['q1','q2','q3'].forEach(function(id){ el(id).style.display=(id===tb.dataset.q)?'block':'none'; });
+    });
+  });
+
+  // 选项判定
+  document.querySelectorAll('.opt').forEach(function(o){
+    o.addEventListener('click', function(){
+      document.querySelectorAll('.opt').forEach(function(x){ x.classList.remove('match','open'); });
+      o.classList.add('open');
+      if(o.querySelector('.reveal')&&o.querySelector('.reveal').textContent.trim()!==''){ o.classList.add('match'); }
+    });
+  });
+
+  setupBody();
+  render();
+  resetSliders();
+})();
+</script>
+</body>
+</html>

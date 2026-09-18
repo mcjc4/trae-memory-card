@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>题5 · 超量程测重力（力的分解与等效替代）</title>
+<link rel="stylesheet" href="_shared/style.css">
+<style>
+  .stage svg{background:#fbfdff}
+  .badge-warn{display:inline-block;background:var(--warning-light);color:#92400e;border:1px solid var(--warning);
+    padding:8px 12px;border-radius:10px;font-size:13px;margin-top:10px;width:100%}
+  .badge-ok{background:var(--success-light);color:var(--success);border:1px solid var(--success)}
+  .gauge{border:1px solid var(--border);border-radius:10px;background:#fff;display:block;margin:4px auto}
+  .fillline{margin:4px 0}
+  .fillline input{border:1.5px solid var(--border);border-radius:8px;padding:6px 8px;font-family:var(--mono);width:90px}
+  .chk{margin-top:6px}
+  .hint{font-size:12px;color:var(--text-light);margin-top:6px;min-height:18px}
+  .hint.ok{color:var(--success);font-weight:700}
+  .hint.no{color:var(--danger);font-weight:700}
+  .paramgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px}
+  @media(max-width:620px){.paramgrid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="cw">
+  <header>
+    <div class="crumb">315 · 物理错题本 / 相互作用 · 实验探究</div>
+    <h1>题5 · 弹簧测力计测「超量程」物体重力</h1>
+    <p class="sub">广州期末—力的分解 / 等效替代 · 平行四边形定则 · 弹簧测力计读数</p>
+    <p style="margin-top:8px"><a class="back" href="error_book.html">← 返回互动课件</a></p>
+  </header>
+
+  <!-- 原题 -->
+  <div class="card problem">
+    <b>【题5】</b> 小明想用一量程为 <b>5N</b> 的弹簧测力计测量一个重力<b>超过量程</b>的物体重力，他利用"<span class="key">力的分解 / 等效替代</span>"的方法完成测量。<br>
+    <b>图甲</b>：弹簧测力计（量程 5N，分度值 0.2N）的指针静止在图示位置，待测力计空载读数练习：指针示数为 <b>______ N</b>。<br>
+    <b>图乙</b>：等距圆环白纸（俯视图），一枚图钉 + 细线，实验时调节结点与圆心重合。<br>
+    (1)&nbsp;固定白纸，调节结点与圆心重合；
+    (2)&nbsp;记录三线方向与弹簧测力计读数 <b>______ N</b>（读为 2.6N）；
+    (3)&nbsp;作图求合力：以两读数 F1、F2 为邻边作平行四边形，其对角线（合力）应与重物重力 G 等大反向，量得合力长度 × 比例尺 = 重力。
+</div>
+
+  <div class="layout">
+    <!-- 左侧：物理沙盘 -->
+    <div class="card">
+      <h2><span class="dot"></span>物理沙盘 · 为什么超量程也能测</h2>
+      <div class="stage">
+        <span class="tip">拖动蓝/橙箭头端点，或右下滑杆调两分力</span>
+        <svg id="stage" viewBox="0 0 760 620">
+          <defs>
+            <marker id="mkF1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3b82f6"/></marker>
+            <marker id="mkF2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#f59e0b"/></marker>
+            <marker id="mkR"  viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker>
+            <marker id="mkG"  viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#16a34a"/></marker>
+          </defs>
+          <!-- 参考网线 -->
+          <line id="refV" x1="250" y1="0" x2="250" y2="620" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="4 6"/>
+          <line id="refH" x1="0" y1="360" x2="760" y2="360" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="4 6"/>
+          <text x="258" y="30" font-size="12" fill="#94a3b8">竖直参考线（重力方向）</text>
+          <text x="16" y="352" font-size="12" fill="#94a3b8">结点水平线</text>
+          <!-- 平行四边形虚线边 -->
+          <line id="pa" stroke="#94a3b8" stroke-width="1.3" stroke-dasharray="5 4"/>
+          <line id="pb" stroke="#94a3b8" stroke-width="1.3" stroke-dasharray="5 4"/>
+          <!-- 力箭头 -->
+          <line id="arrowF1" stroke="#3b82f6" stroke-width="4" marker-end="url(#mkF1)"/>
+          <line id="arrowF2" stroke="#f59e0b" stroke-width="4" marker-end="url(#mkF2)"/>
+          <line id="arrowR"  stroke="#dc2626" stroke-width="5" marker-end="url(#mkR)"/>
+          <line id="arrowG"  stroke="#16a34a" stroke-width="5" marker-end="url(#mkG)" stroke-dasharray="1 0"/>
+          <!-- 端点 -->
+          <circle id="ptO" cx="250" cy="360" r="7" fill="#fff" stroke="#1e293b" stroke-width="2.5"/>
+          <circle id="ptF1" r="9" fill="#3b82f6" cursor="grab"/>
+          <circle id="ptF2" r="9" fill="#f59e0b" cursor="grab"/>
+          <circle id="ptD"  r="5" fill="#dc2626"/>
+          <!-- 标签 -->
+          <text id="labO"  x="236" y="384" font-size="13" font-weight="800" fill="#1e293b">O</text>
+          <text id="labF1" font-size="14" font-weight="800" fill="#1e3a8a"/>
+          <text id="labF2" font-size="14" font-weight="800" fill="#92400e"/>
+          <text id="labR"  font-size="13" font-weight="800" fill="#dc2626"/>
+          <text id="labG"  font-size="14" font-weight="800" fill="#166534"/>
+        </svg>
+        <div class="legend">
+          <span><i style="background:#3b82f6"></i>F1（分力·测力计1）</span>
+          <span><i style="background:#f59e0b"></i>F2（分力·测力计2）</span>
+          <span><i style="background:#dc2626;height:3px"></i>合力 F1+F2（与 G 等大反向）</span>
+          <span><i style="background:#16a34a"></i>G（重力·超出量程）</span>
+          <span><i style="background:#94a3b8;height:2px"></i>平行四边形邻边/对角</span>
+        </div>
+      </div>
+      <div id="balanceHint" class="badge-warn"></div>
+    </div>
+
+    <!-- 右侧：参数控制台 -->
+    <div class="card">
+      <h2><span class="dot"></span>参数控制台</h2>
+      <div class="paramgrid">
+        <div class="ctrl"><label>F1 大小 <b id="vm1">—</b></label>
+          <input id="sM1" type="range" min="0" max="5" step="0.05" value="4.62"></div>
+        <div class="ctrl"><label>F2 大小 <b id="vm2">—</b></label>
+          <input id="sM2" type="range" min="0" max="5" step="0.05" value="4.62"></div>
+        <div class="ctrl"><label>F1 与竖直夹角 <b id="vt1">—</b></label>
+          <input id="sT1" type="range" min="0" max="60" step="1" value="30"></div>
+        <div class="ctrl"><label>F2 与竖直夹角 <b id="vt2">—</b></label>
+          <input id="sT2" type="range" min="0" max="60" step="1" value="30"></div>
+      </div>
+      <div class="btns">
+        <button class="btn go" id="btnG">一键调平（对称·超量程演示）</button>
+        <button class="btn" id="btnR">随机乱拉</button>
+      </div>
+      <div class="readouts" style="margin-top:14px">
+        <div class="ro r1"><div class="k">F1 读数</div><div class="v" id="roF1">—<span class="u">N</span></div></div>
+        <div class="ro r2"><div class="k">F2 读数</div><div class="v" id="roF2">—<span class="u">N</span></div></div>
+        <div class="ro"><div class="k">水平分量（应≈0 才竖直）</div><div class="v" id="roRx">—<span class="u">N</span></div></div>
+        <div class="ro full"><div class="k">合力 R = F1+F2（= 重力大小）</div><div class="v" id="roR">—<span class="u">N</span></div></div>
+        <div class="ro rr"><div class="k">G = |R|（等大反向）</div><div class="v" id="roG">—<span class="u">N</span></div></div>
+      </div>
+      <p class="note" style="margin-top:10px"><b>演示要点：</b>单个方向读不出的超量程力 G，可拆成两个<b>都在量程（≤5N）内</b>的分力 F1、F2，作平行四边形取对角线（合力）即得 G 的大小，体现"等效替代"。</p>
+    </div>
+  </div>
+
+  <!-- 图甲读数练习 -->
+  <div class="card opts">
+    <h2><span class="dot"></span>器材读数练习 · 图甲：弹簧测力计（量程5N，分度0.2N）</h2>
+    <div class="layout" style="grid-template-columns:1fr 1.3fr;align-items:start">
+      <div style="text-align:center">
+        <div class="stage" style="max-width:210px;margin:0 auto">
+          <svg class="gauge" id="gauge" viewBox="0 0 170 300">
+            <rect x="20" y="12" width="130" height="276" rx="8" fill="#fff" stroke="#94a3b8" stroke-width="1.5"/>
+            <g id="gtick"></g>
+            <line id="needle" x1="38" y1="24" x2="140" y2="24" stroke="#6366f1" stroke-width="4"/>
+            <circle cx="30" cy="272" r="6" fill="#6366f1"/>
+            <line x1="18" y1="272" x2="170" y2="272" stroke="#334155" stroke-width="3"/>
+          </svg>
+        </div>
+      </div>
+      <div>
+        <div class="ctrl"><label>拖动指针（0~5N，步进0.01）<b id="ptrV">—</b></label>
+          <input id="ptr" type="range" min="0" max="5" step="0.01" value="2.6"></div>
+        <div class="readouts" style="grid-template-columns:1fr 1fr">
+          <div class="ro"><div class="k">当前指针读数</div><div class="v" id="roPtr">—<span class="u">N</span></div></div>
+          <div class="ro"><div class="k">估读精度建议</div><div class="v" id="roEst" style="font-size:15px">估读到 0.1N</div></div>
+        </div>
+        <p class="note" style="margin-top:8px"><b>图甲参考答案：2.6N</b>。分度值 0.2N，指针恰在 2.6 刻线处，估读到 0.1，可写作 <b>2.60或2.6N</b>。</p>
+        <div class="fillline" style="margin-top:10px">
+          <label>填空判定：图甲读数 = <input id="g5in" type="number" step="0.1" placeholder="Δ? N"></label>
+          <button class="btn go chk" style="max-width:120px" id="g5chk">判定</button>
+        </div>
+        <div class="hint" id="g5res"></div>
+        <button class="btn warn" id="g5hint" style="max-width:120px">给提示</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 分步讲解 -->
+  <div class="card">
+    <h2><span class="dot"></span>分步讲解（1）→（3）</h2>
+    <p class="note" style="margin-bottom:12px">点击下方按钮逐条展开。</p>
+    <div class="step" data-s="1"><div class="hd"><i>1</i>固定白纸，调节结点与圆心重合</div>
+      <div class="bd">白纸上画等距圆环作为<b>参考网格/圆心标记</b>。用图钉+细线把三股细线的一端系于一点（<b>结点</b>），三个测力计（或一测力计+重物）分别沿三线方向施力。调节绳结点位置使其与<b>圆心重合</b>，此时结点处<b>三力平衡</b>，结点保持静止，可作为合力的作用点。</div></div>
+    <div class="step" data-s="2"><div class="hd"><i>2</i>记录三线方向与读数</div>
+      <div class="bd">在白纸上沿三条细线<b>画下方向</b>，并记录两个弹簧测力计的读数 <b>F1、F2</b>（本情境 F1=F2，读数练习为 2.6N）。记号线方向表示两分力方向；两条与测力计相连的线靠得越拢/角度越小，两分力的水平分量越易相互抵消，合成方向越竖直。</div></div>
+    <div class="step" data-s="3"><div class="hd"><i>3</i>作图求合力（等效替代）</div>
+      <div class="bd">以投影方向描述：<b>O→F1 端</b>、<b>O→F2 端</b>为邻边，作平行四边形，连结结点 O 与对角顶点的<b>对角线即合力 R</b>。因结点三力平衡，<b>R 与 G 等大反向</b>（沙盘中绿箭头 G 即 -R）。用比例尺量得对角线长度 <b>L</b>（m/cm），重力 <span class="formula" style="display:inline">G = L × k（k 为比例尺，牛每单位长度）</span>。这样<b>即便 G 超过量程</b>，也能借两个量程内的分力合成得到。</div></div>
+    <div class="btns"><button class="btn go" id="stepBtn">逐步演示 ▶</button></div>
+  </div>
+
+  <!-- 计算面板 -->
+  <div class="card">
+    <h2><span class="dot"></span>计算面板 · 由合力求重力</h2>
+    <div class="formula">已知  F1 = F2 = 4.6 N，对称、与竖直方向夹角 θ = 30°
+水平分量：F1x = −F1·sinθ = −4.6×0.5 = −2.30 N；  F2x = +F2·sinθ = +2.30 N
+水平分量相消 → 合力竖直向上
+合力  R = F1y + F2y = 2 × F1·cosθ = 2 × 4.6 × cos30° ≈ 2 × 4.6 × 0.866 ≈ 7.97 N
+重力  G = |R| ≈ 7.97 N ＞ 5 N （超量程，仍可间接测出）√</div>
+    <p class="note"><b>反算比例尺</b>：若按 2N/cm 画图，合力对角线应画长约 <b>7.97/2 ≈ 4.0 cm</b>；量得长度后 G = 4.0 cm × 2 N/cm ≈ 8.0 N。</p>
+  </div>
+
+  <div class="footer">互动课件 · 题5 超量程测重力 · 物理交互练习</div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  var svg=document.getElementById('stage');
+  var W=760,H=620,ox=250,oy=360,sc=26;
+  function ts(v){return {x:ox+v.x*sc, y:oy-v.y*sc};}
+  var state={m1:4.62,t1:30,m2:4.62,t2:30,drag:false,f1:{x:-2.31,y:4.00},f2:{x:2.31,y:4.00}};
+  function compute(){
+    if(!state.drag){
+      var t1=state.t1*Math.PI/180,t2=state.t2*Math.PI/180;
+      state.f1={x:-state.m1*Math.sin(t1), y:state.m1*Math.cos(t1)};
+      state.f2={x: state.m2*Math.sin(t2), y:state.m2*Math.cos(t2)};
+    }
+    var Rx=state.f1.x+state.f2.x, Ry=state.f1.y+state.f2.y;
+    return {R:{x:Rx,y:Ry}, G:{x:-Rx,y:-Ry}};
+  }
+  function seg(id,x1,y1,x2,y2,vis){var g=document.getElementById(id);g.setAttribute('x1',x1);g.setAttribute('y1',y1);g.setAttribute('x2',x2);g.setAttribute('y2',y2);(vis===false)&&g.setAttribute('visibility','hidden');}
+  function nf(v){return Math.round(v*100)/100;}
+  function fmt1(v){return (Math.round(v*100)/100).toFixed(2);}
+
+  function render(){
+    var c=compute();
+    var A=ts(state.f1), B=ts(state.f2), Dm=ts(c.R), Gm=ts(c.G);
+    seg('arrowF1',ox,oy,A.x,A.y);
+    seg('arrowF2',ox,oy,B.x,B.y);
+    seg('arrowR', ox,oy,Dm.x,Dm.y);
+    seg('arrowG', ox,oy,Gm.x,Gm.y);
+    seg('pa',A.x,A.y,Dm.x,Dm.y);
+    seg('pb',B.x,B.y,Dm.x,Dm.y);
+    var pf1=document.getElementById('ptF1');pf1.setAttribute('cx',A.x);pf1.setAttribute('cy',A.y);
+    var pf2=document.getElementById('ptF2');pf2.setAttribute('cx',B.x);pf2.setAttribute('cy',B.y);
+    document.getElementById('ptD').setAttribute('cx',Dm.x);document.getElementById('ptD').setAttribute('cy',Dm.y);
+    var lf1=document.getElementById('labF1'),lf2=document.getElementById('labF2'),
+        lr=document.getElementById('labR'),lg=document.getElementById('labG');
+    lf1.setAttribute('x',A.x-14);lf1.setAttribute('y',A.y-8);lf1.textContent='F1';
+    lf2.setAttribute('x',B.x+6);lf2.setAttribute('y',B.y-8);lf2.textContent='F2';
+    lr.setAttribute('x',Dm.x+6);lr.setAttribute('y',Dm.y-6);lr.textContent='R=F1+F2';
+    lg.setAttribute('x',Gm.x+8);lg.setAttribute('y',Math.min(Gm.y+16,612));lg.textContent='G';
+
+    var m1=Math.hypot(state.f1.x,state.f1.y), m2=Math.hypot(state.f2.x,state.f2.y);
+    var MagR=Math.hypot(c.R.x,c.R.y);
+    document.getElementById('roF1').innerHTML=fmt1(m1)+'<span class="u">N</span>';
+    document.getElementById('roF2').innerHTML=fmt1(m2)+'<span class="u">N</span>';
+    document.getElementById('roRx').innerHTML=(c.R.x>=0?'+':'')+fmt1(c.R.x)+'<span class="u">N</span>';
+    document.getElementById('roR').innerHTML=fmt1(MagR)+'<span class="u">N</span>';
+    document.getElementById('roG').innerHTML=fmt1(MagR)+'<span class="u">N</span>';
+
+    // 同步滑杆（拖拽模式下也回显）
+    document.getElementById('sM1').value=clamp(m1,0,5);document.getElementById('sM2').value=clamp(m2,0,5);
+    document.getElementById('vm1').textContent=fmt1(m1)+' N';
+    document.getElementById('vm2').textContent=fmt1(m2)+' N';
+    document.getElementById('vt1').textContent=tdeg(state.f1)+'°';
+    document.getElementById('vt2').textContent=tdeg(state.f2)+'°';
+    document.getElementById('sT1').value=tdeg(state.f1);document.getElementById('sT2').value=tdeg(state.f2);
+
+    // 平衡/超量程提示
+    var hint=document.getElementById('balanceHint');
+    hint.className='badge-warn';
+    var sub='';
+    if(Math.abs(c.R.x)>0.06){hint.innerHTML='<b>水平分量 ≠ 0</b>：分力未对称，合力偏离竖直方向（此时合力不严格等于竖直向下的 G，实验记录需重调两分力夹角）。当前水平分量 '+((c.R.x>=0?'+':'')+fmt1(c.R.x))+' N。';}
+    else{
+      hint.className='badge-warn badge-ok';
+      hint.innerHTML='<b>平衡成立✓</b>：水平分量≈0，合力竖直向上，与竖直向下的重力 G 等大反向。';
+    }
+    if(MagR>5.05){
+      sub=' <b style="color:#92400e">｜G = '+fmt1(MagR)+' N 超量程(>5N)：单个方向测不出，靠两分力合成间接测得 ✓</b>';
+    } else {
+      sub=' <b>｜G = '+fmt1(MagR)+' N 在量程内，也可直接测。</b>';
+    }
+    hint.innerHTML+=sub;
+  }
+  function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+  function tdeg(v){
+    var th=Math.atan2(Math.abs(v.x),v.y)*180/Math.PI; // 与竖直向上方向夹角 0~90+
+    return Math.round(th);
+  }
+  function setSliders(){
+    state.drag=false;
+    state.m1=parseFloat(document.getElementById('sM1').value);
+    state.m2=parseFloat(document.getElementById('sM2').value);
+    state.t1=parseFloat(document.getElementById('sT1').value);
+    state.t2=parseFloat(document.getElementById('sT2').value);
+    render();
+  }
+  ['sM1','sM2','sT1','sT2'].forEach(function(id){document.getElementById(id).addEventListener('input',setSliders);});
+
+  // 拖拽端点
+  function bindDrag(handleId, key){
+    var h=document.getElementById(handleId);
+    svg.addEventListener('pointerdown',function(ev){
+      if(ev.target!==h) return;
+      ev.preventDefault();
+      svg.setPointerCapture&&svg.setPointerCapture(ev.pointerId);
+      var rect=svg.getBoundingClientRect();
+      var onMove=function(e){
+        var px=(e.clientX-rect.left)*W/svg.clientWidth;
+        var py=(e.clientY-rect.top)*H/svg.clientHeight;
+        var p={x:(px-ox)/sc, y:(oy-py)/sc};
+        var m=Math.hypot(p.x,p.y);
+        if(m>5){p.x=p.x/m*5;p.y=p.y/m*5;}
+        state.drag=true;
+        state[key]={x:+p.x.toFixed(2),y:+p.y.toFixed(2)};
+        var mf2=(key==='f1'?state.f2:state.f1);
+        state.m1=clamp(Math.round(Math.hypot(state.f1.x,state.f1.y)*20)/20,0,5);
+        state.m2=clamp(Math.round(Math.hypot(state.f2.x,state.f2.y)*20)/20,0,5);
+        state.t1=tdeg(state.f1);state.t2=tdeg(state.f2);
+        render();
+      };
+      var onUp=function(){svg.removeEventListener('pointermove',onMove);svg.removeEventListener('pointerup',onUp);};
+      svg.addEventListener('pointermove',onMove);
+      svg.addEventListener('pointerup',onUp);
+    });
+  }
+  bindDrag('ptF1','f1');
+  bindDrag('ptF2','f2');
+
+  // 一键调平
+  document.getElementById('btnG').addEventListener('click',function(){
+    state.drag=false;state.m1=4.62;state.m2=4.62;state.t1=30;state.t2=30;
+    document.getElementById('sM1').value=4.62;document.getElementById('sM2').value=4.62;
+    document.getElementById('sT1').value=30;document.getElementById('sT2').value=30;
+    render();
+  });
+  document.getElementById('btnR').addEventListener('click',function(){
+    state.drag=true;
+    var a=2+5*Math.random(), b=2+5*Math.random();
+    var ang1=-60+120*Math.random(), ang2=-60+120*Math.random();
+    state.f1={x:a*Math.sin(ang1*Math.PI/180),y:a*Math.cos(ang1*Math.PI/180)};
+    state.f2={x:b*Math.sin(ang2*Math.PI/180),y:b*Math.cos(ang2*Math.PI/180)};
+    render();
+  });
+
+  // ============ 图甲测力计读数练习 ============
+  var gtick=document.getElementById('gtick');
+  (function buildGauge(){
+    var top=24,bottom=272,tm=12,bm=276;
+    function yOf(v){return tm+(v/5)*(bm-tm);}
+    for(var i=0;i<=50;i++){
+      var v=i/10; // 0.2 step
+      var y=yOf(v);
+      var gr=document.createElementNS('http://www.w3.org/2000/svg','line');
+      var major=(i%5===0);
+      gr.setAttribute('x1',major?44:56);gr.setAttribute('x2',140);gr.setAttribute('y1',y);gr.setAttribute('y2',y);
+      gr.setAttribute('stroke',major?'#334155':'#cbd5e1');gr.setAttribute('stroke-width',major?2:1);
+      gtick.appendChild(gr);
+      if(major){
+        var t=document.createElementNS('http://www.w3.org/2000/svg','text');
+        t.setAttribute('x',major?40:52);t.setAttribute('y',y+4);t.setAttribute('font-size',10);t.setAttribute('fill','#334155');t.setAttribute('text-anchor','end');
+        t.textContent=v.toFixed(1);
+        gtick.appendChild(t);
+      }
+    }
+    var needle=document.getElementById('needle');
+    var ptr=document.getElementById('ptr');
+    function upd(){
+      var v=parseFloat(ptr.value);
+      var y=tm+(v/5)*(bm-tm);
+      needle.setAttribute('y1',y);needle.setAttribute('y2',y);
+      document.getElementById('ptrV').textContent=v.toFixed(2)+' N';
+      document.getElementById('roPtr').innerHTML=v.toFixed(2)+'<span class="u">N</span>';
+      // 估读提示
+      var est=Math.round(v*10)/10;
+      document.getElementById('roEst').textContent='估读 '+est.toFixed(1)+' N';
+    }
+    ptr.addEventListener('input',upd);upd();
+  })();
+  var g5chk=document.getElementById('g5chk'),g5res=document.getElementById('g5res');
+  g5chk.addEventListener('click',function(){
+    var v=parseFloat(document.getElementById('g5in').value);
+    g5res.className='hint';
+    if(isNaN(v)){g5res.textContent='请输入数值（N）。';g5res.className+=' no';return;}
+    if(Math.abs(v-2.6)<=0.11){
+      g5res.innerHTML='<span class="ok">正确 ✓</span> 分度值 0.2N，指针在 2.6 刻线，估读到 0.1，答案 2.6 N（或 2.60 N）。';
+      g5res.className+=' ok';
+    } else {
+      g5res.innerHTML='<span class="no">再想想</span> 此题示数为 2.6 N（标答），你的答案 '+v.toFixed(2)+' N。';
+      g5res.className+=' no';
+    }
+  });
+  document.getElementById('g5hint').addEventListener('click',function(){
+    g5res.className='hint ok';
+    g5res.innerHTML='提示：分度值 = 0.2 N（每大格间 5 小格）。指针正对 2.6 刻线，估读到 0.1 → 2.6 N。';
+  });
+
+  // 逐步讲解
+  var steps=document.querySelectorAll('.card .step');
+  document.getElementById('stepBtn').addEventListener('click',function(){
+    var shown=[].slice.call(steps).filter(function(s){return s.classList.contains('show');}).length;
+    if(shown>=steps.length){
+      [].forEach.call(steps,function(s){s.classList.remove('show');});
+      steps[0].classList.add('show');
+      this.textContent='逐步演示 ▶';
+    } else {
+      steps[shown].classList.add('show');
+      if(shown+1>=steps.length) this.textContent='已全部展开 · 点击重新演示';
+    }
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>

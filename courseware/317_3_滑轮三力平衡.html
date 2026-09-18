@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>题3 · 滑轮三力平衡 — 互动课件</title>
+<link rel="stylesheet" href="_shared/style.css">
+<style>
+  .mini-svg{display:block;width:100%;max-width:300px;margin:6px auto;border:1px solid var(--border);border-radius:8px;background:#fbfdff}
+  #checklist{font-size:13px;line-height:2}
+  #checklist b.ok{color:var(--success)} #checklist b.no{color:var(--danger)}
+  .verdict{font-size:22px;font-weight:800}
+  .verdict.s{color:var(--success)} .verdict.f{color:var(--danger)}
+  .axis{stroke:var(--border);stroke-width:1;stroke-dasharray:3 4;fill:none}
+</style>
+</head>
+<body>
+<div class="cw">
+  <header>
+    <a class="back" href="error_book.html">← 返回互动课件</a>
+    <h1>题3 · 滑轮三力平衡</h1>
+    <p class="sub">2026 湖北十一校联考 · 课后达标检测　—— 三力平衡验证 · 力的三角形</p>
+  </header>
+
+  <!-- 原题 -->
+  <div class="card problem">
+    <h2><span class="dot"></span>原题</h2>
+    竖直木板铺上白纸，在板上固定两个光滑的滑轮 <b>A</b>、<b>B</b>，绕过滑轮的细绳在结点 <b>O</b> 处打结，绳的自由端各挂若干钩码（每个钩码质量均相等）。系统平衡时，按钩码个数读出连接 <b>O</b> 的三段绳（OA、OB、OC）的拉力 F₁、F₂、F₃。<br>
+    <b>(1)</b> 改变钩码个数（每组三个数分别表示 F₁、F₂、F₃ 的个数），使结点可能平衡的是（　）
+    <span class="problem">A. N₁=N₂=2，N₃=5　B. N₁=1，N₂=4，N₃=6　C. N₁=N₂=N₃=4　D. N₁=3，N₂=4，N₃=5</span><br>
+    <b>(2)</b> 拆下钩码（取下重物）前，最重要的操作是（　）A. 标记 O 位置并记录 OA/OB/OC 三段绳方向　B. 用刻度尺量三段绳长度　C. 用量角器量三绳夹角　D. 用天平测钩码质量<br>
+    <b>(3)</b> 在白纸上用作图法检验三力平衡，作图正确的是（　）〔甲：F₁、F₂ 的合力 F<sub>合</sub> 与 F₃ 等大反向；乙：F<sub>合</sub> 与 F₃ 不在同一直线上〕
+  </div>
+
+  <!-- 物理沙盘 -->
+  <div class="card">
+    <h2><span class="dot"></span>物理沙盘：三力平衡</h2>
+    <div class="stage">
+      <span class="tip">拖动蓝/橙/紫箭头端点，或调整下方滑杆改变三力</span>
+      <svg id="stage" viewBox="0 0 760 620" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="mkB" markerWidth="10" markerHeight="8" refX="8" refY="3" orient="auto" markerUnits="userSpaceOnUse">
+            <path d="M0,0 L8,3 L0,6 z" fill="#3b82f6"/>
+          </marker>
+          <marker id="mkO" markerWidth="10" markerHeight="8" refX="8" refY="3" orient="auto" markerUnits="userSpaceOnUse">
+            <path d="M0,0 L8,3 L0,6 z" fill="#f59e0b"/>
+          </marker>
+          <marker id="mkP" markerWidth="10" markerHeight="8" refX="8" refY="3" orient="auto" markerUnits="userSpaceOnUse">
+            <path d="M0,0 L8,3 L0,6 z" fill="#8b5cf6"/>
+          </marker>
+          <marker id="mkBd" markerWidth="10" markerHeight="8" refX="8" refY="3" orient="auto" markerUnits="userSpaceOnUse">
+            <path d="M0,0 L8,3 L0,6 z" fill="#3b82f6"/>
+          </marker>
+          <marker id="mkOd" markerWidth="10" markerHeight="8" refX="8" refY="3" orient="auto" markerUnits="userSpaceOnUse">
+            <path d="M0,0 L8,3 L0,6 z" fill="#f59e0b"/>
+          </marker>
+          <marker id="mkPd" markerWidth="10" markerHeight="8" refX="8" refY="3" orient="auto" markerUnits="userSpaceOnUse">
+            <path d="M0,0 L8,3 L0,6 z" fill="#8b5cf6"/>
+          </marker>
+        </defs>
+        <line class="axis" x1="0" y1="310" x2="760" y2="310"/>
+        <line class="axis" x1="380" y1="10" x2="380" y2="610"/>
+
+        <!-- 力的三角形（首尾相接链） -->
+        <line id="ch1" x1="0" y1="0" x2="0" y2="0" stroke="#3b82f6" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#mkBd)" opacity=".55"/>
+        <line id="ch2" x1="0" y1="0" x2="0" y2="0" stroke="#f59e0b" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#mkOd)" opacity=".55"/>
+        <line id="ch3" x1="0" y1="0" x2="0" y2="0" stroke="#8b5cf6" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#mkPd)" opacity=".55"/>
+
+        <!-- 三力 -->
+        <line id="l1" x1="0" y1="0" x2="0" y2="0" stroke="#3b82f6" stroke-width="3.5" marker-end="url(#mkB)"/>
+        <line id="l2" x1="0" y1="0" x2="0" y2="0" stroke="#f59e0b" stroke-width="3.5" marker-end="url(#mkO)"/>
+        <line id="l3" x1="0" y1="0" x2="0" y2="0" stroke="#8b5cf6" stroke-width="3.5" marker-end="url(#mkP)"/>
+
+        <circle id="o" cx="380" cy="310" r="6" fill="#1e293b" stroke="#fff" stroke-width="2"/>
+        <text x="392" y="303" font-size="13" font-weight="800" fill="#1e293b">O</text>
+
+        <circle id="tip1" cx="0" cy="0" r="8" fill="#3b82f6" stroke="#fff" stroke-width="2" style="cursor:grab"/>
+        <text id="lab1" x="0" y="0" font-size="14" font-weight="800" fill="#3b82f6">F₁</text>
+        <circle id="tip2" cx="0" cy="0" r="8" fill="#f59e0b" stroke="#fff" stroke-width="2" style="cursor:grab"/>
+        <text id="lab2" x="0" y="0" font-size="14" font-weight="800" fill="#f59e0b">F₂</text>
+        <circle id="tip3" cx="0" cy="0" r="8" fill="#8b5cf6" stroke="#fff" stroke-width="2" style="cursor:grab"/>
+        <text id="lab3" x="0" y="0" font-size="14" font-weight="800" fill="#8b5cf6">F₃</text>
+      </svg>
+    </div>
+    <div class="legend">
+      <span><i style="background:#3b82f6"></i>F₁（沿 OA）</span>
+      <span><i style="background:#f59e0b"></i>F₂（沿 OB）</span>
+      <span><i style="background:#8b5cf6"></i>F₃（竖直向下，OC）</span>
+      <span><i style="background:#93c5fd"></i>虚线＝力的三角形（首尾相接，闭合即平衡）</span>
+    </div>
+  </div>
+
+  <!-- 参数控制台 -->
+  <div class="card">
+    <h2><span class="dot"></span>参数控制台</h2>
+    <div class="ctrl">
+      <label>F₁ 大小 <b id="v1">3.0</b></label>
+      <input type="range" id="s1" min="0" max="6" step="0.1" value="3">
+    </div>
+    <div class="ctrl">
+      <label>F₂ 大小 <b id="v2">3.0</b></label>
+      <input type="range" id="s2" min="0" max="6" step="0.1" value="3">
+    </div>
+    <div class="ctrl">
+      <label>F₃ 大小 <b id="v3">3.0</b></label>
+      <input type="range" id="s3" min="0" max="6" step="0.1" value="3">
+    </div>
+
+    <div class="readouts">
+      <div class="ro r1"><div class="k">拉力 F₁</div><div class="v" id="ro1">0</div><div class="u">×G（G=1 钩码）</div></div>
+      <div class="ro r2"><div class="k">拉力 F₂</div><div class="v" id="ro2">0</div><div class="u">×G（G=1 钩码）</div></div>
+      <div class="ro" style="border-color:#8b5cf6"><div class="k">拉力 F₃</div><div class="v" id="ro3" style="color:#8b5cf6">0</div><div class="u">×G（竖直向下）</div></div>
+      <div class="ro rr"><div class="k">合力 |F₁+F₂+F₃|</div><div class="v" id="rom">0</div><div class="u">·G</div></div>
+      <div class="ro full">
+        <div class="k">三力平衡状态</div>
+        <div class="verdict" id="verd">—</div>
+      </div>
+      <div class="ro full" style="grid-column:1/-1">
+        <div class="k" style="margin-bottom:6px">任意两边之和 &gt; 第三边？（形成力的三角形的必要充分条件）</div>
+        <div id="checklist">
+          F₁+F₂ &gt; F₃　<b id="c1">—</b>　|　
+          F₂+F₃ &gt; F₁　<b id="c2">—</b>　|　
+          F₃+F₁ &gt; F₂　<b id="c3">—</b>
+          <br><span id="triVer"><b class="ok">◆ 满足：三力可构成闭合的力的三角形</b></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="btns">
+      <button class="btn" onclick="preset(2,2,5)">例析 A(2,2,5)</button>
+      <button class="btn" onclick="preset(1,4,6)">例析 B(1,4,6)</button>
+      <button class="btn" onclick="preset(4,4,4)">例析 C(4,4,4)</button>
+      <button class="btn" onclick="preset(3,4,5)">例析 D(3,4,5)</button>
+      <button class="btn go" onclick="resetSim()">重置</button>
+    </div>
+    <div class="note" style="margin-top:12px"><b>说明：</b>钩码个数即力的大小（单位：G）。拖动端点可同时改方向与大小；滑杆只改大小、保持当前方向。本实验结论依托“三力平衡→任意两边之和大于第三边”。</div>
+  </div>
+
+  <!-- 选项判定 -->
+  <div class="card">
+    <h2><span class="dot"></span>选项判定（点击选项查看正误）</h2>
+    <button class="btn" style="flex:0;min-width:120px;margin-bottom:12px" onclick="resetOpts()">清除选择</button>
+
+    <p style="font-weight:700;margin-bottom:6px">(1) 改变钩码个数，能实现平衡的是</p>
+    <div class="opts">
+      <div class="opt" data-ok="false" data-q="1">
+        <div class="row"><span class="k">A</span><span class="t">N₁=N₂=2，N₃=5</span><span class="badge">作答</span></div>
+        <div class="reveal"><b class="no">✗ 错误。</b> 2+2=4 &lt; 5，两边之和小于第三边，无法构成力的三角形，不能平衡。</div>
+      </div>
+      <div class="opt" data-ok="false" data-q="1">
+        <div class="row"><span class="k">B</span><span class="t">N₁=1，N₂=4，N₃=6</span><span class="badge">作答</span></div>
+        <div class="reveal"><b class="no">✗ 错误。</b> 1+4=5 &lt; 6，两边之和小于第三边，不能平衡。</div>
+      </div>
+      <div class="opt" data-ok="true" data-q="1">
+        <div class="row"><span class="k">C</span><span class="t">N₁=N₂=N₃=4</span><span class="badge">作答</span></div>
+        <div class="reveal"><b class="ok">✔ 正确。</b> 任意两边之和 4+4=8 &gt; 第三边 4，且任意两边之差小于第三边，三力可闭合，能平衡。</div>
+      </div>
+      <div class="opt" data-ok="true" data-q="1">
+        <div class="row"><span class="k">D</span><span class="t">N₁=3，N₂=4，N₃=5</span><span class="badge">作答</span></div>
+        <div class="reveal"><b class="ok">✔ 正确。</b> 3+4&gt;5、4+5&gt;3、5+3&gt;4 均成立（恰为常见的 3–4–5 三角），能平衡。答案 <b>CD</b>。</div>
+      </div>
+    </div>
+
+    <p style="font-weight:700;margin:14px 0 6px">(2) 拆下钩码（取重物）前，最重要的操作是</p>
+    <div class="opts">
+      <div class="opt" data-ok="true" data-q="2">
+        <div class="row"><span class="k">A</span><span class="t">标记结点 O 位置，并记录 OA、OB、OC 三段绳的方向</span><span class="badge">作答</span></div>
+        <div class="reveal"><b class="ok">✔ 正确。</b> O 位置与三段绳方向确定后才可在纸上精确作图（作出力的平行四边形/三角形）。</div>
+      </div>
+      <div class="opt" data-ok="false" data-q="2">
+        <div class="row"><span class="k">B</span><span class="t">用刻度尺量出三段绳的长度</span><span class="badge">作答</span></div>
+        <div class="reveal"><b class="no">✗ 错误。</b> 拉力大小由钩码个数决定，绳长与力无关，量长度无意义。</div>
+      </div>
+      <div class="opt" data-ok="false" data-q="2">
+        <div class="row"><span class="k">C</span><span class="t">用量角器量出三段绳的夹角</span><span class="badge">作答</span></div>
+        <div class="reveal"><b class="no">✗ 错误。</b> 夹角可由“记录的方向”在纸上直接作图得到，无需量角器。</div>
+      </div>
+      <div class="opt" data-ok="false" data-q="2">
+        <div class="row"><span class="k">D</span><span class="t">用天平测出每个钩码的质量</span><span class="badge">作答</span></div>
+        <div class="reveal"><b class="no">✗ 错误。</b> 钩码质量已知且彼此相等，直接数个数即可，不必用天平。答案 <b>A</b>。</div>
+      </div>
+    </div>
+
+    <p style="font-weight:700;margin:14px 0 6px">(3) 用作图法检验三力平衡，作图正确的是</p>
+    <div class="opts">
+      <div class="opt" data-ok="true" data-q="3">
+        <div class="row"><span class="k">甲</span><span class="t">F₁、F₂ 的合力 F<sub>合</sub> 与 F₃ 等大反向</span><span class="badge">作答</span></div>
+        <svg class="mini-svg" viewBox="0 0 300 210" xmlns="http://www.w3.org/2000/svg">
+          <defs><marker id="j1" markerWidth="10" markerHeight="8" refX="8" refY="3" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L8,3 L0,6 z" fill="#3b82f6"/></marker>
+          <marker id="j2" markerWidth="10" markerHeight="8" refX="8" refY="3" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L8,3 L0,6 z" fill="#f59e0b"/></marker>
+          <marker id="j3" markerWidth="10" markerHeight="8" refX="8" refY="3" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L8,3 L0,6 z" fill="#8b5cf6"/></marker>
+          <marker id="jd" markerWidth="10" markerHeight="8" refX="8" refY="3" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L8,3 L0,6 z" fill="#16a34a"/></marker></defs>
+          <line x1="150" y1="105" x2="95" y2="42" stroke="#3b82f6" stroke-width="3" marker-end="url(#j1)"/>
+          <line x1="150" y1="105" x2="205" y2="42" stroke="#f59e0b" stroke-width="3" marker-end="url(#j2)"/>
+          <line x1="150" y1="105" x2="150" y2="175" stroke="#8b5cf6" stroke-width="3" marker-end="url(#j3)"/>
+          <line x1="150" y1="105" x2="150" y2="35" stroke="#16a34a" stroke-width="2.5" stroke-dasharray="5 4" marker-end="url(#jd)"/>
+          <circle cx="150" cy="105" r="4" fill="#1e293b"/>
+          <text x="118" y="42" font-size="14" font-weight="800" fill="#3b82f6">F₁</text>
+          <text x="206" y="42" font-size="14" font-weight="800" fill="#f59e0b">F₂</text>
+          <text x="160" y="186" font-size="14" font-weight="800" fill="#8b5cf6">F₃</text>
+          <text x="160" y="34" font-size="14" font-weight="800" fill="#16a34a">F合</text>
+        </svg>
+        <div class="reveal"><b class="ok">✔ 正确。</b> F₁、F₂ 的合力 F<sub>合</sub> 与 F₃ 在一条直线上且等大反向（虚线合力和虚线共线），三者合力为零。答案 <b>甲</b>。</div>
+      </div>
+      <div class="opt" data-ok="false" data-q="3">
+        <div class="row"><span class="k">乙</span><span class="t">F<sub>合</sub> 与 F₃ 不在同一直线上</span><span class="badge">作答</span></div>
+        <svg class="mini-svg" viewBox="0 0 300 210" xmlns="http://www.w3.org/2000/svg">
+          <defs><marker id="k1" markerWidth="10" markerHeight="8" refX="8" refY="3" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L8,3 L0,6 z" fill="#3b82f6"/></marker>
+          <marker id="k2" markerWidth="10" markerHeight="8" refX="8" refY="3" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L8,3 L0,6 z" fill="#f59e0b"/></marker>
+          <marker id="k3" markerWidth="10" markerHeight="8" refX="8" refY="3" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L8,3 L0,6 z" fill="#8b5cf6"/></marker>
+          <marker id="kd" markerWidth="10" markerHeight="8" refX="8" refY="3" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L8,3 L0,6 z" fill="#dc2626"/></marker></defs>
+          <line x1="150" y1="105" x2="105" y2="50" stroke="#3b82f6" stroke-width="3" marker-end="url(#k1)"/>
+          <line x1="150" y1="105" x2="200" y2="55" stroke="#f59e0b" stroke-width="3" marker-end="url(#k2)"/>
+          <line x1="150" y1="105" x2="150" y2="175" stroke="#8b5cf6" stroke-width="3" marker-end="url(#k3)"/>
+          <line x1="150" y1="105" x2="205" y2="28" stroke="#dc2626" stroke-width="2.5" stroke-dasharray="5 4" marker-end="url(#kd)"/>
+          <circle cx="150" cy="105" r="4" fill="#1e293b"/>
+          <text x="128" y="50" font-size="14" font-weight="800" fill="#3b82f6">F₁</text>
+          <text x="200" y="54" font-size="14" font-weight="800" fill="#f59e0b">F₂</text>
+          <text x="160" y="186" font-size="14" font-weight="800" fill="#8b5cf6">F₃</text>
+          <text x="208" y="28" font-size="14" font-weight="800" fill="#dc2626">F合</text>
+        </svg>
+        <div class="reveal"><b class="no">✗ 错误。</b> 力是矢量，三力平衡时 F₁ 与 F₂ 的合力必须与 F₃ 大小相等、方向相反（同一直线）。乙图 F<sub>合</sub> 与 F₃ 不共线，合力不为零，错误。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 分步讲解 -->
+  <div class="card">
+    <h2><span class="dot"></span>分步讲解</h2>
+    <div class="step"><div class="hd"><i>1</i>原理：三力共点平衡</div><div class="bd">结点 O 受三段绳拉力 F₁、F₂、F₃ 而平衡，故 <b>F₁+F₂+F₃=0</b>，即任意两力的合力与第三力<b>等大反向</b>；三力必可构成一个<b>闭合的力的三角形</b>。</div></div>
+    <div class="step"><div class="hd"><i>2</i>判定能否平衡的充要条件</div><div class="bd">三力（大小 m₁,m₂,m₃）能构成闭合的力的三角形的充分必要条件为：<div class="formula">m₁+m₂ &gt; m₃
+m₂+m₃ &gt; m₁
+m₃+m₁ &gt; m₂
+（任意两边之和大于第三边，且每边小于另两边之和）</div></div></div>
+    <div class="step"><div class="hd"><i>3</i>(1) 枚举各选项</div><div class="bd">
+      A (2,2,5)：2+2=4&lt;5 ✗　B (1,4,6)：1+4=5&lt;6 ✗<br>
+      C (4,4,4)：4+4&gt;4 ✓　D (3,4,5)：3+4&gt;5 ✓<br>
+      故可完成的是 <b>C、D</b>。可到上方沙盘点击“例析”按钮直观验证。
+    </div></div>
+    <div class="step"><div class="hd"><i>4</i>(2) 记录结点与绳方向</div><div class="bd">拆下钩码后拉力消失，若要事后作图，必须先<b>标记结点 O 的位置</b>，并把<b>OA、OB、OC 三段绳在白纸上的方向</b>记下来（沿绳画出直线）。量绳长、量夹角、用天平都不必：拉力由钩码个数表征，方向由图直接可得。答案 <b>A</b>。</div></div>
+    <div class="step"><div class="hd"><i>5</i>(3) 作图：平行四边形定则</div><div class="bd">以 F₁、F₂ 为邻边作平行四边形（或直接用力的三角形），其对角线即合力 F<sub>合</sub>。三力平衡要求 <b>F<sub>合</sub> 与 F₃ 等大反向</b>（在同一直线上）。甲图正确，乙图 F<sub>合</sub> 方向画错，未与 F₃ 共线反向，错误。答案 <b>甲</b>。</div></div>
+  </div>
+
+  <div class="footer">interactive courseware · 题3 滑轮三力平衡</div>
+</div>
+
+<script>
+'use strict';
+var svg=document.getElementById('stage');
+function el(id){return document.getElementById(id);}
+var VBW=760, VBH=620, OX=380, OY=310, SCALE=50, MAX=6;
+var F1={x:-2.598,y:1.5}, F2={x:2.598,y:1.5}, F3={x:0,y:-3};
+
+function mag(v){return Math.hypot(v.x,v.y);}
+function s(p){return {x:OX+p.x*SCALE, y:OY-p.y*SCALE};}
+function f2(n){return Math.round(n*100)/100;}
+
+function attachDrag(id, force){
+  var c=el(id);
+  c.addEventListener('pointerdown',function(e){
+    e.preventDefault();
+    try{c.setPointerCapture(e.pointerId);}catch(err){}
+    function move(ev){
+      var r=svg.getBoundingClientRect();
+      var px=(ev.clientX-r.left)*(VBW/svg.clientWidth);
+      var py=(ev.clientY-r.top)*(VBH/svg.clientHeight);
+      var p={x:(px-OX)/SCALE, y:(OY-py)/SCALE};
+      var m=Math.hypot(p.x,p.y);
+      if(m>MAX){p.x=p.x/m*MAX; p.y=p.y/m*MAX;}
+      force.x=f2(p.x); force.y=f2(p.y);
+      refresh();
+    }
+    function up(){ c.removeEventListener('pointermove',move); c.removeEventListener('pointerup',up); }
+    c.addEventListener('pointermove',move);
+    c.addEventListener('pointerup',up);
+    refresh();
+  });
+}
+
+function setMag(F, v){
+  var m=mag(F);
+  if(m<1e-6){ F.x=0; F.y=-v; return; }
+  F.x=f2(F.x/m*v); F.y=f2(F.y/m*v);
+}
+
+var s1=el('s1'), s2=el('s2'), s3=el('s3');
+s1.addEventListener('input',function(){ setMag(F1,parseFloat(s1.value)); refresh(); });
+s2.addEventListener('input',function(){ setMag(F2,parseFloat(s2.value)); refresh(); });
+s3.addEventListener('input',function(){ setMag(F3,parseFloat(s3.value)); refresh(); });
+
+function syncSliders(){
+  s1.value = MagRound(F1); s2.value = MagRound(F2); s3.value = MagRound(F3);
+}
+function MagRound(F){ return Math.round(mag(F)*10)/10; }
+
+var l1=el('l1'),l2=el('l2'),l3=el('l3');
+var t1=el('tip1'),t2=el('tip2'),t3=el('tip3');
+var la1=el('lab1'),la2=el('lab2'),la3=el('lab3');
+var c1=el('ch1'),c2=el('ch2'),c3=el('ch3');
+
+function refresh(){
+  var a=s(F1), b=s(F2), d=s(F3);
+  l1.setAttribute('x2',a.x); l1.setAttribute('y2',a.y);
+  l2.setAttribute('x2',b.x); l2.setAttribute('y2',b.y);
+  l3.setAttribute('x2',d.x); l3.setAttribute('y2',d.y);
+  t1.setAttribute('cx',a.x); t1.setAttribute('cy',a.y);
+  t2.setAttribute('cx',b.x); t2.setAttribute('cy',b.y);
+  t3.setAttribute('cx',d.x); t3.setAttribute('cy',d.y);
+  la1.setAttribute('x',a.x+8); la1.setAttribute('y',a.y-8);
+  la2.setAttribute('x',b.x+8); la2.setAttribute('y',b.y-8);
+  la3.setAttribute('x',d.x+8); la3.setAttribute('y',d.y+8);
+
+  /* 力的三角形：首尾相接 */
+  var P0={x:OX,y:OY};
+  var P1=s(F1);
+  var P2={x:P1.x+F2.x*SCALE, y:P1.y-F2.y*SCALE};
+  var P3={x:P2.x+F3.x*SCALE, y:P2.y-F3.y*SCALE};
+  c1.setAttribute('x1',P0.x); c1.setAttribute('y1',P0.y); c1.setAttribute('x2',P1.x); c1.setAttribute('y2',P1.y);
+  c2.setAttribute('x1',P1.x); c2.setAttribute('y1',P1.y); c2.setAttribute('x2',P2.x); c2.setAttribute('y2',P2.y);
+  c3.setAttribute('x1',P2.x); c3.setAttribute('y1',P2.y); c3.setAttribute('x2',P3.x); c3.setAttribute('y2',P3.y);
+
+  /* 读数 */
+  var m1=mag(F1), m2=mag(F2), m3=mag(F3);
+  el('ro1').textContent=m1.toFixed(1);
+  el('ro2').textContent=m2.toFixed(1);
+  el('ro3').textContent=m3.toFixed(1);
+  el('v1').textContent=m1.toFixed(1);
+  el('v2').textContent=m2.toFixed(1);
+  el('v3').textContent=m3.toFixed(1);
+
+  var res={x:F1.x+F2.x+F3.x, y:F1.y+F2.y+F3.y};
+  var rm=mag(res);
+  el('rom').textContent=rm.toFixed(3);
+  var balanced = rm < 0.08;
+  var verd=el('verd');
+  if(balanced){ verd.textContent='✓ 平衡'; verd.className='verdict s'; }
+  else{ verd.textContent='✗ 未平衡'; verd.className='verdict f'; }
+
+  /* 三角形不等式 */
+  var e=0.05;
+  var k1 = (m1+m2) > m3-e;
+  var k2 = (m2+m3) > m1-e;
+  var k3 = (m3+m1) > m2-e;
+  el('c1').innerHTML = k1?'<b class="ok">满足</b>':'<b class="no">不满足</b>';
+  el('c2').innerHTML = k2?'<b class="ok">满足</b>':'<b class="no">不满足</b>';
+  el('c3').innerHTML = k3?'<b class="ok">满足</b>':'<b class="no">不满足</b>';
+  el('triVer').innerHTML = (k1&&k2&&k3)
+    ? '<b class="ok">◆ 三力可构成闭合的力的三角形（具备平衡的可能）</b>'
+    : '<b class="no">◆ 存在某两边之和 ≤ 第三边，三力无法闭合，必不能平衡</b>';
+
+  syncSliders();
+}
+
+function preset(a,b,c){
+  if(a+b>c && a+c>b && b+c>a){
+    /* 自动布成闭合且 F3 竖直向下 */
+    var y1=(a*a - b*b + c*c)/(2*c);
+    var x1sq=a*a - y1*y1;
+    var x1= x1sq>0 ? -Math.sqrt(x1sq) : 0;
+    F1={x:Math.round(x1*100)/100, y:Math.round(y1*100)/100};
+    F2={x:Math.round(-x1*100)/100, y:Math.round((c-y1)*100)/100};
+    F3={x:0,y:-c};
+  } else {
+    /* 构不成闭合 → 保持方向展示开口三角形 */
+    var mg=function(deg){ var r=deg*Math.PI/180; return {x:Math.cos(r), y:Math.sin(r)}; };
+    var u1=mg(150), u2=mg(30);
+    F1={x:u1.x*a, y:u1.y*a};
+    F2={x:u2.x*b, y:u2.y*b};
+    F3={x:0,y:-c};
+  }
+  refresh();
+}
+
+function resetSim(){ preset(3,3,3); }
+
+/* 选项点选 */
+function resetOpts(){
+  document.querySelectorAll('.opt').forEach(function(o){ o.classList.remove('open','match'); });
+}
+document.querySelectorAll('.opt').forEach(function(o){
+  o.addEventListener('click',function(){
+    var ok = o.getAttribute('data-ok')==='true';
+    o.classList.add('open');
+    o.classList.remove('match');
+    if(ok){ o.classList.add('match'); }
+  });
+});
+
+attachDrag('tip1',F1);
+attachDrag('tip2',F2);
+attachDrag('tip3',F3);
+refresh();
+</script>
+</body>
+</html>

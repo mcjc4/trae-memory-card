@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>题6 · 家庭实验室验证平行四边形定则</title>
+<link rel="stylesheet" href="_shared/style.css">
+<style>
+  .stage svg{background:#fbfdff}
+  .badge-warn{display:inline-block;background:var(--warning-light);color:#92400e;border:1px solid var(--warning);
+    padding:8px 12px;border-radius:10px;font-size:13px;margin-top:10px;width:100%}
+  .badge-ok{background:var(--success-light);color:var(--success);border:1px solid var(--success)}
+  .gauge{border:1px solid var(--border);border-radius:10px;background:#fff;display:block;margin:4px auto}
+  .paramgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px}
+  @media(max-width:620px){.paramgrid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="cw">
+  <header>
+    <div class="crumb">315 · 物理错题本 / 相互作用 · 实验探究</div>
+    <h1>题6 · 家庭实验室验证「平行四边形定则」</h1>
+    <p class="sub">四川泸州市模拟 · 三力平衡 · 合力与第三力等大反向 · 读数与两次实验</p>
+    <p style="margin-top:8px"><a class="back" href="error_book.html">← 返回互动课件</a></p>
+  </header>
+
+  <!-- 原题 -->
+  <div class="card problem">
+    <b>【题6】</b> 小明在家中进行"验证力的平行四边形定则"实验。<br>
+    <b>图甲</b>：用弹簧测力计（量程 5N，分度 0.2N）测茶杯重力，指针约在 3.0N 刻度，故 G = <b>3.0 N</b>。<br>
+    <b>(2)</b> 在竖直墙面上贴坐标纸，结点 O 连两个弹簧测力计 <b>P、Q</b> 与茶杯（重力 G），三力平衡。<br>
+    <b>(3)</b> 作三力图示（图丙：G 竖直向下、FP 斜向右上、FQ 斜向右下）。<br>
+    <b>(4)</b> 多次实验时，结点是否需要每次都放在同一位置？答案为：<b>不需要</b>（平衡条件与结点位置无关，不同位置更能验证普遍性）。<br>
+    <b>(6)</b> 判断三个力中哪个记录有误：用平行四边形定则——若 FP 与 FQ 的合力（对角线）<b>不落在 G 所在的竖直线上</b>，或<b>长度与 G 不符</b>，则该力记录有误（三力平衡时合力为零，任意两力合成应与第三力等大反向）。
+  </div>
+
+  <div class="layout">
+    <!-- 左：物理沙盘 -->
+    <div class="card">
+      <h2><span class="dot"></span>物理沙盘 · 三力平衡验证</h2>
+      <div class="stage">
+        <span class="tip">G 固定竖直向下（绿）；拖动 FP（蓝）/ FQ（橙）或滑杆，看合力 R 与 G 是否等大反向</span>
+        <svg id="stage" viewBox="0 0 760 620">
+          <defs>
+            <marker id="mkFP" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3b82f6"/></marker>
+            <marker id="mkFQ" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#f59e0b"/></marker>
+            <marker id="mkR"  viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker>
+            <marker id="mkG"  viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#16a34a"/></marker>
+            <marker id="mkNeg" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/></marker>
+          </defs>
+          <line id="refV" x1="250" y1="0" x2="250" y2="620" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="4 6"/>
+          <line id="refH" x1="0" y1="320" x2="760" y2="320" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="4 6"/>
+          <text x="258" y="28" font-size="12" fill="#94a3b8">竖直方向（G 所在直线）</text>
+          <!-- 期望合力 -G 虚线 -->
+          <line id="wish" stroke="#94a3b8" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#mkNeg)"/>
+          <text id="labWish" font-size="12" fill="#64748b" font-weight="700">期望合力 −G=FP+FQ</text>
+          <!-- 平行四边形虚线边 -->
+          <line id="pa" stroke="#94a3b8" stroke-width="1.3" stroke-dasharray="5 4"/>
+          <line id="pb" stroke="#94a3b8" stroke-width="1.3" stroke-dasharray="5 4"/>
+          <!-- 力 -->
+          <line id="arrowFP" stroke="#3b82f6" stroke-width="4" marker-end="url(#mkFP)"/>
+          <line id="arrowFQ" stroke="#f59e0b" stroke-width="4" marker-end="url(#mkFQ)"/>
+          <line id="arrowR"  stroke="#dc2626" stroke-width="5" marker-end="url(#mkR)"/>
+          <line id="arrowG"  stroke="#16a34a" stroke-width="5" marker-end="url(#mkG)"/>
+          <!-- 点 -->
+          <circle id="ptO" cx="250" cy="320" r="7" fill="#fff" stroke="#1e293b" stroke-width="2.5"/>
+          <circle id="ptFP" r="9" fill="#3b82f6" cursor="grab"/>
+          <circle id="ptFQ" r="9" fill="#f59e0b" cursor="grab"/>
+          <circle id="ptD"  r="5" fill="#dc2626"/>
+          <!-- 标签 -->
+          <text id="labO" x="234" y="344" font-size="13" font-weight="800" fill="#1e293b">O</text>
+          <text id="labFP" font-size="14" font-weight="800" fill="#1e3a8a"/>
+          <text id="labFQ" font-size="14" font-weight="800" fill="#92400e"/>
+          <text id="labR"  font-size="12" font-weight="800" fill="#dc2626"/>
+          <text id="labG"  font-size="14" font-weight="800" fill="#166534"/>
+        </svg>
+        <div class="legend">
+          <span><i style="background:#16a34a"></i>G（重力·竖直向下）</span>
+          <span><i style="background:#3b82f6"></i>FP（测力计 P）</span>
+          <span><i style="background:#f59e0b"></i>FQ（测力计 Q）</span>
+          <span><i style="background:#dc2626"></i>合力 R = FP + FQ</span>
+          <span><i style="background:#94a3b8;height:2px"></i>期望 −G（虚线·应重合）</span>
+        </div>
+      </div>
+      <div id="balanceHint" class="badge-warn"></div>
+    </div>
+
+    <!-- 右：参数控制台 -->
+    <div class="card">
+      <h2><span class="dot"></span>参数控制台</h2>
+      <div class="paramgrid">
+        <div class="ctrl"><label>G 大小 <b id="vmg">—</b></label>
+          <input id="sG" type="range" min="0.5" max="5" step="0.1" value="3.0"></div>
+        <div class="ctrl"><label>FP 大小 <b id="vmp">—</b></label>
+          <input id="sM1" type="range" min="0" max="5" step="0.05" value="2.6"></div>
+        <div class="ctrl"><label>FQ 大小 <b id="vmq">—</b></label>
+          <input id="sM2" type="range" min="0" max="5" step="0.05" value="2.6"></div>
+        <div class="ctrl"><label>FP / FQ 对称张角 θ <b id="vth">—</b></label>
+          <input id="sT" type="range" min="0" max="60" step="1" value="30"></div>
+      </div>
+      <div class="btns">
+        <button class="btn go" id="btnG">一键到达平衡</button>
+        <button class="btn" id="btnE">疑似记录有误</button>
+        <button class="btn" id="btnR">任意拖动态</button>
+      </div>
+      <div class="readouts" style="margin-top:14px">
+        <div class="ro r1"><div class="k">FP 读数</div><div class="v" id="roFP">—<span class="u">N</span></div></div>
+        <div class="ro r2"><div class="k">FQ 读数</div><div class="v" id="roFQ">—<span class="u">N</span></div></div>
+        <div class="ro rr"><div class="k">G（目标）</div><div class="v" id="roG">—<span class="u">N</span></div></div>
+        <div class="ro full"><div class="k">合力 R = FP + FQ（应 = G 且竖直向上）</div><div class="v" id="roR">—<span class="u">N</span></div></div>
+        <div class="ro"><div class="k">偏差 |R·方向| − |G|</div><div class="v" id="roDev" style="font-size:16px">—</div></div>
+      </div>
+      <p class="note" style="margin-top:10px"><b>平衡判据（(6)）</b>：三力平衡 ⟺ R = FP + FQ 满足 <b>方向竖直向上</b> 且 <b>大小 = G</b>（即合力与 G 等大反向）。若合力对角线偏移竖直或长度不符 → 至少一个力记录有误。</p>
+    </div>
+  </div>
+
+  <!-- 选项判定 -->
+  <div class="card opts">
+    <h2><span class="dot"></span>判定</h2>
+    <p class="note" style="margin-bottom:10px"><b>(4)</b> 多次实验时，结点是否需要每次都在同一位置？</p>
+    <div class="opt" data-c="A"><div class="row"><div class="k">A</div><div class="t">需要，否则合力作用点变来变去，无法比较</div></div><div class="badge">×</div>
+      <div class="reveal"><b>分析：</b>平衡时合力恒为零，与<b>结点所在位置无关</b>（力是矢量，平移不变）。强制同一位置反而失去普遍性。</div></div>
+    <div class="opt" data-c="B"><div class="row"><div class="k">B</div><div class="t">不需要，不同位置更能验证普遍性</div></div><div class="badge">✓</div>
+      <div class="reveal"><span class="ok">正确答案 ✓</span>（选项(4)答案：<b>不需要</b>）。三力平衡的矢量关系（合力为零、任意两力合成与第三力等大反向）与结点位置无关；变换结点位置多做几次，才能验证定则对多种情况均成立。</div></div>
+  </div>
+
+  <div class="card opts">
+    <h2><span class="dot"></span>判定（6）· 辨别哪次记录有误的方法</h2>
+    <p class="note" style="margin-bottom:10px">当同学报告的三力图示经作图后出现合力不对齐时，正确判断方法为：</p>
+    <div class="opt" data-c="A"><div class="row"><div class="k">A</div><div class="t">用平行四边形定则：若 FP、FQ 的合力对角线不落在 G 所在竖直线上或长度 ≠ G 图示长度，则该次记录存在错误</div></div><div class="badge">✓</div>
+      <div class="reveal"><span class="ok">正确 ✓</span> 平衡时三力合力为零，任意两力合成必与第三力 G 等大反向，故合力对角线必须竖直向上且长度等于 G；否则必然有某个力记错。</div></div>
+    <div class="opt" data-c="B"><div class="row"><div class="k">B</div><div class="t">只看读数大小排序即可判断哪一力错</div></div><div class="badge">×</div>
+      <div class="reveal"><b>错误：</b>读数大小本身看不出方向；必须按比例作图、做平行四边形合链比对，才能定位错误。</div></div>
+    <div class="opt" data-c="C"><div class="row"><div class="k">C</div><div class="t">三个力都是实测数据，不可能有误，无需检验</div></div><div class="badge">×</div>
+      <div class="reveal"><b>错误：</b>读数、作图、方向描绘都可能引入误差，仍需用平行四边形定则交叉检验。</div></div>
+  </div>
+
+  <!-- 分步讲解 -->
+  <div class="card">
+    <h2><span class="dot"></span>分步讲解（1）→（6）</h2>
+    <p class="note" style="margin-bottom:12px">点击按钮逐条展开。</p>
+    <div class="step" data-s="1"><div class="hd"><i>1</i>测茶杯重力 G</div>
+      <div class="bd">直接用弹簧测力计吊住茶杯，指针约在 <b>3.0N</b> 刻度（分度 0.2N，估读到 0.1），故 G = <b>3.0 N</b>。读数标"G 竖直向下"。</div></div>
+    <div class="step" data-s="2"><div class="hd"><i>2</i>竖直墙面贴坐标纸，结点 O 三力平衡</div>
+      <div class="bd">把茶杯悬于结点，两个弹簧测力计 P、Q 分别从两侧拉结点，三力（G、FP、FQ）作用在同一结点上而静止，<b>平衡条件：三力合力为零</b>，即 FP + FQ + G = 0。</div></div>
+    <div class="step" data-s="3"><div class="hd"><i>3</i>作三力图示（按比例、标方向）</div>
+      <div class="bd">先定比例尺，从结点 O 出发按比例画出 <b>G（竖直向下）</b>、<b>FP（斜向右上）</b>、<b>FQ（斜向右下）</b>（沙盘中蓝、橙箭头即为 FP、FQ）。箭头方向、线段长度与作用点都要准确。</div></div>
+    <div class="step" data-s="4"><div class="hd"><i>4</i>多次实验：结点是否需同一位置？</div>
+      <div class="bd"><b>不需要</b>。力的合成是矢量关系，与力的作用点在墙上的位置无关；每次换一个新结点/方位，能检验该规律在<b>任意一组三力</b>下都成立，增强普遍性。</div></div>
+    <div class="step" data-s="5"><div class="hd"><i>5</i>验证合力与 G 等大反向</div>
+      <div class="bd">以 FP、FQ 为邻边作平行四边形，对角线即合力 <b>R = FP + FQ</b>（沙盘红箭头）。因三力平衡，应有 <b>R 与 G 等大反向</b>，即 R 竖直向上、|R| = G。</div></div>
+    <div class="step" data-s="6"><div class="hd"><i>6</i>定位"记录有误"之力</div>
+      <div class="bd">当作的图检验不过关：若合力对角线<b>不落在 G 所在竖直线上</b>（有水平分量），或<b>长度与 G 不符</b>，说明至少一个力的<b>方向或大小描错</b>。此时应回去核对：该力读数是否记错、方向线是否画偏、是否忘记等大反向——从而锁定错误记录。</div></div>
+    <div class="btns"><button class="btn go" id="stepBtn">逐步演示 ▶</button></div>
+  </div>
+
+  <!-- 计算面板 -->
+  <div class="card">
+    <h2><span class="dot"></span>计算面板 · 对称情形的定量验证</h2>
+    <div class="formula">已知 G = 3.0 N，FP = FQ = 2.6 N，FP、FQ 关于竖直方向对称、与竖直夹角 θ = 30°
+FP、FQ 水平分量 大小相等方向相反 → 相消
+合力向上分量：R = 2 × FP·cosθ = 2 × 2.6 × cos30° ≈ 2 × 2.6 × 0.866 ≈ 4.50 N
+与 G = 3.0 N 比较：|4.50 − 3.0| = 1.50 N ≠ 0 → 本组配置未平衡，记录有误（角度或读数需核查）</div>
+    <p class="note">要达到平衡，需使 <b>2·FP·cosθ = G</b>。若 θ=30°，则 FP = G/(2cos30°) ≈ 3.0/(2×0.866) ≈ <b>1.73 N</b>。可调滑杆到 1.73N 附近，沙盘将显示"平衡成立✓"。</p>
+  </div>
+
+  <div class="footer">互动课件 · 题6 家庭实验室验证平行四边形定则 · 物理交互练习</div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  var svg=document.getElementById('stage');
+  var W=760,H=620,ox=250,oy=300,sc=38;
+  function ts(v){return {x:ox+v.x*sc, y:oy-v.y*sc};}
+  function fmt1(v){return (Math.round(v*100)/100).toFixed(2);}
+  function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+  var state={g:3.0,m1:2.6,m2:2.6,th:30,drag:false,fp:{x:-2.25,y:1.3},fq:{x:2.25,y:1.3}};
+
+  function compute(){
+    if(!state.drag){
+      var t=state.th*Math.PI/180;
+      state.fp={x:-state.m1*Math.sin(t), y:state.m1*Math.cos(t)};
+      state.fq={x: state.m2*Math.sin(t), y:state.m2*Math.cos(t)};
+    }
+    var Rx=state.fp.x+state.fq.x, Ry=state.fp.y+state.fq.y;
+    return {R:{x:Rx,y:Ry}, G:{x:0,y:-state.g}};
+  }
+  function seg(id,x1,y1,x2,y2){var g=document.getElementById(id);g.setAttribute('x1',x1);g.setAttribute('y1',y1);g.setAttribute('x2',x2);g.setAttribute('y2',y2);}
+
+  function render(){
+    var c=compute();
+    var FP=ts(state.fp), FQ=ts(state.fq), Dm=ts(c.R), Gm=ts(c.G);
+    var wishEnd=ts({x:0,y:state.g}); // -G 竖直向上
+    seg('arrowFP',ox,oy,FP.x,FP.y);
+    seg('arrowFQ',ox,oy,FQ.x,FQ.y);
+    seg('arrowR', ox,oy,Dm.x,Dm.y);
+    seg('arrowG', ox,oy,Gm.x,Gm.y);
+    seg('pa',FP.x,FP.y,Dm.x,Dm.y);
+    seg('pb',FQ.x,FQ.y,Dm.x,Dm.y);
+    var wish=document.getElementById('wish');
+    wish.setAttribute('x1',ox);wish.setAttribute('y1',oy);wish.setAttribute('x2',wishEnd.x);wish.setAttribute('y2',wishEnd.y);
+    var lw=document.getElementById('labWish');lw.setAttribute('x',wishEnd.x+8);lw.setAttribute('y',wishEnd.y-6);
+    document.getElementById('ptFP').setAttribute('cx',FP.x);document.getElementById('ptFP').setAttribute('cy',FP.y);
+    document.getElementById('ptFQ').setAttribute('cx',FQ.x);document.getElementById('ptFQ').setAttribute('cy',FQ.y);
+    document.getElementById('ptD').setAttribute('cx',Dm.x);document.getElementById('ptD').setAttribute('cy',Dm.y);
+
+    var lfp=document.getElementById('labFP'),lfq=document.getElementById('labFQ'),
+        lr=document.getElementById('labR'),lg=document.getElementById('labG');
+    lfp.setAttribute('x',FP.x-16);lfp.setAttribute('y',FP.y-8);lfp.textContent='FP';
+    lfq.setAttribute('x',FQ.x+6);lfq.setAttribute('y',FQ.y-8);lfq.textContent='FQ';
+    lr.setAttribute('x',Dm.x+6);lr.setAttribute('y',Dm.y-6);lr.textContent='R=FP+FQ';
+    lg.setAttribute('x',Gm.x+8);lg.setAttribute('y',Math.min(Gm.y+16,608));lg.textContent='G';
+
+    var m1=Math.hypot(state.fp.x,state.fp.y), m2=Math.hypot(state.fq.x,state.fq.y);
+    var MagR=Math.hypot(c.R.x,c.R.y);
+    // 判定：期望合力 -G = (0, +g)
+    // R 与 -G 对齐 & 等大
+    var devD=Math.hypot(c.R.x-0, c.R.y-state.g); // vector diff
+    document.getElementById('roFP').innerHTML=fmt1(m1)+'<span class="u">N</span>';
+    document.getElementById('roFQ').innerHTML=fmt1(m2)+'<span class="u">N</span>';
+    document.getElementById('roG').innerHTML=fmt1(state.g)+'<span class="u">N</span>';
+    document.getElementById('roR').innerHTML=fmt1(MagR)+'<span class="u">N</span>';
+    document.getElementById('roDev').textContent=devD.toFixed(2)+' N';
+
+    // 同步滑杆（拖拽回显）
+    document.getElementById('vmpp');
+    document.getElementById('sG').value=state.g;
+    document.getElementById('vmg').textContent=state.g.toFixed(1)+' N';
+    document.getElementById('sM1').value=m1;document.getElementById('vmp').textContent=fmt1(m1)+' N';
+    document.getElementById('sM2').value=m2;document.getElementById('vmq').textContent=fmt1(m2)+' N';
+    var th=Math.round(Math.atan2(Math.abs(state.fp.x),Math.abs(state.fp.y))*180/Math.PI);
+    document.getElementById('vth').textContent=th+'°';
+    document.getElementById('sT').value=th;
+
+    var hint=document.getElementById('balanceHint');
+    hint.className='badge-warn';
+    if(state.drag===false){
+      // 对称模式，水平天然为0
+      if(Math.abs(c.R.x)>0.0001){
+        hint.innerHTML='<b>实?数值</b>（仅形式）';
+      }
+    }
+    if(Math.abs(c.R.x)>0.09){
+      hint.innerHTML='<b>合力偏离竖直方向</b>：合力对角线不落在 G 所在竖直线上（水平分量 '+(c.R.x>=0?'+':'')+fmt1(c.R.x)+' N）。根据(6)，该次记录存在错误。';
+    } else {
+      if(devD<0.06){
+        hint.className='badge-warn badge-ok';
+        hint.innerHTML='<b>平衡成立 ✓</b>：R = FP + FQ 与 G 等大反向（方向竖直向上、|R| = '+fmt1(MagR)+' N = |G|），记录无误。';
+      } else {
+        var gap=Math.abs(MagR-state.g);
+        hint.innerHTML='<b>合力竖直但大小不符</b>：方向对、|R|='+fmt1(MagR)+' N 与 G='+state.g.toFixed(1)+' N 差 '+gap.toFixed(2)+' N（合力对角线长度 ≠ G 图示长度 → 某力记录有误）。';
+      }
+    }
+  }
+  function setSliders(){
+    state.drag=false;
+    state.g=+document.getElementById('sG').value;
+    state.m1=+document.getElementById('sM1').value;
+    state.m2=+document.getElementById('sM2').value;
+    state.th=+document.getElementById('sT').value;
+    render();
+  }
+  ['sG','sM1','sM2','sT'].forEach(function(id){document.getElementById(id).addEventListener('input',setSliders);});
+
+  function bindDrag(hid,key){
+    var h=document.getElementById(hid);
+    svg.addEventListener('pointerdown',function(ev){
+      if(ev.target!==h) return;
+      ev.preventDefault();
+      svg.setPointerCapture&&svg.setPointerCapture(ev.pointerId);
+      var rect=svg.getBoundingClientRect();
+      var onMove=function(e){
+        var px=(e.clientX-rect.left)*W/svg.clientWidth;
+        var py=(e.clientY-rect.top)*H/svg.clientHeight;
+        var p={x:(px-ox)/sc, y:(oy-py)/sc};
+        var m=Math.hypot(p.x,p.y);
+        if(m>5){p.x=p.x/m*5;p.y=p.y/m*5;}
+        state.drag=true;
+        state[key]={x:+p.x.toFixed(2),y:+p.y.toFixed(2)};
+        render();
+      };
+      var onUp=function(){svg.removeEventListener('pointermove',onMove);svg.removeEventListener('pointerup',onUp);};
+      svg.addEventListener('pointermove',onMove);svg.addEventListener('pointerup',onUp);
+    });
+  }
+  bindDrag('ptFP','fp');
+  bindDrag('ptFQ','fq');
+
+  document.getElementById('btnG').addEventListener('click',function(){
+    // 平衡：FP=FQ=G/(2cosθ), θ=30 -> FP=1.73
+    state.drag=false;state.g=3.0;state.th=30;
+    state.m1=1.73;state.m2=1.73;
+    document.getElementById('sG').value=3.0;
+    document.getElementById('sM1').value=1.73;document.getElementById('sM2').value=1.73;
+    document.getElementById('sT').value=30;render();
+  });
+  document.getElementById('btnE').addEventListener('click',function(){
+    // 疑似错误：FP 记偏大
+    state.drag=false;state.g=3.0;state.th=30;state.m1=2.6;state.m2=1.73;
+    document.getElementById('sG').value=3.0;
+    document.getElementById('sM1').value=2.6;document.getElementById('sM2').value=1.73;
+    document.getElementById('sT').value=30;render();
+  });
+  document.getElementById('btnR').addEventListener('click',function(){
+    state.drag=true;
+    state.fp={x:-(0.5+4*Math.random()),y:0.5+3*Math.random()};
+    state.fq={x:0.5+4*Math.random(),y:0.5+3*Math.random()};
+    render();
+  });
+
+  // 选项点击
+  var opts=document.querySelectorAll('.opts .opt');
+  [].forEach.call(opts,function(o){
+    o.addEventListener('click',function(){
+      var correct=(o.getAttribute('data-c')==='A'&&o.querySelector('.badge').textContent.indexOf('✓')>=0)||(o.getAttribute('data-c')==='B'&&o.querySelector('.badge').textContent.indexOf('✓')>=0)||(o.getAttribute('data-c')==='C'&&o.querySelector('.badge').textContent.indexOf('✓')>=0);
+      o.classList.add('match');
+      o.classList.add('open');
+      [].forEach.call(opts,function(x){ if(x!==o){x.classList.remove('match');x.classList.add('open');} });
+    });
+  });
+
+  // 逐步讲解
+  var steps=document.querySelectorAll('.card .step');
+  document.getElementById('stepBtn').addEventListener('click',function(){
+    var shown=[].slice.call(steps).filter(function(s){return s.classList.contains('show');}).length;
+    if(shown>=steps.length){
+      [].forEach.call(steps,function(s){s.classList.remove('show');});
+      steps[0].classList.add('show');
+      this.textContent='逐步演示 ▶';
+    } else {
+      steps[shown].classList.add('show');
+      if(shown+1>=steps.length) this.textContent='已全部展开 · 点击重新演示';
+    }
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>题4 · 实验选择与误差 — 互动课件</title>
+<link rel="stylesheet" href="_shared/style.css">
+<style>
+  #checklist{font-size:13px;line-height:2}
+  #checklist b.ok{color:var(--success)} #checklist b.no{color:var(--danger)}
+  .verdict{font-size:22px;font-weight:800}
+  .verdict.s{color:var(--success)} .verdict.f{color:var(--danger)}
+  .axis{stroke:var(--border);stroke-width:1;stroke-dasharray:3 4;fill:none}
+  .anchor-lab{font-size:14px;font-weight:800}
+</style>
+</head>
+<body>
+<div class="cw">
+  <header>
+    <a class="back" href="error_book.html">← 返回互动课件</a>
+    <h1>题4 · 实验选择与误差</h1>
+    <p class="sub">2026 浙江温州市模拟 · 探究两个互成角度的力的合成规律 —— 器材选型 · 误差分析 · 橡皮筋等效力</p>
+  </header>
+
+  <!-- 原题 -->
+  <div class="card problem">
+    <h2><span class="dot"></span>原题</h2>
+    在“探究两个互成角度的力的合成规律”实验中：<br>
+    <b>(1)</b> 下列实验中必须用天平测质量的是（　）A. 探究加速度与力、质量的关系　B. 验证机械能守恒定律　C. 用单摆测重力加速度　D. 探究小车速度随时间变化的规律<br>
+    <b>(2)</b> 实验中会增大误差的操作是（　多选　）A. 弹簧测力计外壳与木板摩擦　B. 拉杆与塑料外壳之间摩擦　C. 细绳未与木板（纸面）平行　D. 将细绳换成轻质细橡皮筋<br>
+    <b>(3)</b> 改用三根<b>相同</b>的橡皮筋代替弹簧测力计（结点 O 同时连接 A、B、C 三点），下列说法正确的是（　）A. 用三根橡皮筋伸长量之比表示三力大小　B. 不需让 O 到达相同位置　C. 任取两橡皮筋拉力作为分力　D. 必须测出原长与力值
+  </div>
+
+  <!-- 物理沙盘 -->
+  <div class="card">
+    <h2><span class="dot"></span>物理沙盘：橡皮筋等效力</h2>
+    <div class="stage">
+      <span class="tip">拖动紫/蓝/橙箭头端点可改变拉力方向；滑杆调伸长量 Δx</span>
+      <svg id="stage" viewBox="0 0 760 470" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="mkA" markerWidth="10" markerHeight="8" refX="8" refY="3" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L8,3 L0,6 z" fill="#8b5cf6"/></marker>
+          <marker id="mkB" markerWidth="10" markerHeight="8" refX="8" refY="3" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L8,3 L0,6 z" fill="#3b82f6"/></marker>
+          <marker id="mkC" markerWidth="10" markerHeight="8" refX="8" refY="3" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L8,3 L0,6 z" fill="#f59e0b"/></marker>
+          <marker id="mkAd" markerWidth="10" markerHeight="8" refX="8" refY="3" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L8,3 L0,6 z" fill="#8b5cf6"/></marker>
+          <marker id="mkBd" markerWidth="10" markerHeight="8" refX="8" refY="3" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L8,3 L0,6 z" fill="#3b82f6"/></marker>
+          <marker id="mkCd" markerWidth="10" markerHeight="8" refX="8" refY="3" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L8,3 L0,6 z" fill="#f59e0b"/></marker>
+        </defs>
+        <line class="axis" x1="0" y1="235" x2="760" y2="235"/>
+        <line class="axis" x1="380" y1="10" x2="380" y2="460"/>
+
+        <line id="ch1" x1="0" y1="0" x2="0" y2="0" stroke="#8b5cf6" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#mkAd)" opacity=".55"/>
+        <line id="ch2" x1="0" y1="0" x2="0" y2="0" stroke="#3b82f6" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#mkBd)" opacity=".55"/>
+        <line id="ch3" x1="0" y1="0" x2="0" y2="0" stroke="#f59e0b" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#mkCd)" opacity=".55"/>
+
+        <line id="l1" x1="0" y1="0" x2="0" y2="0" stroke="#8b5cf6" stroke-width="3.5" marker-end="url(#mkA)"/>
+        <line id="l2" x1="0" y1="0" x2="0" y2="0" stroke="#3b82f6" stroke-width="3.5" marker-end="url(#mkB)"/>
+        <line id="l3" x1="0" y1="0" x2="0" y2="0" stroke="#f59e0b" stroke-width="3.5" marker-end="url(#mkC)"/>
+
+        <circle id="o" cx="380" cy="235" r="6" fill="#1e293b" stroke="#fff" stroke-width="2"/>
+        <text x="392" y="228" font-size="13" font-weight="800" fill="#1e293b">O</text>
+
+        <circle id="tip1" cx="0" cy="0" r="8" fill="#8b5cf6" stroke="#fff" stroke-width="2" style="cursor:grab"/>
+        <text id="lab1" class="anchor-lab" x="0" y="0" fill="#8b5cf6">A · F₁</text>
+        <circle id="tip2" cx="0" cy="0" r="8" fill="#3b82f6" stroke="#fff" stroke-width="2" style="cursor:grab"/>
+        <text id="lab2" class="anchor-lab" x="0" y="0" fill="#3b82f6">B · F₂</text>
+        <circle id="tip3" cx="0" cy="0" r="8" fill="#f59e0b" stroke="#fff" stroke-width="2" style="cursor:grab"/>
+        <text id="lab3" class="anchor-lab" x="0" y="0" fill="#f59e0b">C · F₃</text>
+      </svg>
+    </div>
+    <div class="legend">
+      <span><i style="background:#8b5cf6"></i>F₁（橡皮筋 OA）</span>
+      <span><i style="background:#3b82f6"></i>F₂（橡皮筋 OB）</span>
+      <span><i style="background:#f59e0b"></i>F₃（橡皮筋 OC）</span>
+      <span><i style="background:#93c5fd"></i>虚线＝力的三角形（首尾相接，闭合即平衡）</span>
+    </div>
+    <div class="note" style="margin-top:8px"><b>模型：</b>三根橡皮筋相同 ⇒ 劲度系数 k 相同，<b>F = k·Δx</b>，故拉力之比＝伸长量之比。默认三方向互成 120°，等伸长即平衡。</div>
+  </div>
+
+  <!-- 参数控制台 -->
+  <div class="card">
+    <h2><span class="dot"></span>参数控制台</h2>
+    <div class="ctrl">
+      <label>Δx₁（cm，F₁=k·Δx₁）<b id="v1">2.0</b></label>
+      <input type="range" id="s1" min="0" max="6" step="0.1" value="2">
+    </div>
+    <div class="ctrl">
+      <label>Δx₂（cm，F₂=k·Δx₂）<b id="v2">2.0</b></label>
+      <input type="range" id="s2" min="0" max="6" step="0.1" value="2">
+    </div>
+    <div class="ctrl">
+      <label>Δx₃（cm，F₃=k·Δx₃）<b id="v3">2.0</b></label>
+      <input type="range" id="s3" min="0" max="6" step="0.1" value="2">
+    </div>
+
+    <div class="readouts">
+      <div class="ro" style="border-color:#8b5cf6"><div class="k">F₁ = k·Δx₁</div><div class="v" style="color:#8b5cf6" id="ro1">0</div><div class="u">N</div></div>
+      <div class="ro r2"><div class="k">F₂ = k·Δx₂</div><div class="v" id="ro2">0</div><div class="u">N</div></div>
+      <div class="ro r3"><div class="k">F₃ = k·Δx₃</div><div class="v" id="ro3">0</div><div class="u">N</div></div>
+      <div class="ro rr"><div class="k">合力 |F₁+F₂+F₃|</div><div class="v" id="rom">0</div><div class="u">N</div></div>
+      <div class="ro full">
+        <div class="k">三力平衡状态</div>
+        <div class="verdict" id="verd">—</div>
+      </div>
+      <div class="ro full">
+        <div class="k">伸长量之比 Δx₁:Δx₂:Δx₃ ＝ 拉力之比 F₁:F₂:F₃（同 k）</div>
+        <div class="v" id="ratio" style="font-size:17px">2.0 : 2.0 : 2.0</div>
+      </div>
+    </div>
+
+    <div class="btns">
+      <button class="btn" onclick="exa(2,2,2)">等伸长 Δx=(2,2,2)</button>
+      <button class="btn" onclick="exa(3,2,4)">Δx=(3,2,4)</button>
+      <button class="btn" onclick="exa(2,2,5)">Δx=(2,2,5)</button>
+      <button class="btn go" onclick="resetSim()">重置</button>
+    </div>
+    <div class="note" style="margin-top:12px"><b>说明：</b>固定 k=1.5 N/cm，F=k·Δx。拖动端点可旋转该力的方向；滑杆改伸长量（大小）。三方向保持 120° 时，只有等伸长（F₁=F₂=F₃）能达到平衡。</div>
+  </div>
+
+  <!-- 选项判定 -->
+  <div class="card">
+    <h2><span class="dot"></span>选项判定（点击选项查看正误）</h2>
+    <button class="btn" style="flex:0;min-width:120px;margin-bottom:12px" onclick="resetOpts()">清除选择</button>
+
+    <p style="font-weight:700;margin-bottom:6px">(1) 下列实验中必须用天平测质量的是</p>
+    <div class="opts">
+      <div class="opt" data-ok="true">
+        <div class="row"><span class="k">A</span><span class="t">探究加速度与力、质量的关系</span><span class="badge">作答</span></div>
+        <div class="reveal"><b class="ok">✔ 正确。</b> 该实验需测量物体质量 m 与所受合外力，故必须用天平（弹簧测力计/砝码等亦可）。答案 <b>A</b>。</div>
+      </div>
+      <div class="opt" data-ok="false">
+        <div class="row"><span class="k">B</span><span class="t">验证机械能守恒定律</span><span class="badge">作答</span></div>
+        <div class="reveal"><b class="no">✗ 错误。</b> 只需用刻度尺测量下落高度 h，不需要测质量。</div>
+      </div>
+      <div class="opt" data-ok="false">
+        <div class="row"><span class="k">C</span><span class="t">用单摆测重力加速度</span><span class="badge">作答</span></div>
+        <div class="reveal"><b class="no">✗ 错误。</b> 只需刻度尺量摆长、秒表计周期，不需测质量。</div>
+      </div>
+      <div class="opt" data-ok="false">
+        <div class="row"><span class="k">D</span><span class="t">探究小车速度随时间变化的规律</span><span class="badge">作答</span></div>
+        <div class="reveal"><b class="no">✗ 错误。</b> 只需打点计时器与纸带，处理纸带得速度，不需测质量。</div>
+      </div>
+    </div>
+
+    <p style="font-weight:700;margin:14px 0 6px">(2) 会增大实验误差的操作是（多选）</p>
+    <div class="opts">
+      <div class="opt" data-ok="false">
+        <div class="row"><span class="k">A</span><span class="t">弹簧测力计外壳与木板（纸面）摩擦</span><span class="badge">作答</span></div>
+        <div class="reveal"><b class="no">✗ 错误。</b> 读数取决于弹簧受力，外壳与木板摩擦不影响内部弹簧伸长量，不增大误差。</div>
+      </div>
+      <div class="opt" data-ok="true">
+        <div class="row"><span class="k">B</span><span class="t">拉杆与塑料外壳之间摩擦</span><span class="badge">作答</span></div>
+        <div class="reveal"><b class="ok">✔ 正确。</b> 拉杆与外壳摩擦使指针读数不准（读数常偏小、滞回），显著增大误差。</div>
+      </div>
+      <div class="opt" data-ok="true">
+        <div class="row"><span class="k">C</span><span class="t">细绳未与木板（纸面）平行</span><span class="badge">作答</span></div>
+        <div class="reveal"><b class="ok">✔ 正确。</b> 绳与纸面不平行时，力的方向、大小在纸面上的投影与真实受力不符，合力作图误差明显增大。为重点失分项。</div>
+      </div>
+      <div class="opt" data-ok="false">
+        <div class="row"><span class="k">D</span><span class="t">把细绳换成轻质细橡皮筋</span><span class="badge">作答</span></div>
+        <div class="reveal"><b class="no">✗ 错误。</b> 轻质细橡皮筋可沿方向传递拉力且便于显示方向，可以替代，不增大误差。答案 <b>B、C</b>。</div>
+      </div>
+    </div>
+
+    <p style="font-weight:700;margin:14px 0 6px">(3) 用三根相同的橡皮筋代替弹簧测力计，下列说法正确的是</p>
+    <div class="opts">
+      <div class="opt" data-ok="true">
+        <div class="row"><span class="k">A</span><span class="t">用三根橡皮筋的伸长量之比表示三力大小</span><span class="badge">作答</span></div>
+        <div class="reveal"><b class="ok">✔ 正确。</b> 橡皮筋相同 ⇒ k 相同，F=k·Δx，故 F₁:F₂:F₃ = Δx₁:Δx₂:Δx₃，不必测具体力值。答案 <b>A</b>。</div>
+      </div>
+      <div class="opt" data-ok="false">
+        <div class="row"><span class="k">B</span><span class="t">不需让结点 O 到达相同位置</span><span class="badge">作答</span></div>
+        <div class="reveal"><b class="no">✗ 错误。</b> 等效替代要求两次实验结点 O 拉至同一位置，否则不能等效。</div>
+      </div>
+      <div class="opt" data-ok="false">
+        <div class="row"><span class="k">C</span><span class="t">任取两橡皮筋拉力作为分力</span><span class="badge">作答</span></div>
+        <div class="reveal"><b class="no">✗ 错误。</b> 作为两分力的二力必须能与第三力构成闭合的力的三角形（合力与第三力等大反向），不可任取。</div>
+      </div>
+      <div class="opt" data-ok="false">
+        <div class="row"><span class="k">D</span><span class="t">必须测出橡皮筋原长与具体力值</span><span class="badge">作答</span></div>
+        <div class="reveal"><b class="no">✗ 错误。</b> k 相同只需求比值即可，不必知道 k 具体值，也无需测实际力值大小。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 分步讲解 -->
+  <div class="card">
+    <h2><span class="dot"></span>分步讲解</h2>
+    <div class="step"><div class="hd"><i>1</i>原理：力的合成规律</div><div class="bd">互成角度的两力 F₁、F₂ 的合力由<b>平行四边形定则</b>得到，应与共点的第三力（平衡力）<b>等大反向</b>并构成闭合三角形。</div></div>
+    <div class="step"><div class="hd"><i>2</i>(1) 天平（测质量）的用途</div><div class="bd">天平唯一用途是<b>测质量</b>。“探究加速度与力、质量的关系”需测出质量 m，故必须用天平；机械能守恒、单摆测 g、速度-时间各实验只需测位移/时长，不需测质量。答案 <b>A</b>。</div></div>
+    <div class="step"><div class="hd"><i>3</i>(2) 系统误差来源</div><div class="bd">
+      ① 细绳<b>未与纸面平行</b>：沿绳的力与纸面有夹角，纸面作图用的并非真实沿绳拉力 → 误差最大，<b>应尽量使绳与板面平行</b>。<br>
+      ② 拉杆<b>与塑料外壳摩擦</b>：指针示数失真（读数偏小）→ 增大误差。<br>
+      ③ 外壳与木板摩擦：不影响读数；换细橡皮筋：可传递拉力，均可。答案 <b>B、C</b>。
+    </div></div>
+    <div class="step"><div class="hd"><i>4</i>(3) 橡皮筋等效力的关键</div><div class="bd">三根橡皮筋相同 ⇒ k 相同，<b>F = k·Δx</b>。比值得：<span class="formula">F₁ : F₂ : F₃ = Δx₁ : Δx₂ : Δx₃</span>①②等效要求结点 O 达同一位置（等效替代）；②两分力必须与第三力能构成闭合三角形（合力），不可任取。答案 <b>A</b>。</div></div>
+  </div>
+
+  <div class="footer">interactive courseware · 题4 实验选择与误差</div>
+</div>
+
+<script>
+'use strict';
+var svg=document.getElementById('stage');
+function el(id){return document.getElementById(id);}
+var VBW=760, VBH=470, OX=380, OY=235, PXN=7, K=1.5;
+
+/* 每个力：单位方向 dir（从 O 指向锚点），伸长量 dx(cm)，F=k*dx */
+var F1={ux:0,uy:1,dx:2};
+var F2={ux:Math.cos(210*Math.PI/180), uy:Math.sin(210*Math.PI/180), dx:2};
+var F3={ux:Math.cos(330*Math.PI/180), uy:Math.sin(330*Math.PI/180), dx:2};
+
+function Fmag(F){ return K*F.dx; }
+function s(F){ var m=Fmag(F); return {x:OX+F.ux*m*PXN, y:OY-F.uy*m*PXN}; }
+function f2(n){ return Math.round(n*100)/100; }
+
+function attachDrag(id, F){
+  var c=el(id);
+  c.addEventListener('pointerdown',function(e){
+    e.preventDefault();
+    try{c.setPointerCapture(e.pointerId);}catch(err){}
+    function move(ev){
+      var r=svg.getBoundingClientRect();
+      var px=(ev.clientX-r.left)*(VBW/svg.clientWidth);
+      var py=(ev.clientY-r.top)*(VBH/svg.clientHeight);
+      var vx=px-OX, vy=OY-py;         /* 转为物理坐标 y 向上 */
+      var m=Math.hypot(vx,vy)||1;
+      F.ux=f2(vx/m); F.uy=f2(vy/m);
+      refresh();
+    }
+    function up(){ c.removeEventListener('pointermove',move); c.removeEventListener('pointerup',up); }
+    c.addEventListener('pointermove',move);
+    c.addEventListener('pointerup',up);
+    refresh();
+  });
+}
+
+var s1=el('s1'), s2=el('s2'), s3=el('s3');
+s1.addEventListener('input',function(){ F1.dx=parseFloat(s1.value); refresh(); });
+s2.addEventListener('input',function(){ F2.dx=parseFloat(s2.value); refresh(); });
+s3.addEventListener('input',function(){ F3.dx=parseFloat(s3.value); refresh(); });
+
+var l1=el('l1'),l2=el('l2'),l3=el('l3');
+var t1=el('tip1'),t2=el('tip2'),t3=el('tip3');
+var la1=el('lab1'),la2=el('lab2'),la3=el('lab3');
+var c1=el('ch1'),c2=el('ch2'),c3=el('ch3');
+
+function refresh(){
+  var a=s(F1), b=s(F2), d=s(F3);
+  l1.setAttribute('x2',a.x); l1.setAttribute('y2',a.y);
+  l2.setAttribute('x2',b.x); l2.setAttribute('y2',b.y);
+  l3.setAttribute('x2',d.x); l3.setAttribute('y2',d.y);
+  t1.setAttribute('cx',a.x); t1.setAttribute('cy',a.y);
+  t2.setAttribute('cx',b.x); t2.setAttribute('cy',b.y);
+  t3.setAttribute('cx',d.x); t3.setAttribute('cy',d.y);
+  la1.setAttribute('x',a.x+8); la1.setAttribute('y',a.y-8);
+  la2.setAttribute('x',b.x+8); la2.setAttribute('y',b.y-8);
+  la3.setAttribute('x',d.x+8); la3.setAttribute('y',d.y+8);
+
+  var P0={x:OX,y:OY}, P1=s(F1);
+  var P2b={x:P1.x+F2.ux*Fmag(F2)*PXN, y:P1.y-F2.uy*Fmag(F2)*PXN};
+  var P3b={x:P2b.x+F3.ux*Fmag(F3)*PXN, y:P2b.y-F3.uy*Fmag(F3)*PXN};
+  c1.setAttribute('x1',P0.x); c1.setAttribute('y1',P0.y); c1.setAttribute('x2',P1.x); c1.setAttribute('y2',P1.y);
+  c2.setAttribute('x1',P1.x); c2.setAttribute('y1',P1.y); c2.setAttribute('x2',P2b.x); c2.setAttribute('y2',P2b.y);
+  c3.setAttribute('x1',P2b.x); c3.setAttribute('y1',P2b.y); c3.setAttribute('x2',P3b.x); c3.setAttribute('y2',P3b.y);
+
+  var m1=Fmag(F1), m2=Fmag(F2), m3=Fmag(F3);
+  var rX=F1.ux*m1+F2.ux*m2+F3.ux*m3;
+  var rY=F1.uy*m1+F2.uy*m2+F3.uy*m3;
+  var rm=Math.hypot(rX,rY);
+
+  el('ro1').textContent=m1.toFixed(2);
+  el('ro2').textContent=m2.toFixed(2);
+  el('ro3').textContent=m3.toFixed(2);
+  el('v1').textContent=F1.dx.toFixed(1);
+  el('v2').textContent=F2.dx.toFixed(1);
+  el('v3').textContent=F3.dx.toFixed(1);
+  el('rom').textContent=rm.toFixed(3);
+  el('ratio').textContent=F1.dx.toFixed(1)+' : '+F2.dx.toFixed(1)+' : '+F3.dx.toFixed(1)+'　≈　'+m1.toFixed(2)+' : '+m2.toFixed(2)+' : '+m3.toFixed(2);
+
+  var verd=el('verd');
+  if(rm<0.12){ verd.textContent='✓ 平衡（力三角形闭合）'; verd.className='verdict s'; }
+  else{ verd.textContent='✗ 未平衡（力三角形开口）'; verd.className='verdict f'; }
+}
+
+function exa(a,b,c){
+  F1.dx=a; F2.dx=b; F3.dx=c;
+  s1.value=a; s2.value=b; s3.value=c;
+  /* 保持默认 120° 方向便于观察平衡条件 */
+  F1.ux=0; F1.uy=1;
+  F2.ux=f2(Math.cos(210*Math.PI/180)); F2.uy=f2(Math.sin(210*Math.PI/180));
+  F3.ux=f2(Math.cos(330*Math.PI/180)); F3.uy=f2(Math.sin(330*Math.PI/180));
+  refresh();
+}
+function resetSim(){ exa(2,2,2); }
+
+function resetOpts(){
+  document.querySelectorAll('.opt').forEach(function(o){ o.classList.remove('open','match'); });
+}
+document.querySelectorAll('.opt').forEach(function(o){
+  o.addEventListener('click',function(){
+    var ok=o.getAttribute('data-ok')==='true';
+    o.classList.add('open');
+    o.classList.remove('match');
+    if(ok){ o.classList.add('match'); }
+  });
+});
+
+attachDrag('tip1',F1);
+attachDrag('tip2',F2);
+attachDrag('tip3',F3);
+refresh();
+</script>
+</body>
+</html>
