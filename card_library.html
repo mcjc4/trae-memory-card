@@ -292,6 +292,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
   <div class="nav-item" data-view="grid" onclick="showView('grid')">📋 全部卡片 <span class="badge" id="nav-total">0</span></div>
   <div class="nav-item" data-view="excel" onclick="showView('excel')">📚 Excel导入卡 <span class="badge" id="nav-excel">0</span></div>
   <div class="nav-item" data-view="error" onclick="showView('error')">✏️ 错题生成卡 <span class="badge" id="nav-error">0</span></div>
+  <div class="nav-item" data-view="homework" onclick="showView('homework')">📝 作业卡片 <span class="badge" id="nav-hw">0</span></div>
   <div class="nav-item" data-view="linked" onclick="showView('linked')">🔗 已关联错题 <span class="badge" id="nav-linked">0</span></div>
   <div class="nav-section-title">训练</div>
   <div class="nav-item" data-view="train-dashboard" onclick="showView('train-dashboard')">🏋️ 训练总览 <span class="badge" id="nav-due" style="background:var(--danger)">0</span></div>
@@ -558,6 +559,46 @@ function exitTraining() {
   showView('train-dashboard');
 }
 
+function startTrainingFromCards() {
+  // Use current filtered cards as training queue
+  const isFiltered = state.view !== 'grid';
+  let cards = state.cards;
+  if (state.view === 'excel') cards = cards.filter(c => c.origin === 'excel');
+  else if (state.view === 'error') cards = cards.filter(c => c.origin === 'error');
+  else if (state.view === 'homework') cards = cards.filter(c => (c.source||'').includes('作业'));
+  else if (state.view === 'linked') cards = cards.filter(c => c.source_err_id);
+
+  // Apply current search filters
+  const { search, chapter, source } = state.filter;
+  if (search) {
+    const q = search.toLowerCase();
+    cards = cards.filter(c =>
+      (c.id||'').toLowerCase().includes(q) ||
+      (c.chapter||'').toLowerCase().includes(q) ||
+      (c.signal||'').toLowerCase().includes(q) ||
+      (c.conclusion||'').toLowerCase().includes(q) ||
+      (c.source||'').toLowerCase().includes(q)
+    );
+  }
+  if (chapter) cards = cards.filter(c => (c.chapter||'').includes(chapter));
+  if (source) cards = cards.filter(c => (c.source||'').includes(source));
+
+  if (cards.length === 0) { showToast('当前筛选无卡片'); return; }
+  // Prioritize due cards, then new cards
+  const due = cards.filter(c => { const s = getSRS(c.id); return s.nextReview <= Date.now(); });
+  const notDue = cards.filter(c => { const s = getSRS(c.id); return s.nextReview > Date.now(); });
+  const queue = [...due, ...notDue].slice(0, 50);
+  state.trainQueue = queue;
+  state.trainIdx = 0;
+  state.trainRevealed = false;
+  state.trainSession = { total: queue.length, correct: 0, ratings: [], mode: 'plan' };
+  state.view = 'train-session';
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  if (window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
+  render();
+  showToast(`已生成训练计划：${queue.length}张卡片`);
+}
+
 // ==================== Navigation ====================
 function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
 
@@ -582,6 +623,9 @@ function updateNavBadges() {
   document.getElementById('nav-linked').textContent = linkedCount;
   document.getElementById('nav-due').textContent = dueCount;
   document.getElementById('nav-today').textContent = dueCount;
+  const hwCount = state.cards.filter(c => (c.source||'').includes('作业')).length;
+  const hwEl = document.getElementById('nav-hw');
+  if (hwEl) hwEl.textContent = hwCount;
 }
 
 // ==================== MathJax ====================
@@ -796,6 +840,7 @@ function renderGrid() {
   let cards = state.cards;
   if (state.view === 'excel') cards = cards.filter(c => c.origin === 'excel');
   else if (state.view === 'error') cards = cards.filter(c => c.origin === 'error');
+  else if (state.view === 'homework') cards = cards.filter(c => (c.source||'').includes('作业'));
   else if (state.view === 'linked') cards = cards.filter(c => c.source_err_id);
 
   // Apply filters
@@ -818,12 +863,15 @@ function renderGrid() {
   const chapters = [...new Set(state.cards.map(c => (c.chapter||'').split('·')[0]).filter(Boolean))].sort();
   const sources = [...new Set(state.cards.map(c => c.source).filter(Boolean))].sort().slice(0, 20);
 
-  const viewTitle = { dashboard:'仪表盘', grid:'全部卡片', excel:'Excel导入卡', error:'错题生成卡', linked:'已关联错题' }[state.view] || '卡片';
+  const viewTitle = { dashboard:'仪表盘', grid:'全部卡片', excel:'Excel导入卡', error:'错题生成卡', homework:'作业卡片', linked:'已关联错题' }[state.view] || '卡片';
 
   return `
     <div class="page-header">
       <div class="page-title">${viewTitle}（${cards.length}）</div>
-      <button class="btn btn-primary" onclick="openAddModal()">➕ 新建记忆卡</button>
+      <div style="display:flex;gap:8px">
+        ${cards.length > 0 ? `<button class="btn btn-success" onclick="startTrainingFromCards()">🎯 生成训练计划</button>` : ''}
+        <button class="btn btn-primary" onclick="openAddModal()">➕ 新建记忆卡</button>
+      </div>
     </div>
     <div class="search-bar">
       <input type="text" placeholder="搜索编号/章节/信号/结论/题干..." value="${search}" oninput="onFilter('search', this.value)">

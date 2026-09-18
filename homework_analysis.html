@@ -359,6 +359,7 @@ main { max-width: 1600px; margin: 0 auto; padding: 24px 16px 60px; }
 
 <!-- ==================== Q1 ==================== -->
 <section class="problem-card" id="q1">
+  <!-- AUTO-INJECT: new card suggestions will be inserted here by JS -->
   <div class="p-header">
     <span class="p-badge correct">Q1</span>
     <span class="p-source">2025·北京模拟</span>
@@ -1523,6 +1524,282 @@ main { max-width: 1600px; margin: 0 auto; padding: 24px 16px 60px; }
 </section>
 
 </main>
+
+<!-- ==================== New Card Suggestion System ==================== -->
+<style>
+.hw-action-bar { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin:10px 0; }
+.btn-train, .btn-add-card {
+  padding: 5px 12px; border: none; border-radius: 6px; font-size: 12px; cursor: pointer;
+  font-weight: 600; transition: all 0.15s; text-decoration: none; display:inline-flex; align-items:center; gap:4px;
+}
+.btn-train { background: #6366f1; color: white; }
+.btn-train:hover { background: #4f46e5; }
+.btn-add-card { background: #10b981; color: white; }
+.btn-add-card:hover { background: #059669; }
+.btn-add-card:disabled { background: #94a3b8; cursor: default; }
+.btn-added { background: #d1fae5 !important; color: #047857 !important; }
+
+.new-card-suggest {
+  border: 2px dashed #10b981; border-radius: 12px; padding: 16px; margin: 12px 0;
+  background: #f0fdf4;
+}
+.new-card-suggest .nc-header {
+  display:flex; align-items:center; gap:8px; margin-bottom:10px;
+}
+.new-card-suggest .nc-badge {
+  background: #10b981; color: white; padding: 2px 10px; border-radius: 4px;
+  font-size: 11px; font-weight: 700;
+}
+.new-card-suggest .nc-title { font-size: 14px; font-weight: 600; color: #065f46; }
+.new-card-suggest .nc-field { margin-bottom: 8px; }
+.new-card-suggest .nc-label {
+  font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+  display: block; margin-bottom: 2px;
+}
+.new-card-suggest .nc-label.signal { color: #3b82f6; }
+.new-card-suggest .nc-label.conclusion { color: #10b981; }
+.new-card-suggest .nc-label.chapter { color: #6366f1; }
+.new-card-suggest .nc-content { font-size: 13px; line-height: 1.6; padding: 6px 10px; border-radius: 6px; }
+.new-card-suggest .nc-content.signal { background: #dbeafe; }
+.new-card-suggest .nc-content.conclusion { background: #d1fae5; }
+.new-card-suggest .nc-footer {
+  display:flex; gap:8px; align-items:center; margin-top:10px; padding-top:8px; border-top:1px solid #a7f3d0;
+}
+.new-card-suggest .nc-id { font-family: monospace; font-size: 11px; color: #6b7280; }
+.new-card-suggest .nc-source { font-size: 11px; color: #6b7280; }
+.new-card-suggest .nc-link { font-size: 11px; color: #3b82f6; }
+
+.matched-card-actions { display:inline-flex; gap:4px; margin-left:6px; }
+
+/* Toast */
+.hw-toast {
+  position: fixed; bottom: 20px; right: 20px; background: #1e293b; color: white;
+  padding: 12px 20px; border-radius: 8px; font-size: 14px; z-index: 9999;
+  opacity: 0; transition: opacity 0.3s; pointer-events: none;
+}
+.hw-toast.show { opacity: 1; }
+</style>
+
+<div class="hw-toast" id="hw-toast"></div>
+
+<script>
+// ==================== Config ====================
+const HW_SUPABASE_URL = 'https://mixuqjognbdrafrrlivc.supabase.co';
+const HW_SUPABASE_KEY = 'sb_publishable_D0ha7g4X4LutG-3hxCguSA_pwyQLrVX';
+const HW_TABLE = 'gaokao_state';
+const HW_ROW_PREFIX = 'card-lib-';
+const HW_PAGE_URL = location.href.split('#')[0];
+
+// ==================== New Card Suggestions (per question) ====================
+const NEW_CARD_SUGGESTIONS = {
+  q1: [
+    { chapter:'函数·奇函数+单调性综合判断', signal:'看到【判断多个函数是否同时满足奇偶性和单调性】', conclusion:'想到【逐项验证：先查定义域对称性（不对称直接排奇偶），再验f(-x)=-f(x)判奇偶，最后用导数或口诀判单调性】；警惕【f\'(x)=0仅在某点为0不阻碍严格递增（如x³在x=0），关键看是否恒非负且不恒为0】' },
+    { chapter:'函数·指数差函数的奇偶性', signal:'看到【形如$e^x-e^{-x}$或$a^x-a^{-x}$的指数差函数】', conclusion:'想到【指数差函数必为奇函数（f(-x)=e^{-x}-e^x=-f(x)），导数$e^x+e^{-x}\\geq 2>0$处处严格递增】；警惕【误认为指数函数只能递增不能为奇函数】' }
+  ],
+  q2: [
+    { chapter:'函数·偶函数比较大小', signal:'看到【偶函数+单调性，比较f(a)、f(b)、f(c)大小】', conclusion:'想到【偶函数化简：f(-x)=f(x)，将所有自变量转到单调区间内，再按单调性排序】；警惕【偶函数不改变函数值，只改变自变量符号，f(-3)=f(3)】' }
+  ],
+  q3: [
+    { chapter:'函数·奇函数定义域含0求参数', signal:'看到【奇函数定义域含0，求参数a的值】', conclusion:'想到【直接用f(0)=0：代入x=0解方程求a，无需算f(-x)=-f(x)】；警惕【定义域含0是前提条件，若定义域不含0则不能用f(0)=0】' }
+  ],
+  q4: [
+    { chapter:'函数·对称中心求最值和', signal:'看到【函数有对称中心(a,b)，求M+m（最大值+最小值）】', conclusion:'想到【对称中心(a,b)意味着M+m=2b，无需分别求最大最小值】；警惕【必须确认函数关于(a,b)对称（即g(x)=f(x)-b为奇函数）才能用此结论】' }
+  ],
+  q5: [
+    { chapter:'函数·通过平移构造奇函数', signal:'看到【给定函数有对称中心，问哪个平移后为奇函数】', conclusion:'想到【找对称中心(h,k)，右移h上移k即可将对称中心移到原点变为奇函数】；警惕【f(x-1)+1表示右移1上移1，方向不要搞反】' }
+  ],
+  q6: [
+    { chapter:'函数·构造方程组求解析式', signal:'看到【给出奇偶性条件组合（如f(x)+e^x是偶函数，f(x)-3e^x是奇函数），求f(x)】', conclusion:'想到【构造方程组：将x替换为-x得第二方程，联立求解f(x)】；警惕【偶函数条件给f(-x)=f(x)形式，奇函数给f(-x)=-f(x)形式，替换后联立】' }
+  ],
+  q7: [
+    { chapter:'函数·复合函数奇偶性判断', signal:'看到【判断f(g(x))或g(f(x))的奇偶性】', conclusion:'想到【外层看内层：若g偶则f(g(-x))=f(g(x))为偶；若f奇则g(f(-x))=g(-f(x))，再看g奇偶】；警惕【奇×偶=奇，奇±偶=非奇非偶，运算性质有特定组合规则】' }
+  ],
+  q8: [
+    { chapter:'函数·抽象函数赋值法', signal:'看到【抽象函数满足函数方程，判断性质】', conclusion:'想到【赋值法：令x=y=0求f(0)，令y=1/x或y=x推导性质，逐步验证各选项】；警惕【赋值要有目的性，根据选项选择特殊值】' }
+  ],
+  q9: [
+    { chapter:'函数·奇函数分段求值', signal:'看到【奇函数给定x≥0解析式，求f(-a)】', conclusion:'想到【两步走：①用f(0)=0求未知参数；②算f(a)再用f(-a)=-f(a)正负转换】；警惕【必须先确定参数，再用正负转换，顺序不能反】' }
+  ],
+  q10: [
+    { chapter:'函数·偶函数解抽象不等式', signal:'看到【偶函数+单调性+零点，解xf(x)>0型不等式】', conclusion:'想到【画函数草图标零点：偶函数f(x)=f(-x)，利用对称性标出所有零点，按区间分析f(x)正负，再乘x的正负判断同号区间】；警惕【xf(x)>0要求同号，注意x=0处f(0)可能无定义或为0】' }
+  ],
+  q11: [
+    { chapter:'函数·分段函数零点求参（边界检验）', signal:'看到【分段函数方程恰有n个根，求参数范围】', conclusion:'想到【画y=k与分段函数交点：①列出各段交点条件；②边界等号必须逐点检验（≤还是<）；③特殊值（如k=0时穿过原点可能多出根）单独排除】；警惕【端点处交点个数变化是最易错点，必须逐个代入验证】' }
+  ],
+  q12: [
+    { chapter:'函数·奇偶函数和差分解', signal:'看到【g(x)偶+f(x)奇=g(x)+f(x)=给定式，求f和g】', conclusion:'想到【构造方程组：原式+将x换-x的式联立，2g=两式之和，2f=两式之差】；警惕【任何函数都可分解为奇部+偶部：g=(F(x)+F(-x))/2为偶，f=(F(x)-F(-x))/2为奇】' }
+  ],
+  q13: [
+    { chapter:'函数·奇增函数解f(a)+f(b)>0不等式', signal:'看到【奇函数+单调递增，解f(a)+f(b)>0型不等式】', conclusion:'想到【f+f型：f(a)>-f(b)=f(-b)，由单调递增去f得a>-b，再结合定义域约束列不等式组】；警惕【去f后必须同时列出定义域约束条件，否则会多解】' }
+  ],
+  q14: [
+    { chapter:'函数·对数型奇函数定义域对称求参', signal:'看到【含对数+绝对值的奇函数，求参数】', conclusion:'想到【①先保证定义域关于原点对称：找x的奇点（分母为0），要求对称位置也是奇点；②再用f(0)=0求另一个参数】；警惕【定义域对称是奇函数的必要条件，不对称则连奇函数都不是，谈不上f(0)=0】' }
+  ]
+};
+
+// ==================== Check existing cards (from CARDS_DATA if available) ====================
+let existingCardIds = new Set();
+function loadExistingCards() {
+  try {
+    const saved = localStorage.getItem('added_hw_cards');
+    if (saved) existingCardIds = new Set(JSON.parse(saved));
+  } catch(e) {}
+}
+
+function markCardAdded(cardId) {
+  existingCardIds.add(cardId);
+  localStorage.setItem('added_hw_cards', JSON.stringify([...existingCardIds]));
+}
+
+// ==================== Toast ====================
+function hwToast(msg) {
+  const t = document.getElementById('hw-toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ==================== Supabase write ====================
+async function addCardToLibrary(card) {
+  const rowId = HW_ROW_PREFIX + card.id;
+  const payload = { id: rowId, data: card, updated_at: new Date().toISOString() };
+  try {
+    const res = await fetch(`${HW_SUPABASE_URL}/rest/v1/${HW_TABLE}`, {
+      method: 'POST',
+      headers: {
+        'apikey': HW_SUPABASE_KEY,
+        'Authorization': `Bearer ${HW_SUPABASE_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'resolution=merge-duplicates'
+      },
+      body: JSON.stringify(payload)
+    });
+    return res.ok;
+  } catch(e) {
+    console.warn('addCardToLibrary error:', e);
+    return false;
+  }
+}
+
+// ==================== Generate card ID ====================
+function genCardId(qid) {
+  const num = parseInt(qid.replace('q',''));
+  return 'hw0917-' + String(num).padStart(2,'0');
+}
+
+// ==================== Render ====================
+function injectNewCardSuggestions() {
+  Object.entries(NEW_CARD_SUGGESTIONS).forEach(([qid, suggestions]) => {
+    const section = document.getElementById(qid);
+    if (!section) return;
+    const pBody = section.querySelector('.p-body');
+    if (!pBody) return;
+
+    const cardId = genCardId(qid);
+    const cardLink = HW_PAGE_URL + '#' + qid;
+    const isAdded = existingCardIds.has(cardId);
+
+    // Add "再训练" buttons to matched cards
+    const colIds = section.querySelectorAll('.col-id');
+    colIds.forEach(cell => {
+      const cardIdText = cell.textContent.trim();
+      if (cell.querySelector('.matched-card-actions')) return;
+      const actions = document.createElement('span');
+      actions.className = 'matched-card-actions';
+      actions.innerHTML = `<a class="btn-train" href="card_library.html" onclick="event.stopPropagation()" title="去记忆卡库训练">🏋️ 再训练</a>`;
+      cell.appendChild(actions);
+    });
+
+    // Generate new card suggestion block
+    suggestions.forEach((s, idx) => {
+      const subId = suggestions.length > 1 ? `${cardId}-${idx+1}` : cardId;
+      const isSubAdded = existingCardIds.has(subId);
+      const card = {
+        id: subId,
+        subject: '数学',
+        chapter: s.chapter,
+        problem: '',
+        signal: s.signal,
+        conclusion: s.conclusion,
+        source: '0917 作业',
+        note: 'Q' + qid.replace('q','') + ' 未命中记忆卡',
+        link: cardLink,
+        origin: 'error',
+        created_at: new Date().toISOString()
+      };
+
+      const div = document.createElement('div');
+      div.className = 'new-card-suggest';
+      div.id = `suggest-${subId}`;
+      div.innerHTML = `
+        <div class="nc-header">
+          <span class="nc-badge">🆕 新卡建议</span>
+          <span class="nc-title">${s.chapter}</span>
+        </div>
+        <div class="nc-field">
+          <span class="nc-label chapter">编号</span>
+          <span class="nc-id">${subId}</span>
+          <span class="nc-source"> | 出处: 0917 作业</span>
+          <span class="nc-link"> | 链接: <a href="${cardLink}" target="_blank">${cardLink}</a></span>
+        </div>
+        <div class="nc-field">
+          <span class="nc-label signal">题干信号（看到…）</span>
+          <div class="nc-content signal">${s.signal}</div>
+        </div>
+        <div class="nc-field">
+          <span class="nc-label conclusion">结论/易错点（想到…；警惕…）</span>
+          <div class="nc-content conclusion">${s.conclusion}</div>
+        </div>
+        <div class="nc-footer">
+          <button class="btn-add-card ${isSubAdded?'btn-added':''}" id="btn-${subId}" ${isSubAdded?'disabled':''} onclick="addCard('${subId}')">
+            ${isSubAdded ? '✅ 已入库' : '📥 入库到记忆库'}
+          </button>
+          <a class="btn-train" href="card_library.html" style="font-size:11px">📋 去记忆库查看</a>
+        </div>
+      `;
+      // Store card data for later use
+      div.dataset.cardData = JSON.stringify(card);
+      pBody.appendChild(div);
+    });
+  });
+}
+
+// ==================== Add card to library ====================
+async function addCard(cardId) {
+  const el = document.getElementById(`suggest-${cardId}`);
+  if (!el) return;
+  const card = JSON.parse(el.dataset.cardData);
+  const btn = document.getElementById(`btn-${cardId}`);
+  btn.disabled = true;
+  btn.textContent = '⏳ 入库中...';
+  const ok = await addCardToLibrary(card);
+  if (ok) {
+    btn.classList.add('btn-added');
+    btn.textContent = '✅ 已入库';
+    markCardAdded(cardId);
+    hwToast(`记忆卡 ${cardId} 已入库！`);
+  } else {
+    btn.disabled = false;
+    btn.textContent = '📥 入库到记忆库';
+    hwToast('入库失败，请检查网络');
+  }
+}
+
+// ==================== Init ====================
+loadExistingCards();
+if (typeof MathJax !== 'undefined') {
+  // Wait for MathJax then inject
+  const checkReady = setInterval(() => {
+    if (window.MathJax && window.MathJax.typesetPromise) {
+      clearInterval(checkReady);
+      injectNewCardSuggestions();
+      MathJax.typesetPromise();
+    }
+  }, 300);
+} else {
+  injectNewCardSuggestions();
+}
+</script>
 
 </body>
 </html>
