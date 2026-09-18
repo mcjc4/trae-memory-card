@@ -743,12 +743,14 @@ async function init() {
     state.loaded = true;
     updateNavBadges();
     render();
+    applyHashView();
   } catch(err) {
     console.warn('Init error, falling back to seed data:', err);
     state.errors = seedData();
     state.loaded = true;
     updateNavBadges();
     render();
+    applyHashView();
     showToast('云端连接失败，已加载本地数据');
   }
 }
@@ -1666,6 +1668,23 @@ function importData() {
 }
 
 function showView(view) { state.view = view; }
+
+// ==================== Hash Routing ====================
+// 支持 #courseware 等锚点直接定位到对应视图（如课件页点「返回互动课件」）
+function applyHashView() {
+  const v = (location.hash || '').replace('#', '');
+  if (!v) return false;
+  const nav = document.querySelector('[data-view="' + v + '"]');
+  if (!nav) return false;
+  state.view = v;
+  state.assemblyMode = false;
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  nav.classList.add('active');
+  render();
+  if (window.innerWidth <= 768) toggleSidebar();
+  return true;
+}
+window.addEventListener('hashchange', () => { applyHashView(); });
 
 function drillTo(filter) {
   state.view = 'list';
