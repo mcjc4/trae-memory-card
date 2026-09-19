@@ -130,6 +130,43 @@
  * 页面放 <div class="prob-img" data-key="...">，脚本自动初始化（见题干框头栏） */
 (function(){
   'use strict';
+  var UPLOAD_API = (window.SIM_UPLOAD_API) || 'https://trae-memory-card.vercel.app/api/upload-img';
+
+  /* 压缩图片到最大宽度 1400px、JPEG 0.82，控制上传体积 */
+  function compressImage(dataUrl){
+    return new Promise(function(res, rej){
+      var img = new Image();
+      img.onload = function(){
+        try {
+          var w = img.naturalWidth || 0, h = img.naturalHeight || 0;
+          if(!w || !h) return res(dataUrl);
+          var maxW = 1400, scale = Math.min(1, maxW / w);
+          var cw = Math.round(w * scale), ch = Math.round(h * scale);
+          var cv = document.createElement('canvas'); cv.width = cw; cv.height = ch;
+          var ctx = cv.getContext('2d'); ctx.drawImage(img, 0, 0, cw, ch);
+          res(cv.toDataURL('image/jpeg', 0.82));
+        } catch(_) { res(dataUrl); }
+      };
+      img.onerror = function(){ res(dataUrl); };
+      img.src = dataUrl;
+    });
+  }
+
+  /* 上传 base64 到云端仓库，返回可直接访问的分支相对路径 URL */
+  function uploadToCloud(dataUrl, filename){
+    var base = dataUrl.split(',')[1] || '';
+    return fetch(UPLOAD_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ filename: filename, content: base, ext: 'png' })
+    }).then(function(r){ return r.json(); }).then(function(j){
+      if(j && j.ok && j.url) return j.url;
+      throw new Error((j && j.error) || 'upload fail');
+    });
+  }
+
+  function isRemote(src){ return /^(https?:)?\/\//.test(src); }
+
   function initProbImg(scope){
     var roots = (scope && scope.querySelectorAll ? scope.querySelectorAll('.prob-img') : document.querySelectorAll('.prob-img'));
     Array.prototype.forEach.call(roots, function(root){
@@ -144,25 +181,47 @@
       fileInput.type='file'; fileInput.accept='image/*'; fileInput.style.display='none';
       document.body.appendChild(fileInput);
 
-      function show(src){
+      function persist(src){ try{ localStorage.setItem(key, src); }catch(_){} }
+      function display(src){
         if(!img){ img=document.createElement('img'); img.className='prob-img-img'; body.appendChild(img); }
         img.src=src;
         if(empty) empty.style.display='none';
-        try{ localStorage.setItem(key, src); }catch(_){}
+      }
+      function setNote(ok){
+        var note = root.closest ? root.closest('.card, section') : null;
+        var n = note ? note.querySelector('.note') : null;
+        if(!n) return;
+        if(ok){ n.textContent='✅ 截图已上传至云端仓库，可跨设备访问，清除缓存也不会丢失。'; }
+        else{ n.textContent='⚠️ 云端上传失败，已临时保存在本机浏览器，可在网络恢复后重新粘贴一次。'; }
       }
       function clearAll(){
         if(img){ img.remove(); img=null; }
         if(empty) empty.style.display='';
         try{ localStorage.removeItem(key); }catch(_){}
       }
+      function handleDataUrl(raw){
+        var comp = raw;
+        compressImage(raw).then(function(compressed){
+          comp = compressed;
+          display(comp);            // 先展示（减少等待感）
+          uploadToCloud(comp, key).then(function(url){
+            persist(url);           // 成功后只存云端 URL，省本地空间
+            display(url);
+            setNote(true);
+          }).catch(function(){
+            persist(comp);          // 失败回退本地 base64
+            setNote(false);
+          });
+        });
+      }
       function readFile(f){
         if(!f || !/^image\//.test(f.type)) return;
         var r=new FileReader();
-        r.onload=function(){ show(r.result); };
+        r.onload=function(){ handleDataUrl(r.result); };
         r.readAsDataURL(f);
       }
-      // 恢复已保存
-      try{ var saved=localStorage.getItem(key); if(saved){ show(saved); } }catch(_){}
+      // 恢复已保存：云端 URL 直接用；旧 base64 也兼容显示
+      try{ var saved=localStorage.getItem(key); if(saved){ display(saved); } }catch(_){}
       // 按钮
       root.addEventListener('click', function(ev){
         var a = ev.target.closest ? ev.target.closest('[data-action]') : null;
