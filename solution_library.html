@@ -558,7 +558,9 @@ let state = {
   filter: { subject: '', errorType: '', proficiency: '', search: '' },
   assemblyMode: false,
   selected: new Set(),
-  loaded: false
+  loaded: false,
+  homeworkJob: null,
+  hwFilter: { date: '', tags: [], kw: '' }
 };
 
 // ==================== Supabase (per-question rows) ====================
@@ -820,16 +822,120 @@ function render() {
   bindEvents();
 }
 
+function ensureHWStyles() {
+  if (document.getElementById('hwlib-style')) return;
+  var st = document.createElement('style'); st.id = 'hwlib-style';
+  st.textContent = `
+.hw-filterbar{gap:10px;flex-wrap:wrap;flex:1}
+.hw-count{font-size:13px;color:var(--text-light);margin-left:8px}
+.hw-filterbar input[type=date],.hw-kw{border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:13px;background:#fff;color:var(--text)}
+.hw-kw{width:200px}
+.hw-chips{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.hw-chip{border:1px solid var(--border);background:#fff;border-radius:999px;padding:4px 12px;font-size:12px;color:var(--text);cursor:pointer}
+.hw-chip.on{background:var(--primary);color:#fff;border-color:var(--primary)}
+.hw-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;padding:4px 0}
+.hw-card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:16px;cursor:pointer;box-shadow:0 2px 8px rgba(30,41,59,.06);transition:transform .15s,box-shadow .15s}
+.hw-card:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(30,41,59,.12);border-color:var(--primary)}
+.hw-card-top{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--text-light)}
+.hw-pct{font-weight:700;font-size:14px}
+.hw-card-title{font-size:17px;font-weight:700;color:var(--text);margin:8px 0 2px}
+.hw-card-sub{font-size:13px;color:var(--text-light);margin-bottom:10px}
+.hw-card-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.hw-tag{font-size:11px;background:var(--primary-light);color:var(--primary-dark);padding:2px 8px;border-radius:6px}
+.hw-card-stats{display:flex;gap:10px;flex-wrap:wrap;font-size:12px;color:var(--text-light);border-top:1px dashed var(--border);padding-top:10px}
+.hw-card-open{font-size:12px;color:var(--primary);margin-top:10px;text-align:right}
+.hw-empty{color:var(--text-light);text-align:center;padding:60px 0;font-size:14px}
+.hw-detail-meta{color:var(--text-light);font-size:13px;margin:10px 2px 12px;line-height:1.7}
+`;
+  document.head.appendChild(st);
+}
+
+// ============ 作业库配置：今后每条新作业往这里追加一条即可 ============
+const HW_JOBS = [
+  {
+    id: 'hw20260918',
+    title: '函数性质专项练习',
+    subtitle: '奇偶性 + 单调性综合应用',
+    date: '2026-09-18',
+    tags: ['函数', '奇偶性', '单调性'],
+    page: 'homework_analysis.html',
+    total: 14, correct: 3, wrong: 1, pending: 11, hitCards: 22
+  }
+];
+
+function hwFilteredList() {
+  const f = state.hwFilter;
+  return HW_JOBS.filter(j => {
+    if (f.date && j.date !== f.date) return false;
+    if (f.tags.length && !f.tags.some(t => j.tags.includes(t))) return false;
+    if (f.kw && !(j.title + j.subtitle + j.tags.join('')).toLowerCase().includes(f.kw.toLowerCase())) return false;
+    return true;
+  });
+}
+
 function renderHomeworkView() {
+  ensureHWStyles();
+  if (state.homeworkJob) return renderHWDaily(state.homeworkJob);
+  return renderHWList();
+}
+
+function renderHWList() {
+  const list = hwFilteredList();
+  const allTags = [...new Set(HW_JOBS.flatMap(j => j.tags))];
+  const f = state.hwFilter;
+  const hasFilter = f.date || f.kw || f.tags.length;
   return `
     <div class="topbar"><h2>✏️ 作业批改</h2>
-      <div class="actions"><a href="homework_analysis.html" target="_blank" class="btn btn-primary">🔗 新窗口打开</a></div>
+      <div class="actions"><span class="hw-count">共 ${HW_JOBS.length} 次作业</span></div>
     </div>
-    <div style="position:relative;width:100%;height:calc(100vh - 140px);border-radius:12px;overflow:hidden;border:1px solid var(--border);">
-      <iframe src="homework_analysis.html" style="width:100%;height:100%;border:0;" loading="lazy"></iframe>
+    <div class="topbar hw-filterbar">
+      <input type="date" value="${f.date}" onchange="hwSetDate(this.value)">
+      <input type="text" class="hw-kw" value="${f.kw}" placeholder="🔍 搜索标题/标签，回车或失焦生效"
+        onchange="hwSetKw(this.value)" onkeydown="if(event.key==='Enter')this.blur()">
+      <div class="hw-chips">${allTags.map(t => `<button class="hw-chip ${f.tags.includes(t) ? 'on' : ''}" onclick="hwToggleTag('${t}')">#${t}</button>`).join('')}</div>
+      ${hasFilter ? `<button class="btn hw-reset" onclick="hwClearFilter()">清除筛选</button>` : ''}
+    </div>
+    ${list.length ? `<div class="hw-grid">${list.map(renderHWCard).join('')}</div>`
+                   : `<div class="hw-empty">没有匹配的作业，试试调整筛选条件</div>`}
+  `;
+}
+
+function renderHWCard(j) {
+  const pct = j.total ? Math.round(j.correct / j.total * 100) : 0;
+  const color = pct >= 70 ? 'var(--success)' : (pct >= 40 ? 'var(--warning)' : 'var(--danger)');
+  return `<div class="hw-card" onclick="openHomeworkJob('${j.id}')">
+    <div class="hw-card-top"><span>🕐 ${j.date}</span><span class="hw-pct" style="color:${color}">${pct}%</span></div>
+    <div class="hw-card-title">${j.title}</div>
+    <div class="hw-card-sub">${j.subtitle}</div>
+    <div class="hw-card-tags">${j.tags.map(t => `<span class="hw-tag">#${t}</span>`).join('')}</div>
+    <div class="hw-card-stats">
+      <span>📝 ${j.total}题</span><span>✅ ${j.correct}</span><span>❌ ${j.wrong}</span><span>⏳ ${j.pending}</span><span>🎯 ${j.hitCards}张卡</span>
+    </div>
+    <div class="hw-card-open">点击查看完整批改页 →</div>
+  </div>`;
+}
+
+function renderHWDaily(j) {
+  return `
+    <div class="topbar"><h2>✏️ ${j.title}</h2>
+      <div class="actions">
+        <button class="btn" onclick="backHomeworkJobs()">← 返回作业列表</button>
+        <a href="${j.page}" target="_blank" class="btn btn-primary">🔗 新窗口打开</a>
+      </div>
+    </div>
+    <div class="hw-detail-meta">${j.subtitle} · 批改日期 ${j.date} · ${j.tags.map(t => '#' + t).join(' ')} · ${j.total}题 / 命中 ${j.hitCards} 张记忆卡</div>
+    <div style="position:relative;width:100%;height:calc(100vh - 190px);border-radius:12px;overflow:hidden;border:1px solid var(--border);">
+      <iframe src="${j.page}" style="width:100%;height:100%;border:0;" loading="lazy"></iframe>
     </div>
   `;
 }
+
+function openHomeworkJob(id) { state.homeworkJob = HW_JOBS.find(x => x.id === id) || null; render(); }
+function backHomeworkJobs() { state.homeworkJob = null; render(); }
+function hwSetDate(v) { state.hwFilter.date = v; render(); }
+function hwToggleTag(t) { const i = state.hwFilter.tags.indexOf(t); if (i >= 0) state.hwFilter.tags.splice(i, 1); else state.hwFilter.tags.push(t); render(); }
+function hwSetKw(v) { state.hwFilter.kw = v; render(); }
+function hwClearFilter() { state.hwFilter = { date: '', tags: [], kw: '' }; render(); }
 
 function renderDashboard() {
   const errors = state.errors;
