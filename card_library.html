@@ -1512,11 +1512,11 @@ function renderGrid() {
   if (chapter) cards = cards.filter(c => (c.chapter||'').includes(chapter));
   if (source) cards = cards.filter(c => (c.source||'').includes(source));
 
-  // Chapters for filter dropdown - filter by subject if set
-  let filteredForChapters = state.cards;
-  if (subject) filteredForChapters = filteredForChapters.filter(c => c.subject === subject);
-  const chapters = [...new Set(filteredForChapters.map(c => (c.chapter||'').split('·')[0]).filter(Boolean))].sort();
-  const sources = [...new Set(state.cards.map(c => c.source).filter(Boolean))].sort().slice(0, 20);
+  // Chapters and sources for filter dropdown - filter by subject if set
+  let filteredForDropdowns = state.cards;
+  if (subject) filteredForDropdowns = filteredForDropdowns.filter(c => c.subject === subject);
+  const chapters = [...new Set(filteredForDropdowns.map(c => (c.chapter||'').split('·')[0]).filter(Boolean))].sort();
+  const sources = [...new Set(filteredForDropdowns.map(c => c.source).filter(Boolean))].sort().slice(0, 50);
   const subjects = [...new Set(state.cards.map(c => c.subject).filter(Boolean))].sort();
 
   const viewTitle = { dashboard:'仪表盘', grid:'全部卡片', excel:'Excel导入卡', error:'错题生成卡', homework:'作业卡片', linked:'已关联错题' }[state.view] || '卡片';
@@ -1594,6 +1594,11 @@ function filterBySubject(subject) {
 
 function onFilter(key, val) {
   state.filter[key] = val;
+  // 切换学科时清空出处和章节，避免跨学科无效筛选
+  if (key === 'subject') {
+    state.filter.source = '';
+    state.filter.chapter = '';
+  }
   render();
 }
 
