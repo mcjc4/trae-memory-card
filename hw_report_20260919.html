@@ -240,11 +240,6 @@ const QUESTIONS=[
   hits:['che0022','che0407','che0374','che0018'], news:[], shot:'homework_crops/chem_week2/q11.jpg'}
 ];
 
-function kchip(id,isNew){
-  const done=queued(id)?' done':'';
-  return `<span class="kcard ${isNew?'new':'hit'}${done}">${id}${isNew?'(新)':''} <button onclick="toggleTrain('${id}',${isNew?'1':'0'},this)">+训练</button></span>`;
-}
-
 document.getElementById('list').innerHTML = QUESTIONS.map(p=>`
   <div class="card">
     <div class="card-top">
