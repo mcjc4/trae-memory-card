@@ -1145,12 +1145,18 @@ async function renderTopicQueueSection() {
   const queues = await loadTopicQueues();
   if (queues.length === 0) {
     return `<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:20px">
-      <h3 style="font-size:14px;margin-bottom:8px">📚 专题练习队列</h3>
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px">
+        <h3 style="font-size:14px">📚 专题练习队列</h3>
+        <button class="btn btn-sm btn-outline" onclick="refreshTrainQueue()">⟳ 刷新</button>
+      </div>
       <p style="font-size:13px;color:var(--text-light)">暂无保存的专题队列。在卡片列表中按章节/知识点筛选后，点击"🎯 生成训练计划"即可自动保存到这里。</p>
     </div>`;
   }
   return `<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:20px">
-    <h3 style="font-size:14px;margin-bottom:12px">📚 专题练习队列（${queues.length}个）</h3>
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px">
+      <h3 style="font-size:14px">📚 专题练习队列（${queues.length}个）</h3>
+      <button class="btn btn-sm btn-outline" onclick="refreshTrainQueue()">⟳ 刷新</button>
+    </div>
     <div style="display:grid;gap:10px">
       ${queues.map(q => `<div style="border:1px solid var(--border);border-radius:8px;padding:12px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
         <div style="flex:1;min-width:200px">
