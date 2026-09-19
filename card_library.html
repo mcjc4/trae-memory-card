@@ -44,9 +44,12 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
   position: fixed; left: 0; top: 0; bottom: 0; width: var(--sidebar-w);
   background: linear-gradient(180deg, #4f46e5 0%, #6366f1 50%, #8b5cf6 100%);
   color: white; padding: 20px 0; z-index: 100;
-  display: flex; flex-direction: column;
+  display: flex; flex-direction: column; overflow: hidden;
   transform: translateX(0); transition: transform 0.3s;
 }
+.sidebar-scroll { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; }
+.sidebar-scroll::-webkit-scrollbar { width: 5px; }
+.sidebar-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.35); border-radius: 3px; }
 .sidebar-header { padding: 0 20px 20px; border-bottom: 1px solid rgba(255,255,255,0.15); }
 .sidebar-header h1 { font-size: 20px; font-weight: 700; }
 .sidebar-header p { font-size: 12px; opacity: 0.7; margin-top: 4px; }
@@ -346,7 +349,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     <h1>🧠 昕言的记忆卡库</h1>
     <p>信号 → 结论 记忆系统</p>
   </div>
-  <div class="nav-section-title">学科</div>
+  <div class="sidebar-scroll">
+    <div class="nav-section-title">学科</div>
   <div class="nav-item" data-view="grid" data-subject="数学" onclick="filterBySubject('数学')">🔢 数学 <span class="badge" id="nav-math">0</span></div>
   <div class="nav-item" data-view="grid" data-subject="物理" onclick="filterBySubject('物理')">⚛️ 物理 <span class="badge" id="nav-physics">0</span></div>
   <div class="nav-item" data-view="grid" data-subject="化学" onclick="filterBySubject('化学')">🧪 化学 <span class="badge" id="nav-chem">0</span></div>
@@ -368,6 +372,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
   <div class="nav-item" onclick="exportData()">💾 导出JSON</div>
   <div class="nav-item" onclick="document.getElementById('import-file').click()">📥 导入JSON</div>
   <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
+  </div>
   <div style="margin-top:auto;padding:16px 20px;border-top:1px solid rgba(255,255,255,0.15)">
     <a href="solution_library.html" style="display:block;text-align:center;background:rgba(255,255,255,0.12);color:#fff;border:1px solid rgba(255,255,255,0.25);border-radius:10px;padding:10px 0;font-size:13px;text-decoration:none">🔗 进入昕言解题库</a>
   </div>
@@ -739,6 +744,11 @@ async function saveTrainSession() {
       body: JSON.stringify(payload)
     });
   } catch(e) { console.warn('saveTrainSession cloud error:', e); }
+  // 训练完成：本次训练中标签为「进入训练」的卡 → 已训练（跨设备）
+  try {
+    const entered = state.trainQueue.filter(c => (c.train_tag || '') === '进入训练').map(c => c.id);
+    entered.forEach(id => setCardTrainTag(id, { train_tag: '已训练' }));
+  } catch(e) { console.warn('tagTrained error:', e); }
 }
 
 async function loadTrainSessions() {
@@ -981,36 +991,106 @@ async function loadAndRenderHistory() {
   typesetMath();
 }
 
-function renderTrainQueueSection() {
-  const queue = JSON.parse(localStorage.getItem('hw_train_queue') || '[]');
-  if (queue.length === 0) {
+// ==================== 待训练标签 & 队列（跨设备） ====================
+const CARD_TAG_KEY = 'card_train_tags';
+function readLocalTags(){ try{ return JSON.parse(localStorage.getItem(CARD_TAG_KEY)||'{}'); }catch(e){ return {}; } }
+function writeLocalTags(map){ try{ localStorage.setItem(CARD_TAG_KEY, JSON.stringify(map)); }catch(e){} }
+
+async function setCloudCardTag(cardId, patch){
+  if(!cardId) return false;
+  let rowId=null, existing=null;
+  try{
+    const q = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?data->>id=eq.${encodeURIComponent(cardId)}&select=id,data`, { headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`} });
+    const rows = await q.json();
+    if(rows && rows[0]){ rowId=rows[0].id; existing=rows[0].data||{}; }
+  }catch(e){}
+  if(!rowId) return false;
+  const data=Object.assign({}, existing, patch, { id: existing.id||cardId });
+  const payload={ id:rowId, data, updated_at:new Date().toISOString() };
+  try{
+    const r=await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}`, { method:'POST', headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates'}, body:JSON.stringify(payload) });
+    return r.ok;
+  }catch(e){ return false; }
+}
+
+// 云端命中卡(跨设备)主存；云端无行的卡(仅本地 cards_data)降级存本地
+async function setCardTrainTag(cardId, patch){
+  const ok = await setCloudCardTag(cardId, patch);
+  if(patch && patch.train_tag !== undefined){
+    const t = state.cards.find(x => x.id === cardId);
+    if(t) t.train_tag = patch.train_tag;
+  }
+  if(!ok){
+    const map = readLocalTags(); const prev = map[cardId]||{};
+    map[cardId] = Object.assign({}, prev, patch);
+    writeLocalTags(map);
+  }
+  return ok;
+}
+
+function getPendingCards(){
+  const localTags = readLocalTags();
+  const map = new Map();
+  state.cards.forEach(c=>{
+    const tag = c.train_tag || (localTags[c.id] && localTags[c.id].train_tag);
+    if(tag) map.set(c.id, Object.assign({}, c, { _tag: tag, _new: (localTags[c.id] && localTags[c.id].new_flag) || c.new_flag }));
+  });
+  Object.keys(localTags).forEach(id=>{
+    if(!map.has(id)) map.set(id, { id, chapter:'', _tag: localTags[id].train_tag, _new: localTags[id].new_flag });
+  });
+  return [...map.values()].filter(c => c._tag === '待训练');
+}
+
+async function renderTrainQueueSection() {
+  const pend = getPendingCards();
+  if (pend.length === 0) {
     return `<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:20px">
-      <h3 style="font-size:14px;margin-bottom:8px">🏋️ 训练队列</h3>
-      <p style="font-size:13px;color:var(--text-light)">队列为空。在<a href="homework_analysis.html" style="color:var(--primary)">作业批改页面</a>点击卡片旁的"加入训练"按钮，卡片会出现在这里。</p>
+      <h3 style="font-size:14px;margin-bottom:8px">🏋️ 训练队列 · 待训练</h3>
+      <p style="font-size:13px;color:var(--text-light)">暂无待训练卡。在<a href="homework_analysis.html" style="color:var(--primary)">作业批改页面</a>点击命中卡的「加入训练」或新卡「入库到记忆库」，卡片会跨设备出现在这里。</p>
     </div>`;
   }
-  const queueCards = queue.map(id => state.cards.find(c => c.id === id)).filter(Boolean);
+  const chips = pend.map(c => {
+    const ch = (c.chapter||'').substring(0,14);
+    const nd = c._new ? '<span style="color:var(--warning);font-size:10px">⬇新卡未下载</span>' : '';
+    return `<span style="display:inline-flex;align-items:center;gap:4px;background:var(--primary-light);color:var(--primary-dark);padding:4px 10px;border-radius:6px;font-size:11px">
+      <span style="font-family:monospace;font-weight:700">${c.id}</span>
+      <span style="color:var(--text-light)">${ch}</span>${nd}
+      <button onclick="clearCardPendingTag('${c.id}')" style="border:none;background:transparent;color:var(--danger);cursor:pointer;font-size:14px;padding:0 2px">✕</button>
+    </span>`;
+  }).join('');
   return `<div style="background:var(--bg-card);border:2px solid var(--primary);border-radius:10px;padding:16px;margin-bottom:20px">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-      <h3 style="font-size:14px">🏋️ 训练队列（${queue.length}张）</h3>
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+      <h3 style="font-size:14px">🏋️ 训练队列 · 待训练（${pend.length}张）</h3>
       <div style="display:flex;gap:8px">
-        <button class="btn btn-sm btn-outline" onclick="clearTrainQueue()">清空</button>
-        <button class="btn btn-sm btn-primary" onclick="startQueueTraining()">开始训练</button>
+        <button class="btn btn-sm btn-outline" onclick="clearAllPending()">全部取消</button>
+        <button class="btn btn-sm btn-primary" onclick="generateTopicFromPending()">🎯 生成专题训练</button>
       </div>
     </div>
-    <div style="display:flex;flex-wrap:wrap;gap:6px">
-      ${queue.map(id => {
-        const card = state.cards.find(c => c.id === id);
-        const ch = card ? (card.chapter||'').substring(0,15) : '未找到';
-        return `<span style="display:inline-flex;align-items:center;gap:4px;background:var(--primary-light);color:var(--primary-dark);padding:4px 10px;border-radius:6px;font-size:11px">
-          <span style="font-family:monospace;font-weight:700">${id}</span>
-          <span style="color:var(--text-light)">${ch}</span>
-          <button onclick="removeFromTrainQueue('${id}')" style="border:none;background:transparent;color:var(--danger);cursor:pointer;font-size:14px;padding:0 2px">✕</button>
-        </span>`;
-      }).join('')}
-    </div>
-    <p style="font-size:11px;color:var(--text-lighter);margin-top:8px">来自作业批改页面的命中卡片，点击"开始训练"进入闪卡训练</p>
+    <div style="display:flex;flex-wrap:wrap;gap:6px">${chips}</div>
+    <p style="font-size:11px;color:var(--text-lighter);margin-top:8px">跨设备聚合「待训练」标签的卡片，点「生成专题训练」→ 标签转「进入训练」并在下方生成专题队列</p>
   </div>`;
+}
+
+function clearCardPendingTag(id){
+  setCardTrainTag(id, { train_tag:'', new_flag:'' });
+  loadAndRenderHistory();
+  showToast(`已取消待训练 ${id}`);
+}
+function clearAllPending(){
+  const pend = getPendingCards();
+  Promise.all(pend.map(c => setCardTrainTag(c.id, { train_tag:'', new_flag:'' }))).then(() => {
+    loadAndRenderHistory();
+    showToast(`已取消 ${pend.length} 张待训练卡`);
+  });
+}
+async function generateTopicFromPending(){
+  const pend = getPendingCards();
+  if(!pend.length){ showToast('没有待训练卡片'); return; }
+  for(const c of pend){ await setCardTrainTag(c.id, { train_tag:'进入训练' }); }
+  const name = '待训练专题 ' + new Date().toLocaleDateString('zh-CN');
+  await saveTopicQueue(name, pend.map(c => state.cards.find(x => x.id === c.id) || c), { type:'从待训练标签生成' });
+  loadAndRenderHistory();
+  showToast(`已生成专题训练「${name}」，${pend.length} 张（标签→进入训练）`);
 }
 
 function removeFromTrainQueue(cardId) {
@@ -1086,7 +1166,7 @@ async function renderTrainHistory(sessions) {
 
   if (sessions.length === 0) {
     return `<div class="page-header"><div class="page-title">📜 训练记录</div></div>
-      ${renderTrainQueueSection()}
+      ${await renderTrainQueueSection()}
       ${topicSection}
       <div class="train-empty"><h2>暂无训练记录</h2><p>完成一次训练后，记录会自动出现在这里</p>
       <button class="btn btn-primary" onclick="startTraining('random')">🎲 开始随机抽查</button></div>`;
@@ -1120,7 +1200,7 @@ async function renderTrainHistory(sessions) {
       <button class="btn btn-outline" onclick="startTraining('random')">🎲 随机抽查</button>
       <button class="btn btn-outline" onclick="startTraining('new')">🆕 学习新卡</button>
     </div>
-    ${renderTrainQueueSection()}
+    ${await renderTrainQueueSection()}
     ${topicSection}
     ${Object.entries(byDate).map(([date, daySessions]) => `
       <div style="margin-bottom:20px">

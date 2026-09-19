@@ -1757,6 +1757,9 @@ function hwToast(msg) {
 
 // ==================== Supabase write ====================
 async function addCardToLibrary(card) {
+  card.train_tag = '待训练';
+  card.new_flag = '新卡未下载';
+  card.last_viewed = new Date().toISOString();
   const rowId = HW_ROW_PREFIX + card.id;
   const payload = { id: rowId, data: card, updated_at: new Date().toISOString() };
   try {
@@ -1775,6 +1778,29 @@ async function addCardToLibrary(card) {
     console.warn('addCardToLibrary error:', e);
     return false;
   }
+}
+
+// 给已有记忆卡（命中卡）打标签 / 更新最近浏览时间
+async function applyCardTag(cardId, patch) {
+  let rowId = null, existing = null;
+  try {
+    const q = await fetch(`${HW_SUPABASE_URL}/rest/v1/${HW_TABLE}?data->>id=eq.${encodeURIComponent(cardId)}&select=id,data`, {
+      headers: { 'apikey': HW_SUPABASE_KEY, 'Authorization': `Bearer ${HW_SUPABASE_KEY}` }
+    });
+    const rows = await q.json();
+    if (rows && rows[0]) { rowId = rows[0].id; existing = rows[0].data || {}; }
+  } catch(e) {}
+  if (!rowId) return false;
+  const data = Object.assign({}, existing, patch, { id: existing.id || cardId });
+  const payload = { id: rowId, data, updated_at: new Date().toISOString() };
+  try {
+    const res = await fetch(`${HW_SUPABASE_URL}/rest/v1/${HW_TABLE}`, {
+      method: 'POST',
+      headers: { 'apikey': HW_SUPABASE_KEY, 'Authorization': `Bearer ${HW_SUPABASE_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates' },
+      body: JSON.stringify(payload)
+    });
+    return res.ok;
+  } catch(e) { return false; }
 }
 
 // ==================== Generate card ID ====================
@@ -1902,17 +1928,20 @@ function saveQueue() {
 }
 
 function toggleTrainQueue(cardId, btn) {
+  const now = new Date().toISOString();
   const idx = trainQueue.indexOf(cardId);
   if (idx >= 0) {
     trainQueue.splice(idx, 1);
     btn.classList.remove('btn-queued');
     btn.innerHTML = '🏋️ 加入训练';
     hwToast(`已从训练队列移除 ${cardId}`);
+    applyCardTag(cardId, { train_tag: '' });
   } else {
     trainQueue.push(cardId);
     btn.classList.add('btn-queued');
-    btn.innerHTML = '✅ 已加入队列';
-    hwToast(`已加入训练队列：${cardId}（共${trainQueue.length}张）`);
+    btn.innerHTML = '✅ 已加入待训练';
+    hwToast(`已加入待训练：${cardId}（共${trainQueue.length}张）`);
+    applyCardTag(cardId, { train_tag: '待训练', last_viewed: now });
   }
   saveQueue();
   updateQueueUI();
