@@ -182,10 +182,31 @@
       document.body.appendChild(fileInput);
 
       function persist(src){ try{ localStorage.setItem(key, src); }catch(_){} }
+      var zoom = 1;
+      function applyZoom(){
+        if(!img) return;
+        img.style.width = (100*zoom) + '%';
+        img.style.maxWidth = 'none';
+        img.style.height = 'auto';
+      }
+      function setZoom(z){ zoom = Math.max(1, Math.min(6, z)); applyZoom(); }
+      function bindZoom(){
+        body.style.overflow='auto'; body.style.maxHeight='80vh';
+        img.addEventListener('wheel', function(e){
+          e.preventDefault();
+          setZoom(zoom * (e.deltaY < 0 ? 1.12 : 0.92));
+        }, { passive:false });
+        var pinch=null;
+        img.addEventListener('touchstart', function(e){ var t=e.touches; if(t.length>=2){ var dx=t[0].clientX-t[1].clientX, dy=t[0].clientY-t[1].clientY; pinch=Math.hypot(dx,dy); } }, { passive:true });
+        img.addEventListener('touchmove', function(e){ var t=e.touches; if(t.length>=2){ var dx=t[0].clientX-t[1].clientX, dy=t[0].clientY-t[1].clientY; var d=Math.hypot(dx,dy); if(pinch){ setZoom(zoom*(d/pinch)); } pinch=d; } }, { passive:true });
+        img.addEventListener('touchend', function(){ pinch=null; });
+        img.addEventListener('dblclick', function(){ setZoom(1); });
+      }
       function display(src){
-        if(!img){ img=document.createElement('img'); img.className='prob-img-img'; body.appendChild(img); }
+        if(!img){ img=document.createElement('img'); img.className='prob-img-img'; body.appendChild(img); bindZoom(); }
         img.src=src;
         if(empty) empty.style.display='none';
+        applyZoom();
       }
       function setNote(ok){
         var note = root.closest ? root.closest('.card, section') : null;
@@ -201,6 +222,7 @@
       }
       function handleDataUrl(raw){
         var comp = raw;
+        zoom = 1;                  // 新图重置缩放为 100%
         compressImage(raw).then(function(compressed){
           comp = compressed;
           display(comp);            // 先展示（减少等待感）
