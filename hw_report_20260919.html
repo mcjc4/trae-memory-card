@@ -37,21 +37,45 @@
   .sol ol{margin-left:20px}
   .sol li{margin:4px 0}
   .sol .ans-tip{color:var(--danger);font-weight:700}
-  .hits{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
-  .kcard{border:1px solid var(--border);border-radius:999px;padding:5px 12px;font-size:13px;background:#fff;display:inline-flex;align-items:center;gap:6px}
-  .kcard.hit{border-color:var(--primary);color:var(--primary-dark);background:var(--primary-light)}
-  .kcard.new{border-color:var(--success);color:var(--success);background:var(--success-light)}
-  .kcard button{border:0;background:transparent;color:inherit;cursor:pointer;font-size:12px;font-weight:700;padding:0 2px}
-  .kcard button:hover{text-decoration:underline}
-  .kcard.done button{display:none}
-  .kcard.done::after{content:"✓ 已入训练";font-size:11px;opacity:.8}
+  .hits{display:flex;flex-direction:column;gap:10px;margin-top:8px}
+  .hits-hint{font-size:12px;color:var(--text-light);margin-top:4px}
+  /* 记忆卡条 — 默认收起，点击展开全文 */
+  .mcard{border:1px solid var(--border);border-radius:12px;background:#fff;overflow:hidden;transition:border-color .15s,box-shadow .15s}
+  .mcard.hit{border-color:var(--primary)}
+  .mcard.new{border-color:var(--success)}
+  .mcard.open{box-shadow:0 4px 14px rgba(30,41,59,.1)}
+  .mc-head{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;user-select:none}
+  .mc-head:hover{background:var(--bg)}
+  .mcard.hit .mc-head:hover{background:var(--primary-light)}
+  .mcard.new .mc-head:hover{background:var(--success-light)}
+  .mc-id{font-size:13px;font-weight:800;white-space:nowrap}
+  .mcard.hit .mc-id{color:var(--primary-dark)}
+  .mcard.new .mc-id{color:var(--success)}
+  .mc-ch{font-size:13px;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mc-tag{font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;white-space:nowrap}
+  .mcard.hit .mc-tag{background:var(--primary-light);color:var(--primary-dark)}
+  .mcard.new .mc-tag{background:var(--success-light);color:var(--success)}
+  .mc-chev{font-size:14px;color:var(--text-light);transition:transform .2s;flex-shrink:0}
+  .mcard.open .mc-chev{transform:rotate(90deg)}
+  .mc-train{border:1.5px solid var(--primary);background:#fff;color:var(--primary-dark);border-radius:8px;padding:4px 12px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:background .15s}
+  .mcard.new .mc-train{border-color:var(--success);color:var(--success)}
+  .mc-train:hover{background:var(--primary);color:#fff}
+  .mcard.new .mc-train:hover{background:var(--success);color:#fff}
+  .mcard.done .mc-train{display:none}
+  .mcard.done .mc-done{display:inline-block}
+  .mc-done{display:none;font-size:12px;font-weight:700;color:var(--success);white-space:nowrap;flex-shrink:0}
+  .mc-body{display:none;padding:0 14px 14px;border-top:1px dashed var(--border);margin-top:0}
+  .mcard.open .mc-body{display:block}
+  .mc-field{font-size:13px;line-height:1.8;margin-top:10px}
+  .mc-field b{color:var(--primary-dark)}
+  .mc-field .lbl{display:inline-block;background:var(--bg);border-radius:5px;padding:1px 7px;font-size:11px;font-weight:700;color:var(--text-light);margin-right:6px}
   .shot{width:100%;max-width:520px;border:1px solid var(--border);border-radius:10px;margin-top:12px;display:block}
   .shot-cap{font-size:12px;color:var(--text-light);margin-top:4px}
   .q11-note{font-size:13px;color:var(--warning);background:var(--warning-light);border-radius:8px;padding:8px 12px;margin-top:8px}
   .foot{text-align:center;color:var(--text-light);font-size:12px;margin:26px 0 10px}
   .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:#26324a;color:#fff;padding:10px 20px;border-radius:10px;font-size:14px;box-shadow:0 6px 20px rgba(0,0,0,.25);opacity:0;transition:opacity .25s;pointer-events:none}
   .toast.show{opacity:1}
-  @media(max-width:560px){.card{padding:16px}.header h1{font-size:19px}.ans{gap:10px}}
+  @media(max-width:560px){.card{padding:16px}.header h1{font-size:19px}.ans{gap:10px}.mc-ch{font-size:12px}}
 </style>
 </head>
 <body>
@@ -70,7 +94,7 @@
   <div class="legend">
     <span class="pill"><span class="dot" style="background:var(--primary)"></span>命中断既有记忆卡</span>
     <span class="pill"><span class="dot" style="background:var(--success)"></span>本次新增通用记忆卡</span>
-    <span class="pill">点击卡号即可加入待训练</span>
+    <span class="pill">点击卡号展开思路全文</span>
   </div>
 
   <div id="list"></div>
@@ -78,7 +102,7 @@
   <div class="foot">记忆卡库命中分析 · 通用思路沉淀 · 生成于 2026-09-19</div>
 </div>
 <div class="toast" id="toast"></div>
-
+<script src="cards_data.js?v=9"></script>
 <script>
 // ==================== Supabase 训练写入（与 homework_analysis 同一机制） ====================
 const SUPABASE_URL='https://mixuqjognbdrafrrlivc.supabase.co';
@@ -106,11 +130,48 @@ async function ensureTrain(cardId, isNew){
 
 function toggleTrain(cardId,isNew,btn){
   const i=trainQueue.indexOf(cardId);
-  if(i>=0){ trainQueue.splice(i,1); btn.closest('.kcard').classList.remove('done'); toast('已从待训练移除 '+cardId); }
-  else{ trainQueue.push(cardId); ensureTrain(cardId,!!isNew); btn.closest('.kcard').classList.add('done'); toast('✅ 已加入待训练：'+cardId); }
+  if(i>=0){ trainQueue.splice(i,1); btn.closest('.mcard').classList.remove('done'); toast('已从待训练移除 '+cardId); }
+  else{ trainQueue.push(cardId); ensureTrain(cardId,!!isNew); btn.closest('.mcard').classList.add('done'); toast('✅ 已加入待训练：'+cardId); }
   localStorage.setItem(QUEUE_KEY,JSON.stringify(trainQueue));
 }
 function queued(id){return trainQueue.indexOf(id)>=0;}
+
+// ==================== 记忆卡数据查找（从 cards_data.js） ====================
+const CARD_MAP = (typeof CARDS_DATA !== 'undefined') ? Object.fromEntries(CARDS_DATA.map(c => [c.id, c])) : {};
+
+function cardInfo(id){
+  const c = CARD_MAP[id];
+  if(!c) return {chapter:'(卡库未找到)', signal:'—', conclusion:'—', source:''};
+  return {chapter:c.chapter||'', signal:c.signal||'', conclusion:c.conclusion||'', source:c.source||''};
+}
+
+// 展开/收起
+function toggleMcard(head){
+  const mc = head.closest('.mcard');
+  mc.classList.toggle('open');
+}
+
+// ==================== 记忆卡条（默认收起，点击展开全文） ====================
+function kchip(id,isNew){
+  const info = cardInfo(id);
+  const done = queued(id) ? ' done' : '';
+  const tagTxt = isNew ? '新增' : '命中';
+  return `<div class="mcard ${isNew?'new':'hit'}${done}" data-id="${id}">
+    <div class="mc-head" onclick="toggleMcard(this)">
+      <span class="mc-id">${id}</span>
+      <span class="mc-ch">${info.chapter}</span>
+      <span class="mc-tag">${tagTxt}</span>
+      <span class="mc-chev">▸</span>
+      <span class="mc-done">✓ 已入训练</span>
+      <button class="mc-train" onclick="event.stopPropagation();toggleTrain('${id}',${isNew?'1':'0'},this)">+训练</button>
+    </div>
+    <div class="mc-body">
+      <div class="mc-field"><span class="lbl">信号</span>${info.signal}</div>
+      <div class="mc-field"><span class="lbl">结论</span>${info.conclusion}</div>
+      ${info.source ? `<div class="mc-field"><span class="lbl">出处</span>${info.source}</div>` : ''}
+    </div>
+  </div>`;
+}
 
 // ==================== 批改数据 ====================
 const QUESTIONS=[
@@ -203,7 +264,7 @@ document.getElementById('list').innerHTML = QUESTIONS.map(p=>`
     <div class="hits">
       ${p.hits.map(id=>kchip(id,false)).join('')}
       ${p.news.map(id=>kchip(id,true)).join('')}
-      <span style="font-size:12px;color:var(--text-light);align-self:center">点击卡号加入训练，训练队列将在记忆卡库「📜 训练记录」中聚合并开始</span>
+      <span class="hits-hint">点击卡条展开思路全文 · 点击「+训练」加入待训练队列</span>
     </div>
     <img class="shot" src="${p.shot}" alt="原题截图 题目${p.q}">
     <div class="shot-cap">原题截图 · 题目 ${p.q}</div>
