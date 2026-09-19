@@ -369,7 +369,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
   <div class="nav-item" onclick="document.getElementById('import-file').click()">📥 导入JSON</div>
   <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
   <div style="margin-top:auto;padding:16px 20px;border-top:1px solid rgba(255,255,255,0.15)">
-    <a href="error_book.html" style="color:rgba(255,255,255,0.7);font-size:13px;text-decoration:none">← 迭错题本</a>
+    <a href="solution_library.html" style="color:rgba(255,255,255,0.7);font-size:13px;text-decoration:none">← 返回解题库</a>
   </div>
 </div>
 
@@ -1572,7 +1572,7 @@ function renderCard(c) {
       <div class="card-conclusion"><span class="label">结论</span>${(c.conclusion||'').substring(0,120)}${(c.conclusion||'').length>120?'...':''}</div>
       <div class="card-footer">
         ${c.note ? `<span class="card-note">🎬 ${c.note}</span>` : ''}
-        ${c.source_err_id ? `<span class="card-linked-errors"><a href="error_book.html" onclick="event.stopPropagation()">→ 查看错题</a></span>` : ''}
+        ${c.source_err_id ? `<span class="card-linked-errors"><a href="solution_library.html" onclick="event.stopPropagation()">→ 查看题目</a></span>` : ''}
       </div>
     </div>
   `;
@@ -1631,7 +1631,7 @@ function openDetailModal(id) {
       ${c.link ? `<div class="detail-section"><h4>题目链接</h4><div class="content"><a href="${c.link}" target="_blank">${c.link}</a></div></div>` : ''}
       ${c.source_err_id ? `
         <div class="detail-section"><h4>关联错题</h4><div class="content">
-          <a href="error_book.html" style="color:var(--primary)">→ 查看错题 ${c.source_err_qnum||''}</a>
+          <a href="solution_library.html" style="color:var(--primary)">→ 查看题目 ${c.source_err_qnum||''}</a>
         </div></div>
       ` : ''}
     </div>
