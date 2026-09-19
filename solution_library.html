@@ -43,10 +43,15 @@ body {
   padding: 20px 0;
   position: fixed;
   height: 100vh;
-  overflow-y: auto;
+  overflow: hidden;
   z-index: 50;
+  display: flex;
+  flex-direction: column;
   transition: transform 0.3s;
 }
+.sidebar-scroll { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; }
+.sidebar-scroll::-webkit-scrollbar { width: 5px; }
+.sidebar-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.35); border-radius: 3px; }
 .sidebar-header { padding: 0 20px 20px; border-bottom: 1px solid rgba(255,255,255,0.15); }
 .sidebar-header h1 { font-size: 20px; font-weight: 700; }
 .sidebar-header .sub { font-size: 12px; opacity: 0.7; margin-top: 4px; }
@@ -471,6 +476,7 @@ body {
       <h1>昕言的解题库</h1>
       <div class="sub">题目·批改·课件·组卷</div>
     </div>
+    <div class="sidebar-scroll">
     <div class="nav-section">
       <div class="nav-section-title">总览</div>
       <div class="nav-item active" data-view="dashboard">
@@ -520,11 +526,9 @@ body {
         <span class="icon">📤</span> 导入数据
       </div>
     </div>
-    <div class="nav-section">
-      <div class="nav-section-title">关联系统</div>
-      <a href="card_library.html" class="nav-item" style="text-decoration:none;color:inherit">
-        <span class="icon">🗂️</span> 记忆卡库
-      </a>
+    </div>
+    <div style="margin-top:auto;padding:16px 20px;border-top:1px solid rgba(255,255,255,0.15);flex-shrink:0">
+      <a href="card_library.html" target="_blank" rel="noopener" style="display:block;text-align:center;background:rgba(255,255,255,0.12);color:#fff;border:1px solid rgba(255,255,255,0.25);border-radius:10px;padding:11px 0;font-size:14px;font-weight:600;text-decoration:none">🔗 进入昕言记忆卡库</a>
     </div>
   </aside>
 
