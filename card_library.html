@@ -1045,7 +1045,10 @@ async function renderTrainQueueSection() {
   const pend = getPendingCards();
   if (pend.length === 0) {
     return `<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:20px">
-      <h3 style="font-size:14px;margin-bottom:8px">🏋️ 训练队列 · 待训练</h3>
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px">
+        <h3 style="font-size:14px">🏋️ 训练队列 · 待训练</h3>
+        <button class="btn btn-sm btn-outline" onclick="refreshTrainQueue()">⟳ 刷新</button>
+      </div>
       <p style="font-size:13px;color:var(--text-light)">暂无待训练卡。在<a href="homework_analysis.html" style="color:var(--primary)">作业批改页面</a>点击命中卡的「加入训练」或新卡「入库到记忆库」，卡片会跨设备出现在这里。</p>
     </div>`;
   }
@@ -1062,6 +1065,7 @@ async function renderTrainQueueSection() {
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
       <h3 style="font-size:14px">🏋️ 训练队列 · 待训练（${pend.length}张）</h3>
       <div style="display:flex;gap:8px">
+        <button class="btn btn-sm btn-outline" onclick="refreshTrainQueue()">⟳ 刷新</button>
         <button class="btn btn-sm btn-outline" onclick="clearAllPending()">全部取消</button>
         <button class="btn btn-sm btn-primary" onclick="generateTopicFromPending()">🎯 生成专题训练</button>
       </div>
@@ -1069,6 +1073,17 @@ async function renderTrainQueueSection() {
     <div style="display:flex;flex-wrap:wrap;gap:6px">${chips}</div>
     <p style="font-size:11px;color:var(--text-lighter);margin-top:8px">跨设备聚合「待训练」标签的卡片，点「生成专题训练」→ 标签转「进入训练」并在下方生成专题队列</p>
   </div>`;
+}
+
+// 手动刷新：重新从 Supabase 拉取云端标签，再重渲染待训练队列（无需整页刷新）
+async function refreshTrainQueue(){
+  const btn = event && event.currentTarget;
+  if(btn){ btn.disabled = true; btn.textContent = '⟳ 刷新中…'; }
+  try { await cloudPull(); }
+  catch(e){ console.warn('refreshTrainQueue cloudPull error:', e); }
+  await loadAndRenderHistory();
+  if(btn){ btn.disabled = false; btn.textContent = '⟳ 刷新'; }
+  showToast('待训练队列已刷新');
 }
 
 function clearCardPendingTag(id){
