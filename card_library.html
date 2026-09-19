@@ -254,7 +254,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 <style>
 /* Training Mode */
 .train-card-display {
-  max-width: 700px; margin: 0 auto;
+  max-width: 820px; margin: 0 auto;
 }
 .train-progress {
   display: flex; align-items: center; gap: 12px; margin-bottom: 20px;
@@ -265,23 +265,29 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .train-progress .progress-fill { height: 100%; background: var(--primary); border-radius: 4px; transition: width 0.3s; }
 .train-progress .progress-text { font-size: 13px; color: var(--text-light); white-space: nowrap; }
 .train-flashcard {
-  background: var(--bg-card); border-radius: 16px; padding: 32px;
+  background: var(--bg-card); border-radius: 18px; padding: 40px;
   box-shadow: 0 4px 24px rgba(0,0,0,0.08); border: 1px solid var(--border);
-  min-height: 320px; display: flex; flex-direction: column;
+  min-height: 340px; display: flex; flex-direction: column;
 }
-.train-card-id { font-family: monospace; font-size: 13px; color: var(--primary); margin-bottom: 8px; font-weight: 600; }
-.train-card-chapter { font-size: 14px; color: var(--text-light); margin-bottom: 20px; }
-.train-question-prompt {
-  font-size: 16px; font-weight: 600; margin-bottom: 16px;
-  padding: 12px 16px; background: var(--info-light); border-radius: 8px;
-  display: flex; align-items: center; gap: 8px;
+.train-card-id { font-family: monospace; font-size: 14px; color: var(--primary); margin-bottom: 8px; font-weight: 600; }
+.train-card-chapter { font-size: 16px; color: var(--text-light); margin-bottom: 20px; }
+.train-link-chips {
+  display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 4px;
+  padding: 12px 14px; background: var(--bg); border-radius: 10px; border: 1px dashed var(--border);
 }
+.train-link-chips .chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 12px; border-radius: 999px; font-size: 13px; font-weight: 600;
+  background: var(--primary-light); color: var(--primary-dark); cursor: pointer;
+  text-decoration: none; transition: all 0.15s;
+}
+.train-link-chips .chip:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.12); transform: translateY(-1px); }
 .train-signal-box {
-  background: var(--info-light); border-radius: 10px; padding: 16px 20px; margin-bottom: 16px;
+  background: var(--info-light); border-radius: 10px; padding: 18px 22px; margin-bottom: 16px;
   border-left: 4px solid var(--info);
 }
 .train-signal-box .label { font-size: 11px; font-weight: 700; color: var(--info); display: block; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
-.train-signal-box .content { font-size: 15px; line-height: 1.6; }
+.train-signal-box .content { font-size: 16px; line-height: 1.6; }
 .train-answer-area { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 .train-reveal-btn {
   padding: 14px 36px; font-size: 16px; border: 2px dashed var(--primary); border-radius: 12px;
@@ -289,13 +295,13 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 }
 .train-reveal-btn:hover { background: var(--primary-light); }
 .train-answer-box {
-  background: var(--success-light); border-radius: 10px; padding: 16px 20px;
+  background: var(--success-light); border-radius: 10px; padding: 18px 22px;
   border-left: 4px solid var(--success); width: 100%;
   animation: slideDown 0.3s ease;
 }
 .train-answer-box .label { font-size: 11px; font-weight: 700; color: var(--success); display: block; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
-.train-answer-box .content { font-size: 15px; line-height: 1.6; }
-.train-problem-box { font-size: 13px; color: var(--text-light); margin-top: 12px; padding: 10px 14px; background: var(--bg); border-radius: 8px; line-height: 1.5; }
+.train-answer-box .content { font-size: 16px; line-height: 1.6; }
+.train-problem-box { font-size: 15px; color: var(--text-light); margin-top: 12px; padding: 12px 16px; background: var(--bg); border-radius: 8px; line-height: 1.6; }
 @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 .train-rating {
   display: flex; gap: 12px; margin-top: 20px; justify-content: center;
@@ -312,7 +318,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .rate-3 { background: #fbbf24; color: white; }
 .rate-4 { background: var(--info); color: white; }
 .rate-5 { background: var(--success); color: white; }
-.train-meta { display: flex; gap: 16px; margin-top: 16px; justify-content: center; font-size: 12px; color: var(--text-lighter); }
+.train-meta { display: flex; gap: 16px; margin-top: 16px; justify-content: center; font-size: 13px; color: var(--text-lighter); }
 .train-meta .meta-item { display: flex; align-items: center; gap: 4px; }
 .train-empty { text-align: center; padding: 60px 20px; }
 .train-empty h2 { font-size: 24px; margin-bottom: 12px; }
@@ -1434,7 +1440,6 @@ function renderTrainSession() {
       <div class="train-flashcard">
         <div class="train-card-id">${card.id} ${srs.reviewCount > 0 ? `<span class="srs-level srs-${srs.level}">${srs.level}</span>` : '<span style="font-size:11px;color:var(--info)">🆕 新卡</span>'}</div>
         <div class="train-card-chapter">${card.chapter || ''}</div>
-        <div class="train-question-prompt">💭 看到这个信号，你能想到什么？</div>
         <div class="train-signal-box">
           <span class="label">题干信号</span>
           <div class="content">${card.signal || '（无信号）'}</div>
@@ -1457,6 +1462,7 @@ function renderTrainSession() {
             <button class="train-reveal-btn" onclick="revealCard()">👆 点击显示答案</button>
           </div>
         `}
+        ${renderCardLinkChips(card)}
         <div class="train-meta">
           <div class="meta-item">📖 ${modeLabel}模式</div>
           <div class="meta-item">🔄 已练${srs.reviewCount}次</div>
@@ -1466,6 +1472,23 @@ function renderTrainSession() {
       </div>
     </div>
   `;
+}
+
+// ===== 关联题目/课件链接 chips =====
+// 数据字段：card.links = [{label,url}, ...]；缺省字段时自动补「查看题目」入口
+function getCardLinks(card){
+  const links = [];
+  const push = (label, url) => { if(url && !links.some(l => l.url === url)) links.push({ label, url }); };
+  (card.links || []).forEach(l => { if(l && l.url) push(l.label || l.url, l.url); });
+  if(card.link) push('🔗 原题链接', card.link);
+  if(card.source_err_qid || card.source_err_id) push('📄 查看题目', 'solution_library.html');
+  if(links.length === 0) push('📄 查看题目', 'solution_library.html');
+  return links;
+}
+function renderCardLinkChips(card){
+  const escAttr = s => (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+  const links = getCardLinks(card);
+  return `<div class="train-link-chips">${links.map(l => `<a class="chip" href="${escAttr(l.url)}" target="_blank" rel="noopener">${escAttr(l.label)}</a>`).join('')}</div>`;
 }
 
 function renderTrainEmpty() {
@@ -1730,6 +1753,7 @@ function openDetailModal(id) {
       <div class="detail-section"><h4>出处</h4><div class="content">${c.source||'-'}</div></div>
       <div class="detail-section"><h4>备注</h4><div class="content">${c.note||'-'}</div></div>
       ${c.link ? `<div class="detail-section"><h4>题目链接</h4><div class="content"><a href="${c.link}" target="_blank">${c.link}</a></div></div>` : ''}
+      <div class="detail-section"><h4>关联题目/课件</h4>${renderCardLinkChips(c)}</div>
       ${c.source_err_id ? `
         <div class="detail-section"><h4>关联错题</h4><div class="content">
           <a href="solution_library.html" style="color:var(--primary)">→ 查看题目 ${c.source_err_qnum||''}</a>
@@ -1771,6 +1795,7 @@ function openEditModal(id) {
         <div class="form-group"><label class="form-label">备注</label><input class="form-input" id="edit-note" value="${data.note||''}"></div>
       </div>
       <div class="form-group"><label class="form-label">题目链接</label><input class="form-input" id="edit-link" value="${data.link||''}" placeholder="URL（可选）"></div>
+      <div class="form-group"><label class="form-label">关联题目/课件（每行 "标题|URL"）</label><textarea class="form-textarea" id="edit-links" placeholder="例题|https://...&#10;课件|./317_1_力的合成.html">${(data.links||[]).map(l=>`${l.label||''}|${l.url||''}`).join('\n')}</textarea></div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal()">取消</button>
@@ -1794,6 +1819,10 @@ function saveCard(oldId) {
     source: document.getElementById('edit-source').value,
     note: document.getElementById('edit-note').value,
     link: document.getElementById('edit-link').value,
+    links: (document.getElementById('edit-links').value||'').split('\n').map(s => {
+      const i = s.indexOf('|');
+      return i >= 0 ? { label: s.slice(0,i).trim(), url: s.slice(i+1).trim() } : { label: s.trim(), url: s.trim() };
+    }).filter(l => l.url),
     origin: 'error', created_at: new Date().toISOString()
   };
   if (oldId) {
