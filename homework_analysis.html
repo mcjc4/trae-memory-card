@@ -1790,17 +1790,29 @@ async function applyCardTag(cardId, patch) {
     const rows = await q.json();
     if (rows && rows[0]) { rowId = rows[0].id; existing = rows[0].data || {}; }
   } catch(e) {}
-  if (!rowId) return false;
-  const data = Object.assign({}, existing, patch, { id: existing.id || cardId });
-  const payload = { id: rowId, data, updated_at: new Date().toISOString() };
+  let ok = false;
+  if (rowId) {
+    const data = Object.assign({}, existing, patch, { id: existing.id || cardId });
+    const payload = { id: rowId, data, updated_at: new Date().toISOString() };
+    try {
+      const res = await fetch(`${HW_SUPABASE_URL}/rest/v1/${HW_TABLE}`, {
+        method: 'POST',
+        headers: { 'apikey': HW_SUPABASE_KEY, 'Authorization': `Bearer ${HW_SUPABASE_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates' },
+        body: JSON.stringify(payload)
+      });
+      ok = res.ok;
+    } catch(e) { ok = false; }
+  }
+  // 云端无行(如本地 Excel 卡 mat 系列)或写入失败时，降级写到与记忆卡库共用的本地 key，
+  // 保证本机"作业批改 → 卡库训练记录"能即时看到；换设备仍不可见（Excel 卡云端无行）
+  const key = 'card_train_tags';
   try {
-    const res = await fetch(`${HW_SUPABASE_URL}/rest/v1/${HW_TABLE}`, {
-      method: 'POST',
-      headers: { 'apikey': HW_SUPABASE_KEY, 'Authorization': `Bearer ${HW_SUPABASE_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates' },
-      body: JSON.stringify(payload)
-    });
-    return res.ok;
-  } catch(e) { return false; }
+    const map = JSON.parse(localStorage.getItem(key) || '{}');
+    const prev = map[cardId] || {};
+    map[cardId] = Object.assign({}, prev, patch);
+    localStorage.setItem(key, JSON.stringify(map));
+  } catch(e) {}
+  return ok;
 }
 
 // ==================== Generate card ID ====================
