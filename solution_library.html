@@ -555,6 +555,25 @@ const ROW_PREFIX = 'error-book-';
 const OLD_DOC_ID = 'error-book-default';
 const STUDENT_NAME = localStorage.getItem('eb_student') || 'default';
 
+// ==================== 本地优先缓存 (localStorage) ====================
+// 解题库数据本地优先：先读本地缓存即时渲染，后台再用云端刷新并写回。
+const SOLUTION_CACHE_KEY = 'eb_solution_cache_' + STUDENT_NAME + '_v1';
+function readLocalSolution() {
+  try {
+    const raw = localStorage.getItem(SOLUTION_CACHE_KEY);
+    if (raw) {
+      const arr = JSON.parse(raw);
+      if (Array.isArray(arr)) return arr;
+    }
+  } catch(e) { console.warn('本地解题库缓存读取失败', e); }
+  return [];
+}
+function writeLocalSolution(list) {
+  try {
+    if (Array.isArray(list) && list.length) localStorage.setItem(SOLUTION_CACHE_KEY, JSON.stringify(list));
+  } catch(e) { console.warn('本地解题库缓存写入失败', e); }
+}
+
 // ==================== State ====================
 let state = {
   errors: [],
@@ -590,6 +609,7 @@ async function cloudPushOne(errorId) {
 
 async function cloudPushAll() {
   await Promise.all(state.errors.map(e => cloudPushOne(e.id)));
+  writeLocalSolution(state.errors);
 }
 
 async function cloudPull() {
@@ -600,6 +620,7 @@ async function cloudPull() {
     const rows = await res.json();
     if (rows.length > 0) {
       state.errors = rows.map(r => r.data).filter(d => d && d.id);
+      writeLocalSolution(state.errors);   // 云端成功后写回本地缓存
       return true;
     }
     return false;
@@ -613,6 +634,7 @@ async function cloudDeleteOne(errorId) {
       method: 'DELETE',
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
     });
+    writeLocalSolution(state.errors);
   } catch(e) { console.warn(`cloudDeleteOne(${errorId}) error:`, e); }
 }
 
@@ -741,33 +763,38 @@ function seedData() {
 }
 
 // ==================== Init ====================
-async function init() {
+async function refreshFromCloud() {
   try {
-    showView('dashboard');
     const pulled = await cloudPull();
     if (!pulled || state.errors.length === 0) {
       const migrated = await migrateOldFormat();
-      if (!migrated) {
+      if (!migrated && state.errors.length === 0) {
         state.errors = seedData();
         await cloudPushAll();
         showToast('已初始化14道错题数据');
-      } else {
+      } else if (migrated) {
+        writeLocalSolution(state.errors);
         showToast('已从旧格式迁移为每题独立存储');
       }
     }
-    state.loaded = true;
-    updateNavBadges();
-    render();
-    applyHashView();
   } catch(err) {
-    console.warn('Init error, falling back to seed data:', err);
-    state.errors = seedData();
-    state.loaded = true;
-    updateNavBadges();
-    render();
-    applyHashView();
-    showToast('云端连接失败，已加载本地数据');
+    console.warn('云端刷新失败，保留本地数据:', err);
   }
+  updateNavBadges();
+  render();
+  applyHashView();
+}
+
+async function init() {
+  showView('dashboard');
+  // 本地优先：先用 localStorage 缓存即时渲染（更快、可离线）
+  state.errors = readLocalSolution();
+  state.loaded = true;
+  updateNavBadges();
+  render();
+  applyHashView();
+  // 后台用云端刷新（成功则写回本地缓存）
+  refreshFromCloud();
 }
 
 // ==================== Navigation ====================
