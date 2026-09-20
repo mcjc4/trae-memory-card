@@ -61,9 +61,14 @@
   .mcard.new .mc-train{border-color:var(--success);color:var(--success)}
   .mc-train:hover{background:var(--primary);color:#fff}
   .mcard.new .mc-train:hover{background:var(--success);color:#fff}
-  .mcard.done .mc-train{display:none}
-  .mcard.done .mc-done{display:inline-block}
-  .mc-done{display:none;font-size:12px;font-weight:700;color:var(--success);white-space:nowrap;flex-shrink:0}
+  .mc-train.retry{border-color:var(--danger);color:var(--danger)}
+  .mc-train.retry:hover{background:var(--danger);color:#fff}
+  .mc-done,.mc-pending,.mc-fail{display:inline-block;font-size:12px;font-weight:700;white-space:nowrap;flex-shrink:0}
+  .mc-done{color:var(--success)}
+  .mc-pending{color:#d97706}
+  .mc-fail{color:var(--danger)}
+  .mcard.done{border-color:var(--success)}
+  .mcard.fail{border-color:var(--danger)}
   .mc-body{display:none;padding:0 14px 14px;border-top:1px dashed var(--border);margin-top:0}
   .mcard.open .mc-body{display:block}
   .mc-field{font-size:13px;line-height:1.8;margin-top:10px}
@@ -109,7 +114,14 @@ const SUPABASE_URL='https://mixuqjognbdrafrrlivc.supabase.co';
 const SUPABASE_KEY='sb_publishable_D0ha7g4X4LutG-3hxCguSA_pwyQLrVX';
 const TABLE='gaokao_state';
 const QUEUE_KEY='hw_train_queue';
+const STATE_KEY='hw_train_states';
 let trainQueue=[]; try{ trainQueue=JSON.parse(localStorage.getItem(QUEUE_KEY)||'[]'); }catch(e){}
+// 每卡云端确认状态：none 未加入 / pending 排队待同步 / done 云端已确认 / fail 云端失败
+let trainStates={}; try{ trainStates=JSON.parse(localStorage.getItem(STATE_KEY)||'{}'); }catch(e){}
+function saveQueue(){ try{ localStorage.setItem(QUEUE_KEY,JSON.stringify(trainQueue)); }catch(e){} }
+function saveStates(){ try{ localStorage.setItem(STATE_KEY,JSON.stringify(trainStates)); }catch(e){} }
+function queued(id){ return trainQueue.indexOf(id)>=0; }
+function trainState(id){ return queued(id) ? (trainStates[id] || 'pending') : 'none'; }
 
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove('show'),1800);}
 
@@ -142,11 +154,54 @@ async function ensureTrain(cardId, isNew, silent){
 
 function toggleTrain(cardId,isNew,btn){
   const i=trainQueue.indexOf(cardId);
-  if(i>=0){ trainQueue.splice(i,1); btn.closest('.mcard').classList.remove('done'); toast('已从待训练移除 '+cardId); }
-  else{ trainQueue.push(cardId); ensureTrain(cardId,!!isNew); btn.closest('.mcard').classList.add('done'); toast('✅ 已加入待训练：'+cardId); }
-  localStorage.setItem(QUEUE_KEY,JSON.stringify(trainQueue));
+  if(i>=0){
+    trainQueue.splice(i,1); delete trainStates[cardId]; saveQueue(); saveStates();
+    renderCards();
+    toast('已从待训练移除 '+cardId);
+    return;
+  }
+  trainQueue.push(cardId); trainStates[cardId]='pending'; saveQueue(); saveStates();
+  toast('⏳ 加入中…');
+  ensureTrain(cardId, !!isNew, true).then(ok=>{
+    trainStates[cardId] = ok ? 'done' : 'fail'; saveStates(); renderCards();
+    toast(ok ? '✅ 已加入待训练：'+cardId : '⚠️ 云端同步失败，点击「重试」');
+  });
 }
-function queued(id){return trainQueue.indexOf(id)>=0;}
+function retryTrain(cardId,isNew,btn){
+  if(btn){ btn.disabled=true; btn.textContent='同步中…'; }
+  trainStates[cardId]='pending'; saveStates(); renderCards();
+  ensureTrain(cardId, !!isNew, true).then(ok=>{
+    trainStates[cardId] = ok ? 'done' : 'fail'; saveStates(); renderCards();
+    toast(ok ? '✅ 已加入待训练：'+cardId : '⚠️ 云端同步仍失败');
+  });
+}
+function renderCards(){
+  document.getElementById('list').innerHTML = QUESTIONS.map(p=>`
+  <div class="card">
+    <div class="card-top">
+      <span class="qno">题目 ${p.q}</span>
+      <span class="badge ${p.status==='ok'?'ok':(p.status==='no'?'no':'warn')}">${p.status==='ok'?'答对':(p.status==='no'?'答错':'待核对')}</span>
+      <span style="font-size:13px;color:var(--text-light)">${p.chapter}</span>
+    </div>
+    <div class="card-sub">${p.q===11?'解答题·6 小问':'单选题'}</div>
+    <div class="ans">
+      <span><b>学生作答</b>：${p.student}</span>
+      <span><b>正确</b>：${p.answer}</span>
+    </div>
+    <div class="sec">💡 解题思路</div>
+    <div class="sol"><ol>${p.sol.map(s=>`<li>${s}</li>`).join('')}</ol></div>
+    ${p.q===11?'<div class="q11-note">提示：(3) 的 pH 区间、(5) 的 c(F⁻) 计算建议回到 process 流程逐段核对。</div>':''}
+    <div class="sec">🎯 命中的记忆卡 ${p.hits.length+p.news.length ? '' : '（未命中既有卡）'}</div>
+    <div class="hits">
+      ${p.hits.map(id=>kchip(id,false)).join('')}
+      ${p.news.map(id=>kchip(id,true)).join('')}
+      <span class="hits-hint">点击卡条展开思路全文 · 点击「+训练」加入待训练队列</span>
+    </div>
+    <img class="shot" src="${p.shot}" alt="原题截图 题目${p.q}">
+    <div class="shot-cap">原题截图 · 题目 ${p.q}</div>
+  </div>
+`).join('');
+}
 
 // ==================== 记忆卡数据查找（从 cards_data.js） ====================
 const CARD_MAP = (typeof CARDS_DATA !== 'undefined') ? Object.fromEntries(CARDS_DATA.map(c => [c.id, c])) : {};
@@ -166,16 +221,23 @@ function toggleMcard(head){
 // ==================== 记忆卡条（默认收起，点击展开全文） ====================
 function kchip(id,isNew){
   const info = cardInfo(id);
-  const done = queued(id) ? ' done' : '';
+  const st = trainState(id);
+  const cls = (isNew?'new':'hit') + (st==='done'?' done':st==='fail'?' fail':'');
   const tagTxt = isNew ? '新增' : '命中';
-  return `<div class="mcard ${isNew?'new':'hit'}${done}" data-id="${id}">
+  const statusTxt = st==='done'?'✓ 已入训练':st==='pending'?'⏳ 待同步':st==='fail'?'⚠️ 云端失败':'';
+  const statusCls = st==='done'?'mc-done':st==='pending'?'mc-pending':st==='fail'?'mc-fail':'';
+  let btn='';
+  if(st==='none') btn=`<button class="mc-train" onclick="event.stopPropagation();toggleTrain('${id}',${isNew?'1':'0'},this)">+训练</button>`;
+  else if(st==='fail') btn=`<button class="mc-train retry" onclick="event.stopPropagation();retryTrain('${id}',${isNew?'1':'0'},this)">重试</button>`;
+  else if(st==='pending') btn=`<button class="mc-train" onclick="event.stopPropagation();toggleTrain('${id}',${isNew?'1':'0'},this)">撤销</button>`;
+  return `<div class="mcard ${cls}" data-id="${id}">
     <div class="mc-head" onclick="toggleMcard(this)">
       <span class="mc-id">${id}</span>
       <span class="mc-ch">${info.chapter}</span>
       <span class="mc-tag">${tagTxt}</span>
       <span class="mc-chev">▸</span>
-      <span class="mc-done">✓ 已入训练</span>
-      <button class="mc-train" onclick="event.stopPropagation();toggleTrain('${id}',${isNew?'1':'0'},this)">+训练</button>
+      ${statusTxt?`<span class="${statusCls}">${statusTxt}</span>`:''}
+      ${btn}
     </div>
     <div class="mc-body">
       <div class="mc-field"><span class="lbl">信号</span>${info.signal}</div>
@@ -252,37 +314,17 @@ const QUESTIONS=[
   hits:['che0022','che0407','che0374','che0018'], news:[], shot:'homework_crops/chem_week2/q11.jpg'}
 ];
 
-document.getElementById('list').innerHTML = QUESTIONS.map(p=>`
-  <div class="card">
-    <div class="card-top">
-      <span class="qno">题目 ${p.q}</span>
-      <span class="badge ${p.status==='ok'?'ok':(p.status==='no'?'no':'warn')}">${p.status==='ok'?'答对':(p.status==='no'?'答错':'待核对')}</span>
-      <span style="font-size:13px;color:var(--text-light)">${p.chapter}</span>
-    </div>
-    <div class="card-sub">${p.q===11?'解答题·6 小问':'单选题'}</div>
-    <div class="ans">
-      <span><b>学生作答</b>：${p.student}</span>
-      <span><b>正确</b>：${p.answer}</span>
-    </div>
-    <div class="sec">💡 解题思路</div>
-    <div class="sol"><ol>${p.sol.map(s=>`<li>${s}</li>`).join('')}</ol></div>
-    ${p.q===11?'<div class="q11-note">提示：(3) 的 pH 区间、(5) 的 c(F⁻) 计算建议回到 process 流程逐段核对。</div>':''}
-    <div class="sec">🎯 命中的记忆卡 ${p.hits.length+p.news.length ? '' : '（未命中既有卡）'}</div>
-    <div class="hits">
-      ${p.hits.map(id=>kchip(id,false)).join('')}
-      ${p.news.map(id=>kchip(id,true)).join('')}
-      <span class="hits-hint">点击卡条展开思路全文 · 点击「+训练」加入待训练队列</span>
-    </div>
-    <img class="shot" src="${p.shot}" alt="原题截图 题目${p.q}">
-    <div class="shot-cap">原题截图 · 题目 ${p.q}</div>
-  </div>
-`).join('');
+renderCards();
 
 // ==================== 自愈：页面加载时把本地队列的卡静默补推云端 ====================
 // 防某次「加入训练」推送遇 Supabase 瞬断失败导致跨设备丢失；幂等，失败不弹窗。
+// 成功后把状态标记为已确认，才在界面上显示「✓ 已入训练」。
 (async function autoRepair(){
   const ids = trainQueue.slice();
-  await Promise.all(ids.map(id => ensureTrain(id, !CARD_MAP[id], true)));
+  const results = await Promise.all(ids.map(id => ensureTrain(id, !CARD_MAP[id], true).then(ok => [id, ok])));
+  results.forEach(([id, ok]) => { trainStates[id] = ok ? 'done' : (trainStates[id] || 'pending'); });
+  saveStates();
+  if(ids.length) renderCards();
 })();
 </script>
 </body>
