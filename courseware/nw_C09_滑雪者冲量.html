@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>C09 · 滑雪者匀加速沿斜面 · 冲量</title>
+<link rel="stylesheet" href="shared/style.css">
+<style>
+  .grid-l{stroke:#eef2f7;stroke-width:1}
+  .ax-l{stroke:#cbd5e1;stroke-width:1.4}
+  .btns{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+  .btn{flex:1;min-width:110px;padding:11px 14px;border-radius:8px;cursor:pointer;border:1px solid var(--border);background:#fff;color:var(--text);font-family:var(--font);font-size:14px;font-weight:700;transition:all .15s}
+  .btn:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.08)}
+  .btn.go{background:var(--primary);border-color:var(--primary);color:#fff}
+  .badge-chip{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:800;margin-left:6px}
+  .b-strong{background:var(--success-light);color:var(--success)}
+  .b-mid{background:var(--warning-light);color:var(--warning)}
+  .mc{border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:10px;background:#fafbff}
+  .mc .hd{display:flex;align-items:center;gap:8px;font-weight:800;font-size:14px;flex-wrap:wrap}
+  .mc .sg{font-size:12px;color:var(--text-light);margin-top:5px}
+  .mc .sg b{color:var(--success)}
+  .mc .cc{font-size:12px;color:var(--text-light);margin-top:3px}
+  .mc .cc b{color:var(--danger)}
+</style>
+</head>
+<body>
+<div class="cw">
+
+  <header>
+    <div class="crumb">互动课件 · 物理 · 动量定理 / 冲量</div>
+    <h1>滑雪者匀加速沿斜面 · 冲量（多选）</h1>
+    <p class="sub">力学 · 冲量 / 动量定理 · 多选判定 · 拖拽滑块沙盘交互</p>
+    <a class="back" href="../solution_library.html#courseware">← 返回互动课件</a>
+  </header>
+
+  <section class="card">
+    <h2><span class="dot"></span>原题</h2>
+    <div class="problem">
+      <div>滑雪者人与装备总质量 m，从静止沿倾角 α 的山坡匀加速直线滑下，时间 t 内位移 s，g 取已知。抽象为质点，对重力正交分解：</div>
+      <div class="note" style="margin-top:6px">各力冲量 = 该力 × 时间，方向与该力同向（与运动方向无关）。</div>
+    </div>
+  </section>
+
+  <div class="wrk">
+    <div class="sim-panel">
+      <section class="card">
+        <h2><span class="dot"></span>互动沙盘：斜面受力与各力冲量</h2>
+        <div class="stage">
+          <span class="tip">调整 α / 阻力 f / 时间 t → 实时画出各力方向与冲量大小</span>
+          <svg id="stage" viewBox="0 0 760 540" width="760" height="540" style="touch-action:none;user-select:none">
+            <defs>
+              <marker id="mG" markerWidth="11" markerHeight="11" refX="9" refY="3" orient="auto"><path d="M0,0 L9,3 L0,6 z" fill="#64748b"/></marker>
+              <marker id="mN" markerWidth="11" markerHeight="11" refX="9" refY="3" orient="auto"><path d="M0,0 L9,3 L0,6 z" fill="#0d9488"/></marker>
+              <marker id="mf" markerWidth="11" markerHeight="11" refX="9" refY="3" orient="auto"><path d="M0,0 L9,3 L0,6 z" fill="#3b82f6"/></marker>
+              <marker id="mR" markerWidth="11" markerHeight="11" refX="9" refY="3" orient="auto"><path d="M0,0 L9,3 L0,6 z" fill="#dc2626"/></marker>
+              <marker id="mC" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L9,3 L0,6 z" fill="#94a3b8"/></marker>
+            </defs>
+            <g id="grid"></g>
+            <!-- 斜坡面 -->
+            <polygon id="slope" fill="#dbeafe" stroke="#93c5fd" stroke-width="2"/>
+            <!-- 地面水平线 -->
+            <line x1="0" y1="440" x2="760" y2="440" class="ax-l" opacity="0.5"/>
+            <!-- 滑雪者 -->
+            <rect id="skier" x="-18" y="-20" width="36" height="34" rx="6" fill="#f59e0b" stroke="#d97706" stroke-width="2"/>
+            <circle id="head" r="9" fill="#f59e0b" stroke="#d97706" stroke-width="2"/>
+            <!-- 力箭头 -->
+            <line id="aG" stroke="#64748b" stroke-width="4.5" marker-end="url(#mG)"/>
+            <line id="aN" stroke="#0d9488" stroke-width="4.5" marker-end="url(#mN)"/>
+            <line id="af" stroke="#3b82f6" stroke-width="4.5" marker-end="url(#mf)"/>
+            <line id="aR" stroke="#dc2626" stroke-width="4.5" marker-end="url(#mR)"/>
+            <!-- 重力分解虚线(沿斜面/垂斜面) -->
+            <line id="dGr" stroke="#64748b" stroke-width="1.6" stroke-dasharray="4 5"/>
+            <line id="dGn" stroke="#64748b" stroke-width="1.6" stroke-dasharray="4 5"/>
+            <!-- 标签 -->
+            <text id="lmg" font-size="14" font-weight="800" fill="#64748b">mg</text>
+            <text id="lN"  font-size="14" font-weight="800" fill="#0d9488">N</text>
+            <text id="lf"  font-size="14" font-weight="800" fill="#3b82f6">f</text>
+            <text id="lR"  font-size="14" font-weight="800" fill="#dc2626">mg sinα − f</text>
+            <text id="lms" font-size="12" font-weight="700" fill="#94a3b8"></text>
+          </svg>
+          <div class="legend">
+            <span><i style="background:#64748b"></i>重力 mg（竖直）</span>
+            <span><i style="background:#0d9488"></i>支持力 N=mg·cosα（垂斜面）</span>
+            <span><i style="background:#3b82f6"></i>阻力 f（沿斜面向上）</span>
+            <span><i style="background:#dc2626"></i>合力 mg·sinα − f（沿斜面向下）</span>
+            <span><i style="border-top:2px dashed #94a3b8"></i>重力正交分解</span>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="param-panel">
+      <section class="card">
+        <h2><span class="dot"></span>参数控制台</h2>
+        <div class="readouts" style="grid-template-columns:1fr 1fr">
+          <div class="ro"><div class="k">倾角 α</div><div class="v" id="rA">37</div><div class="u">°</div></div>
+          <div class="ro"><div class="k">历时 t</div><div class="v" id="rT">2.0</div><div class="u">s</div></div>
+          <div class="ro r1"><div class="k">重力冲量 mg·t</div><div class="v" id="rIg">1200</div><div class="u">N·s ·竖直向下</div></div>
+          <div class="ro r2"><div class="k">支持力冲量 N·t</div><div class="v" id="rIn">958</div><div class="u">N·s ·垂斜面</div></div>
+          <div class="ro r3"><div class="k">阻力冲量 f·t</div><div class="v" id="rIf">100</div><div class="u">N·s ·沿斜面向上</div></div>
+          <div class="ro rr"><div class="k">合力冲量</div><div class="v" id="rIx" style="font-size:16px">622</div><div class="u">N·s ·沿斜面向下</div></div>
+        </div>
+        <div class="ctrl" style="margin-top:14px">
+          <label>倾角 α（°）<b id="v_a">37</b></label>
+          <input id="s_a" type="range" min="15" max="60" step="1" value="37">
+        </div>
+        <div class="ctrl">
+          <label>阻力 f（N，0 ~ mg·sinα）<b id="v_f">50</b></label>
+          <input id="s_f" type="range" min="0" max="600" step="5" value="50">
+        </div>
+        <div class="ctrl">
+          <label>历时 t（s）<b id="v_t">2.0</b></label>
+          <input id="s_t" type="range" min="0.5" max="5" step="0.1" value="2.0">
+        </div>
+        <div class="btns"><button class="btn go" id="btnReset">重置</button></div>
+        <div class="highlight">
+          <b>互动重点：</b>冲量 I = F·t，方向<b>恒与力同向</b>，与运动方向无关。<br>
+          (1) 重力冲量 = mgt<b>竖直向下</b>（选项 A 说“沿斜面向下”​<span class="no">错</span>）；<br>
+          (2) N = mg·cosα，冲量 N·t ≠ 0（B 错）；<br>
+          (3) 阻力冲量 = f·t（≠ mg·t·sinα，C 错）；<br>
+          (4) 合力 = mg·sinα − f，冲量 = (mg·sinα − f)·t 沿斜面向下（<span class="ok">D 对</span>）。
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <section class="card opts">
+    <h2><span class="dot"></span>选项判定</h2>
+    <div class="opt" data-ans data-badge="A"><div class="row"><div class="k">A</div><div class="t">重力 mg 的冲量沿斜面向下</div></div><div class="reveal"><b>◆</b><span class="no">A 错。</span> 重力方向竖直向下，冲量方向与该力同向 → 重力冲量<b>竖直向下</b>（=mgt），而非沿斜面。</div></div>
+    <div class="opt" data-ans data-badge="B"><div class="row"><div class="k">B</div><div class="t">支持力 F<sub>N</sub> 的冲量等于零</div></div><div class="reveal"><b>◆</b><span class="no">B 错。</span> F<sub>N</sub> = mg·cosα ≠ 0，冲量 = F<sub>N</sub>·t ≠ 0（方向垂斜面），并非零。</div></div>
+    <div class="opt" data-ans data-badge="C"><div class="row"><div class="k">C</div><div class="t">阻力 f 的冲量等于 mg·t·sinα，方向沿斜面向上</div></div><div class="reveal"><b>◆</b><span class="no">C 错。</span> 阻力 f 的冲量 = f·t（<b>≠ mg·t·sinα</b>），方向沿斜面向上。数量改错了。</div></div>
+    <div class="opt" data-ans data-badge="D"><div class="row"><div class="k">D</div><div class="t">合力的冲量等于 (mg·sinα − f)·t，方向沿斜面向下</div></div><div class="reveal"><b>◆ 正确：</b><span class="ok">D 对。</span> 垂直斜面方向 N 与 mg·cosα 平衡；沿斜面合力 = mg·sinα − f（向下），故 <b>合冲量 = (mg·sinα − f)·t</b>，方向沿斜面向下。正确：<b>D</b>。</div></div>
+  </section>
+
+  <section class="card">
+    <h2><span class="dot"></span>记忆卡对碰 · 契合分析</h2>
+    <div class="mc"><div class="hd">phy0926 · 冲量·不同运动场景恒力冲量<span class="badge-chip b-strong">强契合</span></div>
+      <div class="sg"><b>信号：</b>同一恒力在不同轨迹上比较冲量 → <b>结论：</b>冲量只由 F 和 t 决定，I=Ft，与轨迹无关。<b>警惕：</b>冲量方向与运动方向无关，勿被轨迹干扰。</div></div>
+    <div class="mc"><div class="hd">phy0928 · 冲量·分段求各力冲量<span class="badge-chip b-strong">强契合</span></div>
+      <div class="sg"><b>信号：</b>求重力、支持力、摩擦力等多个力的冲量 → <b>结论：</b>方向不变的恒力冲量直接 F×总时间。<b>警惕：</b>变方向力（往返摩擦）需分段求矢量和。</div></div>
+    <div class="mc"><div class="hd">phy0917 · 动量·动力学三大视角<span class="badge-chip b-strong">强契合</span></div>
+      <div class="sg"><b>信号：</b>涉及时间用动量定理 → <b>结论：</b>瞬时加速度用 F=ma；空间积累用动能定理；<b>时间积累用动量定理 I=Δp</b>。</div></div>
+    <div class="mc"><div class="hd">phy0918 · 动量·动量定理基础<span class="badge-chip b-strong">强契合</span></div>
+      <div class="sg"><b>信号：</b>力作用一段时间求速度变化或平均力 → <b>结论：</b>F·Δt = Δp。<b>警惕：</b>冲量是过程量、功是过程量但含义不同，不可混用。</div></div>
+    <div class="problem" style="margin-top:12px">
+      <div><b>契合点评：</b>重力冲量=mgt（竖直向下，A 把方向说成“沿斜面”故错）；支持力、阻力、合力冲量各自用“该力×时间”，全部命中冲量系列卡（phy0926/0928）。<b>拟合健壮</b>，无缺口风格。</div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2><span class="dot"></span>分步讲解</h2>
+    <div class="step"><div class="hd"><i>①</i>受力分析 + 正交分解</div><div class="bd">滑雪者受：重力 mg（竖直向下）、支持力 N（垂斜面）、沿斜面向上阻力 f。把重力沿斜面与垂斜面分解：<b>mg·sinα（沿斜面，使下滑）+ mg·cosα（垂斜面）</b>。</div></div>
+    <div class="step"><div class="hd"><i>②</i>垂直斜面方向平衡</div><div class="bd">垂直斜面：N = mg·cosα，二力平衡，而无位移做功层面也成立；故支持力冲量 F<sub>N</sub>·t = mg·cosα·t ≠ 0 → <span class="no">B 错</span>。</div></div>
+    <div class="step"><div class="hd"><i>③</i>各力冲量（方向恒等于力的方向）</div><div class="bd">重力冲量 <b>mg·t 竖直向下</b>（非沿斜面，A 错）；阻力冲量 <b>f·t 沿斜面向上</b>（≠ mg·t·sinα，C 错）。</div></div>
+    <div class="step"><div class="hd"><i>④</i>合力冲量</div><div class="bd">沿斜面合力 = mg·sinα − f（向下，＞0 则加速），合力冲量 <b>(mg·sinα − f)·t</b> 沿斜面向下 → <span class="ok">D 对</span>。</div></div>
+    <div class="step"><div class="hd"><i>⑤</i>动量定理复核</div><div class="bd">由匀加速：末速 v=√(2as)，也可对上式动量定理 I=(mg sinα−f)t = mv 自洽验证。正确 <b>D</b>。</div></div>
+    <div class="note" style="margin-top:8px"><b>易错：</b>冲量方向必须与<b>力</b>同向，与速度/位移方向无关——重力冲量永远竖直向下，不随斜面方向改变。</div>
+  </section>
+
+  <div class="footer">互动课件 · 物理《滑雪者匀加速沿斜面·冲量》 · 纯 SVG + 原生 JS · 由错题本网站生成</div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  var NS="http://www.w3.org/2000/svg", svg=document.getElementById('stage');
+  function $(id){return document.getElementById(id);}
+  function setXY(id,x1,y1,x2,y2){var L=document.getElementById(id);L.setAttribute('x1',x1);L.setAttribute('y1',y1);L.setAttribute('x2',x2);L.setAttribute('y2',y2);}
+  function txy(id,x,y){var T=document.getElementById(id);T.setAttribute('x',x);T.setAttribute('y',y);}
+  var D2R=Math.PI/180;
+  (function(){var g=$('grid');for(var i=0;i<15;i++){var L=document.createElementNS(NS,'line');L.setAttribute('class','grid-l');L.setAttribute('x1',i*55);L.setAttribute('y1',10);L.setAttribute('x2',i*55);L.setAttribute('y2',540);g.appendChild(L);}for(var j=0;j<6;j++){var L2=document.createElementNS(NS,'line');L2.setAttribute('class','grid-l');L2.setAttribute('x1',0);L2.setAttribute('y1',80+j*80);L2.setAttribute('x2',760);L2.setAttribute('y2',80+j*80);g.appendChild(L2);}})();
+
+  var m=60, g=10, alpha=37*D2R, f=50, t=2.0;
+  var PX=1.4; // px per N (scaled)
+
+  function render(){
+    var mg=m*g, N=mg*Math.cos(alpha), mp=mg*Math.sin(alpha), Fres=mp-f;
+    var deg=alpha/D2R;
+    $('#rA').textContent=deg.toFixed(0);
+    $('#rT').textContent=t.toFixed(1);
+    $('#rIg').textContent=(mg*t).toFixed(0);
+    $('#rIn').textContent=(N*t).toFixed(0);
+    $('#rIf').textContent=(f*t).toFixed(0);
+    $('#rIx').textContent=(Fres*t).toFixed(0);
+    $('#s_a').value=deg; $('#v_a').textContent=deg.toFixed(0);
+    $('#s_f').max=Math.round(mp); $('#s_f').value=Math.min(f,Math.round(mp)); $('#v_f').textContent=Math.min(f,Math.round(mp));
+    $('#s_t').value=t.toFixed(1); $('#v_t').textContent=t.toFixed(1);
+
+    // 几何
+    var B={x:110,y:470}, L=540;
+    var Tp={x:B.x+L*Math.cos(alpha), y:B.y-L*Math.sin(alpha)};
+    // 斜率polygon
+    var baseY=470+46;
+    $('slope').setAttribute('points', B.x+','+baseY+' '+B.x+','+B.y+' '+Tp.x+','+Tp.y);
+    // 滑雪者中心(u=0.42)
+    var u=0.42, Cx=B.x+u*L*Math.cos(alpha), Cy=B.y-u*L*Math.sin(alpha);
+    var nAway={x:-Math.sin(alpha), y:-Math.cos(alpha)}; // 垂斜面向上
+    var S={x:-Math.cos(alpha), y:Math.sin(alpha)};      // 沿斜面(下滑)向下
+    var off=22;
+    var cx=Cx+nAway.x*off, cy=Cy+nAway.y*off;
+    $('skier').setAttribute('x',cx-18); $('skier').setAttribute('y',cy-20);
+    $('head').setAttribute('cx',cx); $('head').setAttribute('cy',cy-24);
+    // 力箭头(用 px 比例 12px/100N)
+    var sc=0.14;
+    var AG={dx:0, dy:mg*sc};
+    var AN={dx:N*sc*nAway.x, dy:N*sc*nAway.y};
+    var Af={dx:f*sc*(-S.x), dy:f*sc*(-S.y)}; // 沿斜面向上 = -S
+    var AR={dx:Math.max(0,Fres)*sc*S.x, dy:Math.max(0,Fres)*sc*S.y};
+    setXY('aG', cx,cy, cx+AG.dx, cy+AG.dy);
+    setXY('aN', cx,cy, cx+AN.dx, cy+AN.dy);
+    setXY('af', cx,cy, cx+Af.dx, cy+Af.dy);
+    setXY('aR', cx,cy, cx+AR.dx, cy+AR.dy);
+    // 重力分解虚线: 沿斜面分量(mp*sc 沿 S) 与垂斜面分量(mgcos*sc 沿 nInto)
+    var nInto={x:Math.sin(alpha),y:Math.cos(alpha)};
+    setXY('dGr', cx,cy, cx+ (mp*sc)*S.x, cy+(mp*sc)*S.y);
+    setXY('dGn', cx,cy, cx+ (mg*Math.cos(alpha)*0.5*sc)*nInto.x, cy+(mg*Math.cos(alpha)*0.5*sc)*nInto.y);
+    // 标签
+    txy('lmg',cx+AG.dx*0.5+6,cy+AG.dy*0.5);
+    txy('lN',cx+AN.dx*0.5+8,cy+AN.dy*0.5);
+    txy('lf',cx+Af.dx-24,cy+Af.dy*0.5-4);
+    txy('lR',cx-40,cy);
+    txy('lms',cx+60,cy-6); $('lms').textContent='mg·sinα=mp速('+mp.toFixed(0)+'N) / N='+N.toFixed(0)+'N';
+  }
+  function bind(id,lbl,setter){var s=$(id),l=$(lbl);s.addEventListener('input',function(){var v=parseFloat(s.value);setter(v);l.textContent=(id==='s_t')?v.toFixed(1):String(v);render();});}
+  bind('s_a','v_a',function(v){alpha=v*D2R;});
+  bind('s_f','v_f',function(v){f=v;});
+  bind('s_t','v_t',function(v){t=v;});
+  $('btnReset').addEventListener('click',function(){alpha=37*D2R;f=50;t=2.0;render();});
+
+  document.querySelectorAll('.opt').forEach(function(o){o.addEventListener('click',function(){document.querySelectorAll('.opt').forEach(function(x){x.classList.remove('match','open');});o.classList.add('open');if(o.dataset.ans){o.classList.add('match');}});});
+  render();
+})();
+</script>
+<script src="shared/engine.js"></script>
+<script>if(window.SimKit && SimKit.revealSteps) SimKit.revealSteps();</script>
+</body>
+</html>

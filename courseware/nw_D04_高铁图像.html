@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>题D04·高铁 x/t²–1/t 图像 · 线性化运动学</title>
+<link rel="stylesheet" href="shared/style.css">
+<style>
+  /* 课件局部补充样式 */
+  .grid-l{stroke:#eef2f7;stroke-width:1}
+  .ax-l{stroke:#cbd5e1;stroke-width:1.4}
+  .tick-t{font-size:11px;fill:#94a3b8;font-family:var(--mono)}
+  .formula{font-family:var(--mono);background:#f8fafc;border:1px dashed var(--border);border-radius:8px;padding:8px 12px;margin:6px 0;font-size:14px;display:block;white-space:pre-wrap}
+</style>
+</head>
+<body>
+<div class="cw">
+
+  <header>
+    <div class="crumb">互动课件 · 物理 · 运动学 · 非常规图像</div>
+    <h1>高铁 x/t² – 1/t 图像 · 把图像线性化反求物理量</h1>
+    <p class="sub">深莞高铁调研 · 多选 · 匀变速图像线性化斜率/截距识别 · 拖拽沙盘交互</p>
+    <a class="back" href="../solution_library.html#courseware">← 返回互动课件</a>
+  </header>
+
+  <!-- 原题 -->
+  <section class="card">
+    <h2><span class="dot"></span>原题（高铁 图像 · 多选）</h2>
+    <div class="problem">
+      <div>为研究高铁某段直线运动，同学绘制 <span class="key">x/t² – 1/t 图像</span>（未告知加速或减速），直线过点 <span class="key">(0.1, 0)</span> 与纵轴截距 <span class="key">-4</span>。下列说法正确的是？</div>
+    </div>
+    <div class="opts">
+      <div class="opt" data-badge="A"><div class="row"><div class="k">A</div><div class="t">该车处于加速状态</div></div><div class="reveal"><b>✗ 错误</b>——由纵截距 a/2 = -4 得 <span class="no">a = -8 m/s²</span>，初速 v₀=40&gt;0，二者同号异号？v₀ 与 a 反号 → 实际为<b>减速（a 与 v₀ 反向）</b>（v₀&gt;0、a&lt;0 即减速），并非「加速」。</div></div>
+      <div class="opt" data-badge="B"><div class="row"><div class="k">B</div><div class="t">该车的初速度为 40 m/s</div></div><div class="reveal"><b>◆ 正确答案</b>：<span class="ok">B</span><br>直线过 (0.1,0)、纵截距 -4，斜率 = v₀ = [0−(−4)]/0.1 = <b>40 m/s</b>，即初速度 v₀ = 40 m/s。</div></div>
+      <div class="opt" data-badge="C"><div class="row"><div class="k">C</div><div class="t">该车的加速度大小为 4 m/s²</div></div><div class="reveal"><b>✗ 错误</b>——纵截距 <b>= a/2 = -4</b>，故 <span class="no">a = -8 m/s²</span>，大小为 8 m/s²（4 是截距值，不是 a）。</div></div>
+      <div class="opt" data-badge="D"><div class="row"><div class="k">D</div><div class="t">该车在前 2 秒的位移为 96 m</div></div><div class="reveal"><b>✗ 错误</b>——前 2 s 位移：x = v₀t+½at² = 40×2 + ½×(-8)×4 = <span class="no">80 − 16 = 64 m</span>（不是 96 m）。</div></div>
+    </div>
+  </section>
+
+  <!-- 双栏布局 -->
+  <div class="wrk">
+   <div class="sim-panel">
+    <section class="card">
+      <h2><span class="dot"></span>互动沙盘：x/t² vs 1/t 直线 · 斜率=v₀ · 截距=a/2</h2>
+      <div class="stage">
+        <span class="tip">拖动「初速度 v₀」「加速度 a」滑块 → 直线实时平移/旋转，斜率与截距同步</span>
+        <svg id="stage" viewBox="0 0 760 520" width="760" height="520" style="touch-action:none;user-select:none">
+          <defs>
+            <marker id="mP" markerWidth="11" markerHeight="11" refX="9" refY="3" orient="auto"><path d="M0,0 L9,3 L0,6 z" fill="#8b5cf6"/></marker>
+            <marker id="mSlope" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 z" fill="#f59e0b"/></marker>
+          </defs>
+
+          <!-- 网格 / 坐标轴 -->
+          <g id="grid"></g>
+          <line id="axX" class="ax-l" x1="96" y1="300" x2="736" y2="300"/>
+          <line id="axY" class="ax-l" x1="96" y1="20" x2="96" y2="500"/>
+          <text class="tick-t" x="720" y="318">1/t (s⁻¹)</text>
+          <text class="tick-t" x="112" y="22">x/t² (m/s²)</text>
+
+          <!-- 斜率三角形 -->
+          <line id="slopeH" stroke="#f59e0b" stroke-width="2.5" stroke-dasharray="5 4" opacity="0.8"/>
+          <line id="slopeV" stroke="#f59e0b" stroke-width="2.5" stroke-dasharray="5 4" opacity="0.8" marker-end="url(#mSlope)"/>
+          <text id="lSlope" font-size="13" font-weight="800" fill="#f59e0b"></text>
+
+          <!-- 所求直线（紫色） -->
+          <line id="lineM" stroke="#8b5cf6" stroke-width="4" marker-end="url(#mP)"/>
+
+          <!-- 关键点 -->
+          <circle id="ptGiven" r="6" fill="#16a34a" stroke="#fff" stroke-width="2"/>
+          <text id="lGiven" font-size="12" font-weight="800" fill="#16a34a">给定点 (0.1, 0)</text>
+          <circle id="ptInt" r="6" fill="#dc2626" stroke="#fff" stroke-width="2"/>
+          <text id="lInt" font-size="12" font-weight="800" fill="#dc2626">纵截距 = a/2</text>
+          <text id="ax0" class="tick-t" x="96" y="318">0</text>
+
+          <!-- 标题横幅 -->
+          <text id="clsBadge" font-size="15" font-weight="800" text-anchor="middle" x="382" y="40"></text>
+        </svg>
+        <div class="legend">
+          <span><i style="background:#8b5cf6"></i>直线 y = v₀·X + a/2 （斜率=v₀，纵截距=a/2）</span>
+          <span><i style="background:#f59e0b"></i>斜率三角形 Δy/ΔX = v₀</span>
+          <span><i style="background:#16a34a"></i>给定点 (0.1, 0)</span>
+          <span><i style="background:#dc2626"></i>纵截距 a/2</span>
+        </div>
+      </div>
+    </section>
+   </div>
+
+   <div class="param-panel">
+    <section class="card">
+      <h2><span class="dot"></span>参数控制台</h2>
+      <div class="readouts">
+        <div class="ro r1"><div class="k">初速度 v₀（斜率）</div><div class="v" id="rv0">40</div><div class="u">m/s</div></div>
+        <div class="ro r3"><div class="k">纵截距 a/2</div><div class="v" id="rInt">-4</div><div class="u"></div></div>
+        <div class="ro r2"><div class="k">加速度 a = 2·截距</div><div class="v" id="ra">-8</div><div class="u">m/s²</div></div>
+        <div class="ro rr"><div class="k">前 2 s 位移</div><div class="v" id="rx">64</div><div class="u">m</div></div>
+        <div class="ro full"><div class="k">运动性质</div><div class="v" id="rState" style="font-size:14px">匀减速（a&lt;0 与 v₀ 反向）</div></div>
+      </div>
+
+      <div class="ctrl" style="margin-top:14px">
+        <label>初速度 v₀（m/s）<b id="vv0">40</b></label>
+        <input id="sv0" type="range" min="10" max="60" step="1" value="40">
+      </div>
+      <div class="ctrl">
+        <label>加速度 a（m/s²），纵截距 = a/2<b id="va">-8</b></label>
+        <input id="sa" type="range" min="-12" max="4" step="1" value="-8">
+      </div>
+      <div class="btns"><button class="btn go" id="btnDef">恢复题设(v₀=40,a=-8)</button></div>
+
+      <div class="highlight">
+        <b>变形公式：</b>
+        <span class="formula">x = v₀t + ½at²  两边同除以 t² ⇒ x/t² = v₀·(1/t) + a/2
+设横轴 X=1/t、纵轴 Y=x/t² ⇒ Y = v₀·X + a/2
+斜率 = v₀ ，纵截距 = a/2</span>
+        <b style="color:var(--danger)">勿与 v²–x（斜率=2a）混淆。</b>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="readouts" style="grid-template-columns:1fr">
+        <div class="ro full"><div class="k">选项对照</div><div class="v" id="rOpt" style="font-size:13px">v₀=40、a=-8、2s位移=64 ⇒ 仅 B 对</div></div>
+      </div>
+    </section>
+   </div>
+  </div>
+
+  <!-- 记忆卡对碰 -->
+  <section class="card">
+    <h2><span class="dot"></span>记忆卡对碰 · 契合分析</h2>
+    <div class="problem">
+      <div>题干只给一条直线（过定点、定截距）而不细说每个物理量，正是「<b>非常规图像 → 自推导线性式 → 读斜率与截距</b>」的考查套路：把 x=v₀t+½at² 两边同除以 t²。</div>
+    </div>
+    <div style="margin-top:12px">
+      <div class="problem">
+        <b>◆ 命中卡 1 · phy0247（强契合）</b>　已知函数类型分析图像：由运动学公式自主推导纵坐标关于横坐标的表达式，再对照 kX+b 读斜率截距；警惕死记结论（不同坐标组合意义不同）。<br>
+        <b>◆ 命中卡 2 · phy0256（强契合）</b>　非常规图像求参综合：通法是先变形出一次函数再按斜率/截距求参；x/t-t 截距是 v₀、斜率是 ½a，v²-x 斜率是 2a——系数必须推导出来。<br>
+        <b>◆ 命中卡 3 · phy0263（中契合）</b>　匀变速四个基本公式中选含已知量与待求量的公式（此处即 x=v₀t+½at²）。</div>
+    </div>
+    <div class="highlight">
+      <b>契合结论：</b>把 x=v₀t+½at² 除以 t² 得 x/t²=v₀(1/t)+a/2，即直线 Y=v₀X+a/2，命中『已知函数类型 / 非常规图像求参』（phy0247/0256）强峰。核心缺口是该特定<b>“两边同除以 t² 建立线性”</b>的纵除变换操作信号。
+    </div>
+    <div class="problem" style="background:#f6fbf6;border-color:var(--success-light);margin-top:12px">
+      <b>★ 新增记忆卡 · 运动学图像·x/t² 对 1/t 的纵除变换建模</b><br>
+      <b>信号：</b>给出 x/t²–1/t（或 x/t–t、v²–x 等）非常规图像且为直线，求初速度/加速度。<br>
+      <b>结论：</b>把 x=v₀t+½at² 两边同除相应量化为线性：x/t² = v₀(1/t)+a/2 ⇒ <b>纵=x/t²、横=1/t 时斜率=初速度 v₀、纵截距=a/2</b>。<br>
+      <b>警惕：</b>记反次序——「x/t² 对 1/t」斜率为 v₀，别与「v²-x」（斜率=2a）混淆。
+    </div>
+  </section>
+
+  <!-- 分步讲解 -->
+  <section class="card">
+    <h2><span class="dot"></span>分步讲解</h2>
+    <div class="step"><div class="hd"><i>①</i>列出基本公式</div><div class="bd">匀变速直线运动位移公式：<span class="formula">x = v₀t + ½at²</span></div></div>
+    <div class="step"><div class="hd"><i>②</i>两边同除以 t² 化线性</div><div class="bd">欲让纵轴为 x/t²、横轴为 1/t，于是：<span class="formula">x/t² = v₀·(1/t) + a/2</span>对照直线 y=kX+b ⇒ <b>斜率 k = v₀，纵截距 b = a/2</b>。这正是题干给的 x/t²–1/t 直线。</div></div>
+    <div class="step"><div class="hd"><i>③</i>由截距求加速度</div><div class="bd">纵截距 = <b>-4</b>，故 a/2 = -4 ⇒ <span class="formula">a = -8 m/s²</span>（选项 C 的“加速度大小 4”是拿截距当加速度，错；大小应为 8）。</div></div>
+    <div class="step"><div class="hd"><i>④</i>由斜率求初速度</div><div class="bd">斜率 = [0−(−4)]/(0.1−0) = 4/0.1 = <b>40 m/s</b> = v₀（命中点 (0.1,0)）。选项 <span class="ok">B 正确</span>。</div></div>
+    <div class="step"><div class="hd"><i>⑤</i>判定运动性质与前 2 s 位移</div><div class="bd">v₀=40&gt;0 而 a=-8&lt;0，两者反向 ⇒ <b>减速（非加速）</b>，A 错；前 2 s 位移 x=v₀t+½at² = 40×2+½×(−8)×4 = <b>64 m</b>（非 96 m），D 错。故本题选 <span class="ok">B</span>。</div></div>
+    <div class="note" style="margin-top:10px"><b>一句话：</b>把 x=v₀t+½at² 两边同除以 t²，让坐标直接给出斜率和截距——<b>斜率=v₀、纵截距=a/2</b>。拖动上方滑块看直线：v₀ 控制斜率（旋转），a 决定截距（上下平移）。</div>
+  </section>
+
+  <div class="footer">互动课件 · 物理《运动学 · 非常规图像》 · 高铁 x/t²–1/t 线性化 · 倾斜图像反求</div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  var NS="http://www.w3.org/2000/svg";
+  var OX=96, OY=300;            // 坐标原点 (屏幕)
+  var SX=1720, SY=16.0;         // 像素/单位: X(1/t) 与 Y(x/t²)
+  var v0=40, a=-8;
+  var $=function(id){return document.getElementById(id);};
+  function toSc(x,y){ return {x:OX+x*SX, y:OY-y*SY}; }   // y 向上
+  function setL(id,x1,y1,x2,y2){$(id).setAttribute('x1',x1);$(id).setAttribute('y1',y1);$(id).setAttribute('x2',x2);$(id).setAttribute('y2',y2);}
+  function setT(id,x,y,a){var t=$(id);t.setAttribute('x',x);t.setAttribute('y',y);t.setAttribute('text-anchor',a||'start');}
+
+  // 网格
+  (function(){
+    var g=$('grid');
+    // 竖直网格线(等 1/t)
+    for(var i=0;i<=5;i++){var X=i*0.05;var p=toSc(X,0);var l=document.createElementNS(NS,'line');l.setAttribute('x1',p.x);l.setAttribute('y1',30);l.setAttribute('x2',p.x);l.setAttribute('y2',490);l.setAttribute('class','grid-l');g.appendChild(l);
+      var tk=document.createElementNS(NS,'text');tk.setAttribute('x',p.x-8);tk.setAttribute('y',318);tk.setAttribute('class','tick-t');tk.textContent=(X===0?'0':X.toFixed(2));g.appendChild(tk);}
+    // 水平网格线(x/t²)，物理 Y 值 = j（单位 m/s²）
+    for(var j=-10;j<=12;j+=2){var p=toSc(0.22,j);var l2=document.createElementNS(NS,'line');l2.setAttribute('x1',20);l2.setAttribute('y1',p.y);l2.setAttribute('x2',740);l2.setAttribute('y2',p.y);l2.setAttribute('class','grid-l');g.appendChild(l2);
+      if(j!==0){var tk2=document.createElementNS(NS,'text');tk2.setAttribute('x',100);tk2.setAttribute('y',p.y-4);tk2.setAttribute('class','tick-t');tk2.setAttribute('text-anchor','end');tk2.textContent=(j>0?'+':'')+j;g.appendChild(tk2);} }
+    // X 端点刻度例
+    var xm=toSc(0.2,0);
+    var tkX=document.createElementNS(NS,'text');tkX.setAttribute('x',xm.x-6);tkX.setAttribute('y',318);tkX.setAttribute('class','tick-t');tkX.textContent='0.2';g.appendChild(tkX);
+  })();
+
+  function render(){
+    var intercept=a/2;
+    var x2=v0*2+0.5*a*4;
+    // 直线：X in [0,0.25]
+    var p0=toSc(0, intercept), p1=toSc(0.25, v0*0.25+intercept);
+    setL('lineM', p0.x,p0.y, p1.x,p1.y);
+    // 给定点 (0.1,0)
+    var pg=toSc(0.1,0);
+    $('ptGiven').setAttribute('cx',pg.x);$('ptGiven').setAttribute('cy',pg.y);
+    setT('lGiven', pg.x+10, pg.y-10);
+    // 截距点 (0, a/2)
+    var pi=toSc(0, intercept);
+    $('ptInt').setAttribute('cx',pi.x);$('ptInt').setAttribute('cy',pi.y);
+    setT('lInt', pi.x+12, pi.y+2);
+    // 斜率三角形（从截距点到给定点）
+    var base=Math.abs(0.1-0), rise=Math.abs(0-intercept);
+    var ha=toSc(0.1, intercept), hb=toSc(0.1,0);
+    setL('slopeH', pi.x,pi.y, ha.x,ha.y);
+    setL('slopeV', ha.x,ha.y, hb.x,hb.y);
+    setT('lSlope', (pi.x+ha.x)/2, pi.y-10, 'middle');
+    $('lSlope').setAttribute('text-anchor','middle');
+    $('lSlope').textContent='ΔX=0.1, ΔY='+(Math.abs(intercept)).toFixed(1)+' ⇒ v₀=ΔY/ΔX='+v0;
+
+    // 读数
+    $('rv0').textContent=v0;
+    $('rInt').textContent=intercept.toFixed(1);
+    $('ra').textContent=a;
+    $('rx').textContent=x2;
+    $('vv0').textContent=v0; $('va').textContent=a;
+    $('rState').textContent = (v0>0&&a<0)||(v0<0&&a>0) ? '匀减速（a 与 v₀ 反向）' : (a===0?'匀速':'匀加速（a 与 v₀ 同向）');
+    var badge=$('clsBadge');
+    badge.setAttribute('fill','#8b5cf6');
+    badge.textContent='斜率=v₀='+v0+'， 纵截距=a/2='+intercept.toFixed(1)+'　a='+a;
+    $('rOpt').textContent='v₀='+v0+'、a='+a+'、前2s位移='+x2+'m ⇒ '+ (v0===40&&a===-8?'答案仅 B':'（调整后对照选项）');
+  }
+
+  $('sv0').addEventListener('input',function(){v0=+$('sv0').value;render();});
+  $('sa').addEventListener('input',function(){a=+$('sa').value;render();});
+  $('btnDef').addEventListener('click',function(){v0=40;a=-8;$('sv0').value=40;$('sa').value=-8;render();});
+
+  document.querySelectorAll('.opt').forEach(function(o){
+    o.addEventListener('click',function(){document.querySelectorAll('.opt').forEach(function(x){x.classList.remove('match','open');});o.classList.add('open');if(o.textContent.indexOf('正确答案')>=0)o.classList.add('match');});
+  });
+
+  render();
+})();
+</script>
+<script src="shared/engine.js"></script>
+<script>if(window.SimKit && SimKit.revealSteps) SimKit.revealSteps();</script>
+</body>
+</html>

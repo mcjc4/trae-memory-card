@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>互动课件 · 验证平行四边形定则 · 台秤版</title>
+<link rel="stylesheet" href="shared/style.css">
+<style>
+  .mc{border:1px solid var(--border);border-radius:10px;background:var(--card);padding:12px 14px;margin-bottom:10px}
+  .mc-head{display:flex;justify-content:space-between;align-items:center;font-weight:800;font-size:13px;margin-bottom:6px;gap:8px;flex-wrap:wrap}
+  .mc-row{font-size:13px;color:var(--text-light);line-height:1.8;margin-bottom:5px}
+  .mc-row b{color:var(--text)}
+  .fit-badge{padding:2px 9px;border-radius:999px;font-size:11px;font-weight:800;white-space:nowrap}
+  .fit-s{background:var(--success-light);color:var(--success)}
+  .fit-m{background:var(--warning-light);color:var(--warning)}
+  .newcard{border:1px dashed var(--primary);background:var(--primary-light);border-radius:10px;padding:12px 14px;margin-top:12px;font-size:13px;line-height:1.8}
+  .newcard b{color:var(--primary-dark)}
+  .grid-l{stroke:#eef2f7;stroke-width:1}
+  .ax-l{stroke:#cbd5e1;stroke-width:1.4}
+  .stage-badges{position:absolute;right:10px;top:10px}
+</style>
+</head>
+<body>
+<div class="cw">
+
+  <header>
+    <div class="crumb">互动课件 · 物理 · 力的合成 / 平行四边形定则</div>
+    <h1>验证平行四边形定则 · 台秤版（实验）</h1>
+    <p class="sub">力学实验 · 平行四边形定则 · 台秤 / 弹簧测力计 · 交互沙盘</p>
+    <a class="back" href="../solution_library.html#courseware">← 返回互动课件</a>
+  </header>
+
+  <!-- 原题 -->
+  <section class="card">
+    <h2><span class="dot"></span>原题（验证互成角度的两个力的合成规律）</h2>
+    <div class="problem">
+      <div>某小组用<span class="key">台秤（测支持力）</span>验证互成角度的两个力的合成规律。实验装置：固定杆 A 悬挂一绳 OB，另一端连接半圆刻度盘中心 O，物块置于台秤上；弹簧测力计沿 OC 方向拉 O 点，直到<span class="key">台秤示数为 0</span>，记录此时位置与 F₁ 读数、OA 与 OB 方向、∠AOB（&gt;90°）。</div>
+      <div style="margin-top:8px">(1) 作图表示力时应使用“力的图示”还是“力的示意图”？</div>
+      <div>(2) 已知弹簧测力计读数 F₁=4.0N，在图(b)中完成平行四边形，求出绳 OA 中的张力 F₂（保留一位小数）。</div>
+      <div>(3) 保持 OA 方向不变、台秤始终示数为 0，将 OB（弹簧秤测得方向）逆时针缓慢转到竖直，F₁ 与 F₂ 如何变化？</div>
+    </div>
+  </section>
+
+  <!-- 双栏：沙盘 + 参数台 -->
+  <div class="wrk">
+    <div class="sim-panel">
+      <section class="card">
+        <h2><span class="dot"></span>互动沙盘：平行四边形 + 台秤示数</h2>
+        <div class="stage">
+          <span class="tip">拖动 F₁ / F₂ 箭头端点，或右下滑杆调大小与方向</span>
+          <svg id="stage" viewBox="0 0 760 520" width="760" height="520" style="touch-action:none;user-select:none">
+            <defs>
+              <marker id="mF1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3b82f6"/></marker>
+              <marker id="mF2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#f59e0b"/></marker>
+              <marker id="mR"  viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker>
+              <marker id="mG"  viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#16a34a"/></marker>
+            </defs>
+            <g id="grid"></g>
+            <line class="ax-l" x1="0" y1="340" x2="760" y2="340"/>
+            <line class="ax-l" x1="280" y1="0" x2="280" y2="520" stroke-dasharray="4 6"/>
+            <!-- 平行四边形虚线边 -->
+            <line id="par1" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="5 4"/>
+            <line id="par2" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="5 4"/>
+            <!-- 合力 R(理论), 竖直参考 -->
+            <line id="diag" stroke="#dc2626" stroke-width="4.2" stroke-dasharray="7 5" marker-end="url(#mR)"/>
+            <line id="arrowG" stroke="#16a34a" stroke-width="5" marker-end="url(#mG)"/>
+            <!-- 分力 -->
+            <line id="f1" stroke="#3b82f6" stroke-width="4.5" marker-end="url(#mF1)"/>
+            <line id="f2" stroke="#f59e0b" stroke-width="4.5" marker-end="url(#mF2)"/>
+            <circle id="O" r="6" fill="#1e293b"/>
+            <circle id="h1" r="9" fill="#3b82f6" stroke="#fff" stroke-width="2.5" style="cursor:grab"/>
+            <circle id="h2" r="9" fill="#f59e0b" stroke="#fff" stroke-width="2.5" style="cursor:grab"/>
+            <text id="lO" font-size="15" font-weight="800" fill="#1e293b">O</text>
+            <text id="lF1" font-size="15" font-weight="800" fill="#3b82f6"/>
+            <text id="lF2" font-size="15" font-weight="800" fill="#f59e0b"/>
+            <text id="lR" font-size="16" font-weight="800" fill="#dc2626"/>
+            <text id="lG" font-size="15" font-weight="800" fill="#16a34a"/>
+            <text id="eqBadge" font-size="17" font-weight="800" text-anchor="middle" x="380" y="40"/>
+          </svg>
+          <div class="legend">
+            <span><i style="background:#3b82f6"></i>F₁（弹簧秤1 / 绳张力）</span>
+            <span><i style="background:#f59e0b"></i>F₂（绳张力，待求）</span>
+            <span><i style="background:#dc2626;height:3px"></i>合力 R（对角线）</span>
+            <span><i style="background:#16a34a"></i>G（重力/台秤支撑消失）</span>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="param-panel">
+      <section class="card">
+        <h2><span class="dot"></span>参数控制台</h2>
+        <div class="readouts" style="grid-template-columns:1fr 1fr">
+          <div class="ro r1"><div class="k">分力 F₁</div><div class="v" id="rF1">—<span class="u">N</span></div></div>
+          <div class="ro r2"><div class="k">分力 F₂</div><div class="v" id="rF2">—<span class="u">N</span></div></div>
+          <div class="ro r3"><div class="k">合力 |R|</div><div class="v" id="rR">—<span class="u">N</span></div></div>
+          <div class="ro r1"><div class="k">合力竖向分量 R<sub>y</sub></div><div class="v" id="rRy">—<span class="u">N</span></div></div>
+          <div class="ro full"><div class="k">台秤示数 N = mg − R<sub>y</sub></div><div class="v" id="rN">—<span class="u">N</span></div></div>
+        </div>
+
+        <div class="ctrl" style="margin-top:14px">
+          <label>分力 F₁ 大小（N）<b id="v_f1m">2.5</b></label>
+          <input id="s_f1m" type="range" min="0.4" max="4" step="0.05" value="2.5">
+        </div>
+        <div class="ctrl">
+          <label>F₁ 方向 θ₁ 距竖直上方向角（°）<b id="v_f1a">45</b></label>
+          <input id="s_f1a" type="range" min="-170" max="170" step="1" value="45">
+        </div>
+        <div class="ctrl">
+          <label>分力 F₂ 大小（N）<b id="v_f2m">2.5</b></label>
+          <input id="s_f2m" type="range" min="0.4" max="4" step="0.05" value="2.5">
+        </div>
+        <div class="ctrl">
+          <label>F₂ 方向 θ₂ 距竖直上方向角（°）<b id="v_f2a">-45</b></label>
+          <input id="s_f2a" type="range" min="-170" max="170" step="1" value="-45">
+        </div>
+        <div class="ctrl">
+          <label>重物重力 G = mg（N）<b id="v_mg">3.54</b></label>
+          <input id="s_mg" type="range" min="0.5" max="6" step="0.02" value="3.54">
+        </div>
+
+        <div class="btns">
+          <button class="btn go" id="btnReset">重置：示数为0</button>
+          <button class="btn" id="btnRandom">随机一组</button>
+        </div>
+
+        <div class="highlight">
+          <b>互动重点：</b>两绳的合力 R（红虚对角线）须恰好平衡重物重力 <b>G</b>，台秤示数才为 0（绿箭头 G 与 R 等大反向）。这正是“示数为 0”的物理含义——支撑力消失，重力完全改由绳承担。<b>斜向下 / 斜向上的力均可拖动成平行四边形验证。</b>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- 记忆卡对碰 -->
+  <section class="card">
+    <h2><span class="dot"></span>记忆卡对碰 · 契合分析</h2>
+    <div class="mc">
+      <div class="mc-head">phy0164 · 力的合成·平行四边形定则<span class="fit-badge fit-s">强契合</span></div>
+      <div class="mc-row"><b>题干信号：</b>求两个力的合力、用平行四边形定则作图</div>
+      <div class="mc-row"><b>结论：</b>严格保证两力箭尾重合后作平行四边形，取所夹对角线为合力；警惕仅箭头相交不符合条件，需先把力平移至箭尾重合再作图。</div>
+    </div>
+    <div class="mc">
+      <div class="mc-head">phy0168 · 力的合成·三角形定则<span class="fit-badge fit-s">强契合</span></div>
+      <div class="mc-row"><b>题干信号：</b>多个力求合力、要求一次作图完成</div>
+      <div class="mc-row"><b>结论：</b>所有力首尾连接，合力由首力尾端指向末力首端。</div>
+    </div>
+    <div class="mc">
+      <div class="mc-head">phy0169 · 力的合成·封闭图形推论<span class="fit-badge fit-s">强契合</span></div>
+      <div class="mc-row"><b>题干信号：</b>几个力首尾连接构成封闭图形 / 闭合三角形</div>
+      <div class="mc-row"><b>结论：</b>合力为 0；特殊三角形（直角/等腰/等边）可简化计算。</div>
+    </div>
+    <div class="mc">
+      <div class="mc-head">phy0184 · 静态平衡·死结与活结<span class="fit-badge fit-s">强契合</span></div>
+      <div class="mc-row"><b>题干信号：</b>绳有固定结点（死结）、两侧绳拉力关系</div>
+      <div class="mc-row"><b>结论：</b>死结两侧张力可不等，需由平衡条件求解；两力等大且夹角已知时用等腰三角形几何关系。</div>
+    </div>
+    <div class="mc">
+      <div class="mc-head">phy0202 · 复杂动态平衡·应用案例（双绳旋转）<span class="fit-badge fit-m">中契合</span></div>
+      <div class="mc-row"><b>题干信号：</b>一绳方向固定、另一绳缓慢旋转到特定位置</div>
+      <div class="mc-row"><b>结论：</b>识别定角（两变绳夹角不变），辅助圆或拉密定理追踪角变化得力的单调性。</div>
+    </div>
+    <div class="highlight">
+      <b>契合分析：</b>该题与“力的合成 · 平行四边形定则”系列卡高度贴合：作图(1)(2)直接调用 phy0164 / 0169；第(3)问“缓慢转动 OB 保持台秤示数为 0”属典型动态平衡，命中双绳旋转（phy0202）。核心缺口在「台秤示数为 0」这一约束的等价转化。
+    </div>
+    <div class="newcard">
+      <b>✦ 新卡 · 力的合成实验·台秤/传感器示数为零的隐含条件</b>
+      <br><b>题干信号：</b>台秤（或传感器）示数恰好为 0 / 恰好无压力
+      <br><b>结论：</b>该支撑力消失，物体改由绳（或其余力）完全平衡，可把“示数为 0”当作“该接触力为 0”处理；警惕仍把秤的弹力算入受力。
+    </div>
+  </section>
+
+  <!-- 分步讲解 -->
+  <section class="card">
+    <h2><span class="dot"></span>分步讲解 · 验证平行四边形定则</h2>
+    <div class="step"><div class="hd"><i>①</i>力的图示而非示意图</div><div class="bd">作图表示力必须用<span class="key">力的图示</span>（含比例标度，箭头长度可按比例量取力的大小），而不能用仅表示方向、不标大小的示意图——因为本题需要<b>量取边长读出 F₂ 数值</b>。</div></div>
+    <div class="step"><div class="hd"><i>②</i>“台秤示数为 0”即接触力为零</div><div class="bd">台秤示数为 0 → 物块所受支撑力 N=0 → 物块的重力 G 完全由两根绳的拉力 F₁、F₂ 的合力 R 平衡，即 <span style="font-family:var(--mono)">R = F₁ + F₂ = −G</span>。回到沙盘拖动分力，验证示数为 0 时对角线恰好与绿箭头 G 等大反向。</div></div>
+    <div class="step"><div class="hd"><i>③</i>完成平行四边形求 F₂</div><div class="bd">按比例作平行四边形：两邻边对应 F₁（弹簧秤读数 4.0N）与待求的 F₂，对角线即合力 R=G。<b>实测 F₂ 由对角线与邻边的几何关系 / 刻度读出</b>（用三角形定则求一边，如 F₂ = √(G²+F₁²−2GF₁cos∠OAG) 或按图量取）。</div></div>
+    <div class="step"><div class="hd"><i>④</i>OB 转竖直的动态变化</div><div class="bd">保持 OA 方向不变、示数恒为 0（即合力 R 恒定），OB 逆时针缓转到竖直：用<b>拉密定理 / 辅助圆 / 力三角形</b>判定——典型结果为 <b>F₂ 先减后增、F₁ 单调变化</b>（取决于转动起点在极值两侧的位置）。</div></div>
+    <div class="note"><b>要点：</b>把“示数为 0”等价为“该接触力为零、其余力完全平衡”；作图用力的图示并保留标度；转动类动态平衡用拉力三角形或拉密定理判定单调性。</div>
+  </section>
+
+  <div class="footer">互动课件 · 物理 · 验证平行四边形定则（台秤版） · 纯 SVG + 原生 JS</div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  var svg=document.getElementById('stage');
+  var W=760,H=520,OX=280,OY=340,SC=48,MAX=3.2,GSC=26;
+  function ts(v){return {x:OX+v.x*SC, y:OY-v.y*SC};}
+  function tp(px,py){return {x:(px-OX)/SC, y:(OY-py)/SC};}
+  function el(id){return document.getElementById(id);}
+  var D2R=Math.PI/180,R2D=180/Math.PI;
+
+  // 网格
+  (function(){
+    var g=el('grid');
+    for(var i=0;i<=18;i++){var x=280-4*SC+i*SC;var L=document.createElementNS('http://www.w3.org/2000/svg','line');L.setAttribute('class','grid-l');L.setAttribute('x1',x);L.setAttribute('y1',8);L.setAttribute('x2',x);L.setAttribute('y2',512);g.appendChild(L);}
+    for(var j=0;j<=13;j++){var y=340-5*SC+j*SC;var M=document.createElementNS('http://www.w3.org/2000/svg','line');M.setAttribute('class','grid-l');M.setAttribute('x1',8);M.setAttribute('y1',y);M.setAttribute('x2',752);M.setAttribute('y2',y);g.appendChild(M);}
+  })();
+
+  var S={f1m:2.5,f1a:45,f2m:2.5,f2a:-45,mg:3.54,drag:false, f1:{x:-1.768,y:1.768}, f2:{x:1.768,y:1.768}};
+  function setByDrag(key,dx,dy){
+    var m=Math.hypot(dx,dy)||0.001; var c=Math.min(m,MAX);
+    var vx=dx/m*c, vy=dy/m*c;
+    if(key==='f1'){S.f1={x:vx,y:vy}; }
+    else{S.f2={x:vx,y:vy};}
+  }
+  function fromSliders(){
+    S.f1={x:-S.f1m*Math.sin(S.f1a*D2R), y:S.f1m*Math.cos(S.f1a*D2R)};
+    S.f2={x:-S.f2m*Math.sin(S.f2a*D2R), y:S.f2m*Math.cos(S.f2a*D2R)};
+  }
+  function seg(id,x1,y1,x2,y2){var g=el(id);g.setAttribute('x1',x1);g.setAttribute('y1',y1);g.setAttribute('x2',x2);g.setAttribute('y2',y2);}
+  function nf(v){return Math.round(v*100)/100;}
+
+  function render(){
+    fromSliders();
+    var R={x:S.f1.x+S.f2.x, y:S.f1.y+S.f2.y};
+    var Rm=Math.hypot(R.x,R.y);
+    var A=ts(S.f1), B=ts(S.f2), Rt=ts(R), Gt={x:OX, y:OY-(-S.mg)*GSC};
+    var O=ts({x:0,y:0});
+    seg('f1',O.x,O.y,A.x,A.y);
+    seg('f2',O.x,O.y,B.x,B.y);
+    seg('par1',A.x,A.y,Rt.x,Rt.y);
+    seg('par2',B.x,B.y,Rt.x,Rt.y);
+    seg('diag',O.x,O.y,Rt.x,Rt.y);
+    seg('arrowG',O.x,O.y,Gt.x,Gt.y);
+    el('O').setAttribute('cx',O.x);el('O').setAttribute('cy',O.y);
+    el('h1').setAttribute('cx',A.x);el('h1').setAttribute('cy',A.y);
+    el('h2').setAttribute('cx',B.x);el('h2').setAttribute('cy',B.y);
+    el('lO').setAttribute('x',O.x+9);el('lO').setAttribute('y',O.y+16);
+    el('lF1').setAttribute('x',A.x-16);el('lF1').setAttribute('y',A.y-8);el('lF1').textContent='F₁';
+    el('lF2').setAttribute('x',B.x+6);el('lF2').setAttribute('y',B.y-8);el('lF2').textContent='F₂';
+    el('lR').setAttribute('x',Rt.x+6);el('lR').setAttribute('y',Rt.y-8);el('lR').textContent='R=F₁+F₂';
+    el('lG').setAttribute('x',Gt.x+8);el('lG').setAttribute('y',Math.min(Gt.y+18,H-6));el('lG').textContent='G';
+
+    // 读数
+    var f1m=Math.hypot(S.f1.x,S.f1.y), f2m=Math.hypot(S.f2.x,S.f2.y);
+    var N=S.mg-R.y;
+    el('rF1').innerHTML=nf(f1m)+'<span class="u">N</span>';
+    el('rF2').innerHTML=nf(f2m)+'<span class="u">N</span>';
+    el('rR').innerHTML=nf(Rm)+'<span class="u">N</span>';
+    el('rRy').innerHTML=(R.y>=0?'+':'')+nf(R.y)+'<span class="u">N</span>';
+    var Nshow=Math.abs(N)<0.06?0:nf(N);
+    el('rN').innerHTML=(N>=0?'':'')+Nshow+'<span class="u">N</span>';
+
+    var badge=el('eqBadge');
+    if(Math.abs(N)<0.06){badge.setAttribute('fill','#16a34a');badge.textContent='✓ 台秤示数 = 0（绳合力恰平衡 G）';}
+    else if(N>0){badge.setAttribute('fill','#f59e0b');badge.textContent='示数 &gt; 0：绳合力尚不足以撑起 G，需加大合力';}
+    else{badge.setAttribute('fill','#dc2626');badge.textContent='示数 &lt; 0：绳合力过强，物块被提起（脱离台秤）';}
+
+    // 回写滑块
+    setRange('s_f1m',f1m);el('v_f1m').textContent=nf(f1m);
+    setRange('s_f2m',f2m);el('v_f2m').textContent=nf(f2m);
+    var a1=Math.atan2(Math.abs(S.f1.x),S.f1.y)*R2D, a2=Math.atan2(Math.abs(S.f2.x),S.f2.y)*R2D;
+    a1=Math.round(S.f1.x<0?a1:-a1); a2=Math.round(S.f2.x<0?a2:-a2);
+    el('s_f1a').value=a1;el('v_f1a').textContent=a1;
+    el('s_f2a').value=a2;el('v_f2a').textContent=a2;
+    el('s_mg').value=S.mg;el('v_mg').textContent=nf(S.mg);
+  }
+  function setRange(id,v){var s=el(id);v=Math.max(parseFloat(s.min),Math.min(parseFloat(s.max),v));s.value=v;}
+  function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+
+  // 滑块
+  function bind(id,fn){el(id).addEventListener('input',function(){fn(parseFloat(el(id).value));render();});}
+  bind('s_f1m',function(v){S.f1m=v;});
+  bind('s_f2m',function(v){S.f2m=v;});
+  bind('s_f1a',function(v){S.f1a=v;});
+  bind('s_f2a',function(v){S.f2a=v;});
+  bind('s_mg',function(v){S.mg=v;});
+
+  // 拖拽
+  var drag=null;
+  svg.addEventListener('pointerdown',function(ev){
+    var id=ev.target.id;if(id!=='h1'&&id!=='h2')return;
+    ev.preventDefault();drag=id;
+    svg.setPointerCapture&&svg.setPointerCapture(ev.pointerId);
+  });
+  svg.addEventListener('pointermove',function(ev){
+    if(!drag)return;
+    var rect=svg.getBoundingClientRect();
+    var px=(ev.clientX-rect.left)*(W/svg.clientWidth);
+    var py=(ev.clientY-rect.top)*(H/svg.clientHeight);
+    var p=tp(px,py);
+    setByDrag(drag,p.x,p.y);
+    if(drag==='f1'){S.f1m=clamp(Math.hypot(S.f1.x,S.f1.y),0.4,4);S.f1a=Math.round(Math.atan2(Math.abs(S.f1.x),S.f1.y)*R2D)*(S.f1.x<0?1:-1);}
+    else{S.f2m=clamp(Math.hypot(S.f2.x,S.f2.y),0.4,4);S.f2a=Math.round(Math.atan2(Math.abs(S.f2.x),S.f2.y)*R2D)*(S.f2.x<0?1:-1);}
+    render();
+  });
+  ['pointerup','pointercancel'].forEach(function(e){svg.addEventListener(e,function(){drag=null;});});
+
+  el('btnReset').addEventListener('click',function(){S.f1m=2.5;S.f1a=45;S.f2m=2.5;S.f2a=-45;S.mg=3.54;render();});
+  el('btnRandom').addEventListener('click',function(){
+    var a=1+3*Math.random(),b=1+3*Math.random();
+    S.f1m=+a.toFixed(2);S.f2m=+b.toFixed(2);
+    S.f1a=Math.round(5+70*Math.random());
+    S.f2a=-Math.round(5+70*Math.random());
+    S.drag=false;render();
+  });
+
+  render();
+  el('s_f1a').addEventListener('change',function(){S.f1a=+el('s_f1a').value;});
+  el('s_f2a').addEventListener('change',function(){S.f2a=+el('s_f2a').value;});
+})();
+</script>
+<script src="shared/engine.js"></script>
+<script>if(window.SimKit && SimKit.revealSteps) SimKit.revealSteps();</script>
+</body>
+</html>

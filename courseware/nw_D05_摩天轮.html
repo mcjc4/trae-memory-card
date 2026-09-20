@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>题D05·摩天轮 · 竖直面匀速圆周运动</title>
+<link rel="stylesheet" href="shared/style.css">
+<style>
+  /* 课件局部补充样式 */
+  .grid-l{stroke:#eef2f7;stroke-width:1}
+  .ax-l{stroke:#cbd5e1;stroke-width:1.2}
+  .tick-t{font-size:10px;fill:#94a3b8;font-family:var(--mono)}
+  .pttl{font-size:11px;font-weight:800;fill:#334155}
+</style>
+</head>
+<body>
+<div class="cw">
+
+  <header>
+    <div class="crumb">互动课件 · 物理 · 圆周运动 · 竖直面匀速圆周</div>
+    <h1>摩天轮 · 竖直面匀速圆周运动的能量与受力</h1>
+    <p class="sub">2026 中山一模 · 单选 · 动能守恒判断 / 支持力 / 重力即时功率 · 动画沙盘交互</p>
+    <a class="back" href="../solution_library.html#courseware">← 返回互动课件</a>
+  </header>
+
+  <!-- 原题 -->
+  <section class="card">
+    <h2><span class="dot"></span>原题（摩天轮 · 单选）</h2>
+    <div class="problem">
+      <div>某同学乘摩天轮随座舱在竖直平面内做<span class="key">匀速圆周运动</span>，依次从 <span class="key">A(顶)</span> 到 <span class="key">B(侧)</span> 到 <span class="key">C(底)</span>。下列说法正确的是？</div>
+    </div>
+    <div class="opts">
+      <div class="opt" data-badge="A"><div class="row"><div class="k">A</div><div class="t">该同学机械能守恒</div></div><div class="reveal"><b>✗ 错误</b>——匀速圆周速度大小不变 → 动能不变，但<b>高度变化 → 重力势能变</b>，机械能 = 动能+势能不守恒（竖直面匀速圆周<b>不守恒</b>，水平面才守恒）。</div></div>
+      <div class="opt" data-badge="B"><div class="row"><div class="k">B</div><div class="t">座舱对该同学的作用力大小一直不变</div></div><div class="reveal"><b>✗ 错误</b>——作用力须提供向心力，随位置变：<span class="no">最低点最大 N=mg+mω²r，最高点最小 N=mg−mω²r</span>，并非一直不变。</div></div>
+      <div class="opt" data-badge="C"><div class="row"><div class="k">C</div><div class="t">重力对该同学做功的瞬时功率在 B 点最大</div></div><div class="reveal"><b>◆ 正确答案</b>：<span class="ok">C</span><br>瞬时功率 P=mg·v_y，竖直分速 v_y 在侧点 B（水平位置）最大、在顶/底最小 ⇒ <b>P 在 B 点最大</b>。</div></div>
+      <div class="opt" data-badge="D"><div class="row"><div class="k">D</div><div class="t">仅增大匀速圆周转速，该同学在 A 点受座舱作用力一定增大</div></div><div class="reveal"><b>✗ 错误</b>——A 点（顶）<b>N = mg − mω²r</b>：增大转速 ω 使 mω²r 增大，<span class="no">N 反而减小</span>（并非增大）。</div></div>
+    </div>
+  </section>
+
+  <!-- 双栏布局 -->
+  <div class="wrk">
+   <div class="sim-panel">
+    <section class="card">
+      <h2><span class="dot"></span>互动沙盘：摩天轮动画 + 能量/受力/功率曲线</h2>
+      <div class="stage">
+        <span class="tip">拖「位置角」看每处读数，或点「自动旋转」观察曲线跳动的峰值位置（B 处功率最大）</span>
+        <svg id="stage" viewBox="0 0 1060 520" width="1060" height="520" style="touch-action:none;user-select:none">
+          <defs>
+            <marker id="mR" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 z" fill="#334155"/></marker>
+          </defs>
+
+          <!-- 摩天轮 -->
+          <g id="wheel">
+            <circle cx="300" cy="270" r="190" fill="none" stroke="#cbd5e1" stroke-width="3"/>
+            <circle cx="300" cy="270" r="6" fill="#1e293b"/>
+            <line id="spoke" stroke="#cbd5e1" stroke-width="2"/>
+            <rect id="cab" x="-20" y="-20" width="40" height="34" rx="6" fill="#fff" stroke="#8b5cf6" stroke-width="2.4"/>
+            <circle id="seat" r="7" fill="#8b5cf6" stroke="#fff" stroke-width="2"/>
+            <text x="300" y="120" class="pttl" text-anchor="middle">A 顶（最高点）</text>
+            <text x="300" y="440" class="pttl" text-anchor="middle">C 底（最低点）</text>
+            <text x="492" y="276" class="pttl">B 侧</text>
+            <text x="106" y="276" class="pttl">侧向</text>
+            <circle cx="300" cy="80" r="4" fill="#16a34a"/>
+            <circle cx="300" cy="460" r="4" fill="#dc2626"/>
+            <circle cx="490" cy="270" r="4" fill="#f59e0b"/>
+            <text x="360" y="150" class="tick-t" text-anchor="middle">R</text>
+          </g>
+
+          <!-- 三个曲线面板 -->
+          <g id="panels">
+            <text x="570" y="34" class="pttl">动能(恒) / 势能 / 机械能 (J)</text>
+            <text x="930" y="34" class="pttl" text-anchor="middle">A 顶 | C 底</text>
+            <path id="pEk" stroke="#3b82f6" stroke-width="2.5" fill="none"/>
+            <path id="pEp" stroke="#f59e0b" stroke-width="2.5" fill="none"/>
+            <path id="pE"  stroke="#16a34a" stroke-width="3.2" fill="none"/>
+
+            <text x="570" y="152" class="pttl">座舱对同学作用力 N (N)</text>
+            <path id="pN" stroke="#8b5cf6" stroke-width="3.2" fill="none"/>
+
+            <text x="570" y="270" class="pttl">重力即时功率 P=mg·v_y (W)</text>
+            <path id="pP" stroke="#dc2626" stroke-width="3.2" fill="none"/>
+
+            <text x="570" y="388" class="pttl">位置角：φ=0 底 | 90° 侧(B) | 180° 顶(A) | 270° 另一侧</text>
+            <path id="pGuide" stroke="#e2e8f0" stroke-width="1.4" fill="none" stroke-dasharray="4 4"/>
+
+            <!-- 位置游标线 -->
+            <line id="cursor" stroke="#1e293b" stroke-width="2" stroke-dasharray="3 3" opacity="0.55"/>
+            <circle id="markM" r="5" fill="#1e293b"/>
+            <circle id="markN" r="5" fill="#8b5cf6"/>
+            <circle id="markP" r="5" fill="#dc2626"/>
+            <circle id="markE" r="5" fill="#16a34a"/>
+          </g>
+
+          <text id="clsBadge" font-size="15" font-weight="800" text-anchor="middle" x="382" y="40"></text>
+        </svg>
+        <div class="legend">
+          <span><i style="background:#3b82f6"></i>动能 Ek(恒)</span>
+          <span><i style="background:#f59e0b"></i>重力势能 Ep</span>
+          <span><i style="background:#16a34a"></i>机械能 E</span>
+          <span><i style="background:#8b5cf6"></i>支持力 N</span>
+          <span><i style="background:#dc2626"></i>重力功率 P</span>
+        </div>
+      </div>
+    </section>
+   </div>
+
+   <div class="param-panel">
+    <section class="card">
+      <h2><span class="dot"></span>参数控制台</h2>
+      <div class="readouts">
+        <div class="ro r3"><div class="k">动能 Ek = ½mω²r²</div><div class="v" id="rEk" style="font-size:14px">750</div><div class="u">J</div></div>
+        <div class="ro r2"><div class="k">当前重力势能 Ep</div><div class="v" id="rEp" style="font-size:14px">14700</div><div class="u">J</div></div>
+        <div class="ro full rr"><div class="k">机械能 E = Ek + Ep</div><div class="v" id="rE" style="font-size:15px">15450</div><div class="u">J（不守恒）</div></div>
+        <div class="ro r3"><div class="k">支持力 N(当前)</div><div class="v" id="rN" style="font-size:14px">528</div><div class="u">N</div></div>
+        <div class="ro r1"><div class="k">重力功率 P=mg·v_y</div><div class="v" id="rP" style="font-size:14px">0</div><div class="u">W</div></div>
+        <div class="ro full"><div class="k">竖直分速 v_y</div><div class="v" id="rv" style="font-size:14px">0</div><div class="u">m/s</div></div>
+      </div>
+
+      <div class="ctrl" style="margin-top:14px">
+        <label>位置角 φ（°）<b id="vPhi">0</b></label>
+        <input id="sPhi" type="range" min="0" max="360" step="1" value="0">
+      </div>
+      <div class="ctrl">
+        <label>转动角速度 ω（rad/s）<b id="vW">0.20</b></label>
+        <input id="sW" type="range" min="0.05" max="0.40" step="0.01" value="0.20">
+      </div>
+      <div class="ctrl">
+        <label>轮半径 r（m）<b id="vR">25</b></label>
+        <input id="sR" type="range" min="10" max="50" step="1" value="25">
+      </div>
+      <div class="btns">
+        <button class="btn go" id="btnPlay">▶ 自动旋转</button>
+        <button class="btn" id="btnPos" data-pos="90">跳到 B(侧)</button>
+      </div>
+
+      <div class="highlight">
+        <b>核心结论：</b>竖直面匀速圆周——速度大小恒、向心力大小恒 <b>F=mω²r 不变</b>，但<b>动能不变、重力势能随高度变 ⇒ 机械能不守恒</b>（A 错）；支持力 <b>最低点最大 N=mg+mω²r、最高点最小 N=mg−mω²r</b>（B 错）；重力功率 <b>P=mg·v_y 在侧点 B 最大</b>（C 对）；A 点 N=mg−mω²r，<b>转速 ω 增大会使 N 减小而非增大</b>（D 错）。
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="readouts" style="grid-template-columns:1fr">
+        <div class="ro full"><div class="k">选项对照</div><div class="v" id="rOpt" style="font-size:13px">正确答案 = C</div></div>
+      </div>
+    </section>
+   </div>
+  </div>
+
+  <!-- 记忆卡对碰 -->
+  <section class="card">
+    <h2><span class="dot"></span>记忆卡对碰 · 契合分析</h2>
+    <div class="problem">
+      <div>摩天轮是「<b>竖直面匀速圆周</b>」典型模型：关键在于区分「匀速（速度大小恒定 → 向心力/动能恒定）」与「高度变化（→ 势能/机械能变化）」，并逐点用向心力列式。</div>
+    </div>
+    <div style="margin-top:12px">
+      <div class="problem">
+        <b>◆ 命中卡 1 · phy0897（中契合）</b>　机械能守恒·圆周运动：匀速圆周是否守恒看运动平面——水平面守恒，<b>竖直面不守恒</b>。<br>
+        <b>◆ 命中卡 2 · phy0681（中契合）</b>　竖直圆周·双轨弹力随速度变化：最高点弹力随 v 与临界 √(gr) 的比对而变（类比 N 随 ω²r 变化）。<br>
+        <b>◆ 命中卡 3 · phy0677（中契合）</b>　竖直圆周·外轨（绳）模型：弹力只能指向圆心，最高点不能提供支撑（与摩天轮座舱可支撑不同）。<br>
+        <b>◆ 命中卡 4 · phy0797（中契合）</b>　机械能·功率公式：瞬时功率 P=Fv（含夹角 P=Fvcosθ），此处 P=mg·v_y。</div>
+    </div>
+    <div class="highlight">
+      <b>契合结论：</b>匀速圆周速度大小不变 → 动能不变但势能变 → 机械能不守恒，命中『匀速圆周问机械能是否守恒』（phy0897）；支持力在最高/最低点用向心力列式命中竖直圆周弹力卡（phy0681）。核心缺口在<b>“竖直面匀速圆周与绳/杆变速圆周的区别”</b>信号。
+    </div>
+    <div class="problem" style="background:#f6fbf6;border-color:var(--success-light);margin-top:12px">
+      <b>★ 新增记忆卡 · 圆周运动·竖直面匀速圆周(摩天轮)与变速竖直圆周的区别</b><br>
+      <b>信号：</b>摩天轮/转轮竖直面内匀速圆周运动，问机械能、支持力或某点功率。<br>
+      <b>结论：</b>匀速圆周速度大小恒定 → 动能不变、向心力大小恒定 F合=mω²r 不变，但重力势能随高度变 → 机械能不守恒；支持力随位置变：<b>最低点 N=mg+mω²r 最大、最高点 N=mg−mω²r</b>、侧点斜向提供向心力；重力做功功率 <b>P=mg·v_y 在最高/最低点（v_y=0）为 0、在水平侧点最大</b>。<br>
+      <b>警惕：</b>把匀速圆周当绳模型变速圆周、或在机械能守恒判断上想当然。
+    </div>
+  </section>
+
+  <!-- 分步讲解 -->
+  <section class="card">
+    <h2><span class="dot"></span>分步讲解</h2>
+    <div class="step"><div class="hd"><i>①</i>判断机械能（选项 A）</div><div class="bd">匀速圆周：<b>速度大小恒定 → 动能 Ek 不变</b>；但高度连续变化 → 重力势能 Ep 改变。故<b>机械能 E = Ek + Ep 不守恒</b>（A 错）。值得注意的是：向上/向下过程速度大小都不变（非变速），向心力大小 mω²r 恒定。</div></div>
+    <div class="step"><div class="hd"><i>②</i>支持力随位置变化（选项 B）</div><div class="bd">座舱须提供向心力，用<b>最低点 / 最高点</b>向心力列式：<span class="formula">最低点(底C)：N − mg = mω²r ⇒ N_C = mg + mω²r（最大）
+最高点(顶A)：mg − N = mω²r ⇒ N_A = mg − mω²r（最小）</span>故作用力大小<b>随位置而变</b>，非一直不变（B 错）。</div></div>
+    <div class="step"><div class="hd"><i>③</i>重力即时功率（选项 C）</div><div class="bd">瞬时功率 <span class="formula">P = mg·v_y</span>（v_y 为竖直分速）。匀速圆周中 v_y = ωR·cos(φ)，在<b>侧点 B（水平位置）v_y 最大</b>、在顶/底 v_y=0。故 <b>P 在 B 点最大</b>（C 对）。</div></div>
+    <div class="step"><div class="hd"><i>④</i>增大转速对 A 点（选项 D）</div><div class="bd">A 点 N = mg − mω²r。<b>增大转速 ω → mω²r 增大 → N 减小</b>（而非增大），D 错。</div></div>
+    <div class="step"><div class="hd"><i>⑤</i>汇总</div><div class="bd">机械能不守恒、支持力随位置变、重力功率在 B 最大、增转速使 A 点 N 减小 ⇒ 仅 <span class="ok">C</span> 正确。回到上方沙盘拖动位置角：动能线恒平、势能/机械能随高度起伏、N 在底最大顶最小、P 在 B(90°) 最高。</div></div>
+    <div class="note" style="margin-top:10px"><b>防错：</b>① 竖直面匀速圆周 ≠ 变速竖直圆周（后者最高点有临界 √(gr)）；② “匀速”自动背出动能守恒，但<b>机械能守恒还要看高度</b>；③ 重力功率看竖直分速 v_y 而非总速度。</div>
+  </section>
+
+  <div class="footer">互动课件 · 物理《圆周运动 · 竖直面匀速圆周》 · 摩天轮真题 · 能量/受力/功率动画沙盘</div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  var NS="http://www.w3.org/2000/svg";
+  var $=function(id){return document.getElementById(id);};
+  var g=9.8, m=60;
+  var w=0.20, R=25, phi=0;          // w 角速度, R 半径, phi 位置角(°) 0=底
+  var playOn=false, rafId=null, lastT=0;
+
+  // 面板几何
+  var PX0=560, PW=480;              // 曲线区 x 范围
+  var panels={
+    E:{top:44, h:88},               // 动能/势能/机械能
+    N:{top:162, h:88},              // 支持力
+    P:{top:280, h:88}               // 功率
+  };
+  function px(phiDeg){ return PX0 + (phiDeg/360)*PW; }
+  function py(box, val, vmin, vmax){ return box.top + box.h - (val-vmin)/(vmax-vmin)*box.h; }
+
+  function setPath(id, pts){
+    if(!pts.length) return;
+    var d='M '+pts.map(function(p){return p[0].toFixed(1)+' '+p[1].toFixed(1);}).join(' L ');
+    $(id).setAttribute('d', d);
+  }
+
+  function buildCurves(){
+    // 物理量随 phi(0..360) 采样
+    var Ncts=[], Ects=[], Ekcts=[], Epcts=[], Pcts=[], i, phiDeg;
+    var Ek=0.5*m*w*w*R*R;
+    var pts=[];
+    var maxE=0, minE=1e18, maxN=-1e18, minN=1e18, maxP=-1e18, minP=1e18;
+    for(i=0;i<=360;i+=3){
+      var rad=i*Math.PI/180;
+      var ep=m*g*R*(1-Math.cos(rad));   // 底 h=0, 顶 h=2R
+      var E=Ek+ep;
+      var NN=m*g + m*w*w*R*Math.cos(rad); // 顶: mg-mw^2r, 底: mg+mw^2r
+      var vy=w*R*Math.sin(rad);          // vy 向上为正, φ∈(0,180) 上升段为正
+      var P=m*g*(w*R*Math.sin(rad));     // 重力功率 = mg*vy
+      if(E>maxE)maxE=E; if(E<minE)minE=E;
+      if(NN>maxN)maxN=NN; if(NN<minN)minN=NN;
+      if(P>maxP)maxP=P; if(P<minP)minP=P;
+    }
+    // 生成点
+    for(i=0;i<=360;i+=3){
+      var rad2=i*Math.PI/180;
+      var ep2=m*g*R*(1-Math.cos(rad2));
+      var E2=Ek+ep2;
+      var NN2=m*g + m*w*w*R*Math.cos(rad2);
+      var P2=m*g*(-w*R*Math.sin(rad2));
+      Ekcts.push([px(i), py(panels.E, Ek, minE, maxE)]);
+      Epcts.push([px(i), py(panels.E, ep2, minE, maxE)]);
+      Ects.push([px(i), py(panels.E, E2, minE, maxE)]);
+      Ncts.push([px(i), py(panels.N, NN2, minN, maxN)]);
+      Pcts.push([px(i), py(panels.P, P2, minP, maxP)]);
+    }
+    setPath('pEk', Ekcts); setPath('pEp', Epcts); setPath('pE', Ects);
+    setPath('pN', Ncts); setPath('pP', Pcts);
+    // 基线
+    setPath('pGuide', [[px(0),50],[px(360),50],[px(0),330]]);
+    window.__ranges={E:[minE,maxE],N:[minN,maxN],P:[minP,maxP],Ek:Ek};
+    renderMarkers();
+  }
+
+  function renderMarkers(){
+    var rng=window.__ranges||{E:[0,1],N:[0,1],P:[0,1]};
+    var rad=phi*Math.PI/180;
+    var ep=m*g*R*(1-Math.cos(rad));
+    var Ek=0.5*m*w*w*R*R;
+    var E=Ek+ep;
+    var NN=m*g + m*w*w*R*Math.cos(rad);
+    var vy=w*R*Math.sin(rad);
+    var Ppg=m*g*vy;
+
+    // 轮上图
+    var sx=300 + Math.sin(rad)*190;
+    var sy=270 - Math.cos(rad)*190;      // phi=0 底,180 顶
+    $('seat').setAttribute('cx',sx); $('seat').setAttribute('cy',sy);
+    $('cab').setAttribute('x',sx-20); $('cab').setAttribute('y',sy-20);
+    $('spoke').setAttribute('x1',300); $('spoke').setAttribute('y1',270);
+    $('spoke').setAttribute('x2',sx); $('spoke').setAttribute('y2',sy);
+    // 判断位置名
+    var posName = phi<1? '底 C(φ=0)' : (phi>359? '底 C(φ=0)' : (Math.abs(phi-90)<2?'侧 B(φ=90)':(Math.abs(phi-180)<2?'顶 A(φ=180)':(Math.abs(phi-270)<2?'另一侧 ct=270':'位置角 '+Math.round(phi)+'°'))));
+
+    // 面板游标
+    var cx2=px(phi);
+    $('cursor').setAttribute('x1',cx2); $('cursor').setAttribute('y1',42);
+    $('cursor').setAttribute('x2',cx2); $('cursor').setAttribute('y2',368);
+    markPos('markM', cx2, py(panels.N, NN, rng.N[0], rng.N[1]));
+    markPos('markN', cx2, py(panels.N, NN, rng.N[0], rng.N[1]));
+    markPos('markP', cx2, py(panels.P, Ppg, rng.P[0], rng.P[1]));
+    markPos('markE', cx2, py(panels.E, E, rng.E[0], rng.E[1]));
+
+    // 读数
+    $('rEk').textContent=Math.round(Ek);
+    $('rEp').textContent=Math.round(ep);
+    $('rE').textContent=Math.round(E);
+    $('rN').textContent=NN.toFixed(0);
+    $('rP').textContent=Ppg.toFixed(0);
+    $('rv').textContent=vy.toFixed(2);
+    $('rN').textContent=NN.toFixed(0)+' (N_C='+(m*g+m*w*w*R).toFixed(0)+', N_A='+(m*g-m*w*w*R).toFixed(0)+')';
+    $('vPhi').textContent=Math.round(phi);
+    $('rOpt').textContent='位置 '+posName+'；机械能不守恒 · 唯一正确 = C';
+    var badge=$('clsBadge');
+    badge.setAttribute('fill','#8b5cf6');
+    badge.textContent='位置：'+posName+'　N 在 C 最大 / A 最小 · P 在 B 最大 · 选 C';
+  }
+  function markPos(id,x,y){ var e=$(id);e.setAttribute('cx',x);e.setAttribute('cy',y); }
+
+  // 滑块
+  $('sW').addEventListener('input',function(){ w=+$('sW').value; $('vW').textContent=w.toFixed(2); buildCurves(); });
+  $('sR').addEventListener('input',function(){ R=+$('sR').value; $('vR').textContent=R; buildCurves(); });
+  $('sPhi').addEventListener('input',function(){ phi=+$('sPhi').value; renderMarkers(); });
+  $('btnPos').addEventListener('click',function(){ phi=90; $('sPhi').value=90; renderMarkers(); });
+
+  // 播放
+  function frame(t){
+    if(!playOn) return;
+    if(!lastT) lastT=t;
+    var dt=(t-lastT)/1000; lastT=t;
+    var step = w*180*dt/Math.PI * (Math.cos(phi*Math.PI/180)>=0 ? 1:1);
+    // 匀速正向转动：φ 增大（从底经 B 到顶再到另一侧回底）
+    phi=(phi + (w*180*dt/Math.PI));
+    if(phi>=360) phi-=360;
+    $('sPhi').value=phi;
+    // 滑块在动画时被占用，直接渲染
+    renderMarkers();
+    rafId=requestAnimationFrame(frame);
+  }
+  $('btnPlay').addEventListener('click', function(){
+    playOn=!playOn;
+    $('btnPlay').textContent = playOn?'⏸ 暂停':'▶ 自动旋转';
+    if(playOn){ lastT=0; rafId=requestAnimationFrame(frame); }
+    else { cancelAnimationFrame(rafId); }
+  });
+
+  // 选项
+  document.querySelectorAll('.opt').forEach(function(o){
+    o.addEventListener('click',function(){document.querySelectorAll('.opt').forEach(function(x){x.classList.remove('match','open');});o.classList.add('open');if(o.textContent.indexOf('正确答案')>=0)o.classList.add('match');});
+  });
+
+  buildCurves();
+  renderMarkers();
+})();
+</script>
+<script src="shared/engine.js"></script>
+<script>if(window.SimKit && SimKit.revealSteps) SimKit.revealSteps();</script>
+</body>
+</html>

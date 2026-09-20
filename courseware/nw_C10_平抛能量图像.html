@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>C10 · 平抛 · Ek–x / Ep–x 图像</title>
+<link rel="stylesheet" href="shared/style.css">
+<style>
+  .grid-l{stroke:#eef2f7;stroke-width:1}
+  .ax-l{stroke:#cbd5e1;stroke-width:1.4}
+  .btns{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+  .btn{flex:1;min-width:110px;padding:11px 14px;border-radius:8px;cursor:pointer;border:1px solid var(--border);background:#fff;color:var(--text);font-family:var(--font);font-size:14px;font-weight:700;transition:all .15s}
+  .btn:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.08)}
+  .btn.go{background:var(--primary);border-color:var(--primary);color:#fff}
+  .badge-chip{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:800;margin-left:6px}
+  .b-strong{background:var(--success-light);color:var(--success)}
+  .b-mid{background:var(--warning-light);color:var(--warning)}
+  .mc{border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:10px;background:#fafbff}
+  .mc .hd{display:flex;align-items:center;gap:8px;font-weight:800;font-size:14px;flex-wrap:wrap}
+  .mc .sg{font-size:12px;color:var(--text-light);margin-top:5px}
+  .mc .sg b{color:var(--success)}
+</style>
+</head>
+<body>
+<div class="cw">
+
+  <header>
+    <div class="crumb">互动课件 · 物理 · 平抛运动 / 功能图像</div>
+    <h1>平抛 · Ek–x / Ep–x 图像（多选）</h1>
+    <p class="sub">力学 · 平抛 · 动能/重力势能图像 · 双曲线沙盘</p>
+    <a class="back" href="../solution_library.html#courseware">← 返回互动课件</a>
+  </header>
+
+  <section class="card">
+    <h2><span class="dot"></span>原题</h2>
+    <div class="problem">
+      <div>将小球以初速度（水平）抛出，不计空气阻力，在空中运动过程中，其动能 Ek、重力势能 Ep 随水平位移 x 变化的图像可能正确的是？</div>
+      <div class="note" style="margin-top:6px">平抛：t = x / v₀；垂直位移 h = ½gt² = gx²/(2v₀²)。</div>
+    </div>
+  </section>
+
+  <div class="wrk">
+    <div class="sim-panel">
+      <section class="card">
+        <h2><span class="dot"></span>互动沙盘：平抛轨迹 + Ek–x / Ep–x 二次曲线</h2>
+        <div class="stage">
+          <span class="tip">调 v₀ / t → 平抛轨迹点移动，下方 Ek–x、Ep–x 二次曲线即时展绘</span>
+          <svg id="stage" viewBox="0 0 760 560" width="760" height="560" style="touch-action:none;user-select:none">
+            <defs>
+              <marker id="mEk" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 z" fill="#16a34a"/></marker>
+              <marker id="mEp" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 z" fill="#f59e0b"/></marker>
+            </defs>
+            <!-- ============ 左：平抛轨迹 ============ -->
+            <text x="60" y="26" font-size="14" font-weight="800" fill="#1e293b">① 平抛轨迹</text>
+            <g id="trajBox">
+              <line x1="40" y1="300" x2="330" y2="300" class="ax-l"/>
+              <line x1="40" y1="300" x2="40" y2="60"  class="ax-l"/>
+              <text x="185" y="318" font-size="11" fill="#64748b" text-anchor="middle">水平位移 x</text>
+              <text x="18" y="180" font-size="11" fill="#64748b">下落 y</text>
+              <polyline id="traj" fill="none" stroke="#0d9488" stroke-width="3"/>
+              <circle id="ball" r="7" fill="#dc2626" stroke="#fff" stroke-width="2"/>
+            </g>
+            <!-- ============ 右：能量图像 ============ -->
+            <text x="430" y="26" font-size="14" font-weight="800" fill="#1e293b">② Ek–x / Ep–x 图像（二次曲线）</text>
+            <g id="eneBox">
+              <line x1="420" y1="330" x2="735" y2="330" class="ax-l"/>
+              <line x1="420" y1="330" x2="420" y2="70"  class="ax-l"/>
+              <text x="575" y="350" font-size="11" fill="#64748b" text-anchor="middle">水平位移 x</text>
+              <text x="424" y="80"  font-size="11" fill="#16a34a" font-weight="700">Ek</text>
+              <text x="460" y="80"  font-size="11" fill="#f59e0b" font-weight="700">Ep</text>
+              <polyline id="curveEk" fill="none" stroke="#16a34a" stroke-width="3"/>
+              <polyline id="curveEp" fill="none" stroke="#f59e0b" stroke-width="3" stroke-dasharray="6 4"/>
+              <circle id="mkEk" r="6" fill="#16a34a"/>
+              <circle id="mkEp" r="6" fill="#f59e0b"/>
+              <line id="vline" stroke="#dc2626" stroke-width="1.2" stroke-dasharray="4 4"/>
+              <text id="lTag" x="452" y="218" font-size="12" font-weight="800"></text>
+            </g>
+          </svg>
+          <div class="legend">
+            <span><i style="background:#16a34a"></i>Ek 曲线：下凹递增（二次）</span>
+            <span><i style="background:#f59e0b"></i>Ep 曲线：上凸递减（二次）</span>
+            <span><i style="background:#0d9488"></i>抛物线轨迹</span>
+            <span><i style="background:#dc2626"></i>当前时刻点在两图上的位置</span>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="param-panel">
+      <section class="card">
+        <h2><span class="dot"></span>参数控制台</h2>
+        <div class="readouts" style="grid-template-columns:1fr 1fr">
+          <div class="ro"><div class="k">水平初速 v₀</div><div class="v" id="rV">10</div><div class="u">m/s</div></div>
+          <div class="ro"><div class="k">时刻 t</div><div class="v" id="rT">1.5</div><div class="u">s</div></div>
+          <div class="ro r1"><div class="k">水平位移 x=v₀t</div><div class="v" id="rX">15</div><div class="u">m</div></div>
+          <div class="ro r2"><div class="k">落到高度 h</div><div class="v" id="rH">11.3</div><div class="u">m</div></div>
+          <div class="ro r3"><div class="k">动能 Ek</div><div class="v" id="rEk">162.5</div><div class="u">J</div></div>
+          <div class="ro rr"><div class="k">重力势能 Ep</div><div class="v" id="rEp">87.5</div><div class="u">J（距零势面）</div></div>
+          <div class="ro full"><div class="k">总机械能 E = Ek + Ep（守恒）</div><div class="v" id="rEm">250.0</div><div class="u">J</div></div>
+        </div>
+        <div class="ctrl" style="margin-top:14px">
+          <label>水平初速度 v₀（m/s）<b id="v_v">10</b></label>
+          <input id="s_v" type="range" min="5" max="20" step="0.5" value="10">
+        </div>
+        <div class="ctrl">
+          <label>时刻 t（s，0 ~ 3）<b id="v_t">1.5</b></label>
+          <input id="s_t" type="range" min="0" max="3" step="0.05" value="1.5">
+        </div>
+        <div class="btns"><button class="btn go" id="btnReset">重置</button></div>
+        <div class="highlight">
+          <b>互动重点：</b>平抛 t = x/v₀ ⇒ 垂直分速 v<sub>y</sub>=gt=gx/v₀ ⇒<br>
+          Ek = ½mv₀² + ½m(gt)² = <b>½mv₀² + (mg²/2v₀²)·x²</b>（下凹递增、有截距，非直线 ⇒ <b>B 对</b>）；<br>
+          Ep = Ep₀ − mg·h = <b>Ep₀ − (mg²/2v₀²)·x²</b>（上凸递减二次 ⇒ <b>D 对</b>）。
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <section class="card opts">
+    <h2><span class="dot"></span>选项判定</h2>
+    <div class="opt" data-ans data-badge="A"><div class="row"><div class="k">A</div><div class="t">Ek–x 为过原点的上升直线（图A）</div></div><div class="reveal"><b>◆</b><span class="no">A 错。</span> Ek 含平方项，随 x 是<b>下凹二次曲线</b>，且 x=0 时有水平初动能截距（不过原点），不是直线。</div></div>
+    <div class="opt" data-ans data-badge="B"><div class="row"><div class="k">B</div><div class="t">Ek–x 为有截距的下凹曲线（图B）</div></div><div class="reveal"><b>◆ 正确：</b><span class="ok">B 对。</span> Ek=½mv₀²+(mg²/2v₀²)x²，含 x² 且系数正 → 有截距、下凹（凹向上）递增二次曲线。</div></div>
+    <div class="opt" data-ans data-badge="C"><div class="row"><div class="k">C</div><div class="t">Ep–x 为过正截距的下降直线（图C）</div></div><div class="reveal"><b>◆</b><span class="no">C 错。</span> Ep 随 x 也含平方项，是上凸递减<b>曲线</b>而非直线（只有随竖直高度 h 才线性）。</div></div>
+    <div class="opt" data-ans data-badge="D"><div class="row"><div class="k">D</div><div class="t">Ep–x 为有正截距的递减曲线（图D）</div></div><div class="reveal"><b>◆ 正确：</b><span class="ok">D 对。</span> Ep=Ep₀−(mg²/2v₀²)x²，系数负 → 有正截距、上凸（凹向下）递减二次曲线。正确：<b>B、D</b>。</div></div>
+  </section>
+
+  <section class="card">
+    <h2><span class="dot"></span>记忆卡对碰 · 契合分析</h2>
+    <div class="mc"><div class="hd">phy0904 · 机械能守恒·与动能定理选择<span class="badge-chip b-mid">中契合</span></div>
+      <div class="sg"><b>信号：</b>纠纠结动能定理 vs 机械能守恒 → <b>结论：</b>单物体优先动能定理，多物体系统用机械能守恒；只有重力做功则机械能守恒。</div></div>
+    <div class="mc"><div class="hd">phy0913 · 功能关系·多力做功分配<span class="badge-chip b-mid">中契合</span></div>
+      <div class="sg"><b>信号：</b>物体受多个力求各类能量变化 → <b>结论：</b>合力功→动能，重力功→势能，其他力功→机械能。</div></div>
+    <div class="mc"><div class="hd">phy0892 · 机械能守恒·功能本质<span class="badge-chip b-mid">中契合</span></div>
+      <div class="sg"><b>信号：</b>守恒条件背后的功能关系 → <b>结论：</b>仅重力/弹力做功时能量只在机械能内部转化，总和不变。</div></div>
+    <div class="problem" style="margin-top:12px">
+      <div><b>契合点评：</b>平抛过程机械能守恒（动能+势能相互转化），命中机械能功能卡；但本题特问“Ek、Ep 随水平位移 x”的图像形状，需由 t=x/v₀ 推导平方关系——属特有信号，命中下方新补卡。</div>
+    </div>
+    <div class="mc" style="border-color:var(--success);background:var(--success-light)"><div class="hd">✨ 新课标新卡 · 平抛动能/势能随水平位移成二次抛物线而非直线<span class="badge-chip b-strong">本次新增</span></div>
+      <div><b>信号：</b>平抛运动中问动能 Ek 或重力势能 Ep 随水平位移 x 的图像形状 → <b>结论：</b>平抛 t=x/v₀，代入 v²=v₀²+(gt)² 与 h=½gt² ⇒ Ek = ½mv₀²+(mg²/2v₀²)x²（随 x 下凹递增、非直线），Ep = Ep₀−(mg²/2v₀²)x²（上凸递减）；而随<b>竖直</b>下落高度则 Ek∝h 线性。<b>警惕：</b>误以为 Ek、Ep 随 x 线性而误选“直线”选项。</div></div>
+  </section>
+
+  <section class="card">
+    <h2><span class="dot"></span>分步讲解</h2>
+    <div class="step"><div class="hd"><i>①</i>用时与位移关系</div><div class="bd">平抛水平匀速：<b>t = x / v₀</b>；竖直自由落体：垂直分速 <b>v<sub>y</sub> = g·t = gx/v₀</b>，下落高度 <b>h = ½gt² = gx²/(2v₀²)</b>。</div></div>
+    <div class="step"><div class="hd"><i>②</i>动能对 x 的函数</div><div class="bd">Ek = ½m(v₀² + v<sub>y</sub>²) = ½mv₀² + ½m(gt)²，代入 t=x/v₀：<b>Ek = ½mv₀² + (mg²/2v₀²)·x²</b>。含 x² 正系数 → 有截距、下凹递增二次曲线 ⇒ <b>B 对</b>。</div></div>
+    <div class="step"><div class="hd"><i>③</i>重力势能对 x 的函数</div><div class="bd">Ep = Ep₀ − mgh = Ep₀ − mg·(gx²/2v₀²) = <b>Ep₀ − (mg²/2v₀²)·x²</b>。x² 负系数 → 有正截距、上凸递减二次曲线 ⇒ <b>D 对</b>。</div></div>
+    <div class="step"><div class="hd"><i>④</i>排除直线</div><div class="bd">Ek–x 不过原点（有初始动能）、Ep–x 递减但呈曲线，均非直线 ⇒ A、C 错。</div></div>
+    <div class="step"><div class="hd"><i>⑤</i>答案</div><div class="bd">正确 <b>B、D</b>。回到沙盘拖 t：两点沿二次曲线移动，机械能总和 E=Ek+Ep 保持恒定（守恒）。</div></div>
+    <div class="note" style="margin-top:8px"><b>易错：</b>把「随水平位移 x」误当「随竖直高度 h」——随 h 才线性，随 x 是平方曲线。这是本题的丢分点。</div>
+  </section>
+
+  <div class="footer">互动课件 · 物理《平抛·Ek–x/Ep–x 图像》 · 纯 SVG + 原生 JS · 由错题本网站生成</div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  var NS="http://www.w3.org/2000/svg", svg=document.getElementById('stage');
+  function $(id){return document.getElementById(id);}
+  function cxy(id,x,y){var C=document.getElementById(id);C.setAttribute('cx',x);C.setAttribute('cy',y);}
+  function setXY(id,x1,y1,x2,y2){var L=document.getElementById(id);L.setAttribute('x1',x1);L.setAttribute('y1',y1);L.setAttribute('x2',x2);L.setAttribute('y2',y2);}
+  var m=1, g=10, Ep0=250;
+  var v0=10, tcur=1.5, tmax=3;
+
+  // 左轨迹图坐标
+  var TX0=40,TY0=300, TW=285, TH=235;   // 轨迹：x 轴在 y=TY0，下落向下(ty增大)
+  var EX0=420,EY0=330, EW=310, EH=255;  // 能量图：x轴 y=EY0, 能量向上(ey减小)
+  var xmax, ymax;
+
+  function render(){
+    $('#rV').textContent=v0.toFixed(1);
+    $('#rT').textContent=tcur.toFixed(2);
+    var x=v0*tcur;
+    var h=0.5*g*tcur*tcur;
+    var Ek=0.5*m*(v0*v0+(g*tcur)*(g*tcur));
+    var Ep=Ep0-m*g*h;
+    var Em=Ek+Ep;
+    $('#rX').textContent=x.toFixed(1);
+    $('#rH').textContent=h.toFixed(1);
+    $('#rEk').textContent=Ek.toFixed(1);
+    $('#rEp').textContent=Ep.toFixed(1);
+    $('#rEm').textContent=Em.toFixed(1);
+    $('#s_v').value=v0; $('#v_v').textContent=v0.toFixed(1);
+    $('#s_t').value=tcur.toFixed(2); $('#v_t').textContent=tcur.toFixed(2);
+
+    xmax=v0*tmax;
+    ymax=0.5*g*tmax*tmax;
+    // 轨迹曲线
+    var pts='';
+    for(var i=0;i<=120;i++){var tt=tmax*i/120;var px=tx(tt);var py=ty(tt);
+      pts+=(pts?' ':'')+px.toFixed(1)+','+py.toFixed(1);}
+    $('#traj').setAttribute('points',pts);
+    // 能量曲线：Ek(x),Ep(x) for x in [0,xmax]
+    var kPts='',ePts='';
+    for(var j=0;j<=120;j++){var xx=xmax*j/120;
+      var ek=0.5*m*v0*v0+(m*g*g/(2*v0*v0))*xx*xx;
+      var ep=Ep0-(m*g*g/(2*v0*v0))*xx*xx;
+      var kpx=EX0+(xx/xmax)*EW; var kpy=ey(ek); 
+      var epx=EX0+(xx/xmax)*EW; var epy2=ey(ep);
+      kPts+=(kPts?' ':'')+kpx.toFixed(1)+','+kpy.toFixed(1);
+      ePts+=(ePts?' ':'')+epx.toFixed(1)+','+epy2.toFixed(1);
+    }
+    $('#curveEk').setAttribute('points',kPts);
+    $('#curveEp').setAttribute('points',ePts);
+    // 当前时刻点
+    var bx=tx(tcur), by=ty(tcur);
+    cxy('ball',bx,by);
+    var mkx=EX0+(x/xmax)*EW;
+    cxy('mkEk',mkx,ey(Ek));
+    cxy('mkEp',mkx,ey(Ep));
+    setXY('vline',mkx,EY0,mkx,EY0-EH);
+    var tag = 'Ek='+Ek.toFixed(0)+'J（下凹↑²）  |  Ep='+Ep.toFixed(0)+'J（上凸↓²）  |  E总='+Em.toFixed(0)+'J 守恒';
+    $('#lTag').textContent=tag;
+  }
+  function tx(tt){ return TX0 + (v0*tt/xmax)*TW; }
+  function ty(tt){ return TY0 + ((0.5*g*tt*tt)/ymax)*TH; }
+  function ey(E){ // 能量图: E 在 [0, EmaxNorm]
+    var Emax=EmaxNorm(); return EY0 - (E/Emax)*EH;
+  }
+  function EmaxNorm(){ var maxk=0.5*m*v0*v0+(m*g*g/(2*v0*v0))*xmax*xmax; return Math.max(Ep0, maxk, 1); }
+
+  function bind(id,lbl,setter,digits){var s=$(id),l=$(lbl);if(!l)return;s.addEventListener('input',function(){var v=parseFloat(s.value);setter(v);l.textContent=(digits===undefined)?String(v):v.toFixed(digits);render();});}
+  bind('s_v','v_v',function(v){v0=v;},1);
+  bind('s_t','v_t',function(v){tcur=v;},2);
+  $('#btnReset').addEventListener('click',function(){v0=10;tcur=1.5;render();});
+
+  document.querySelectorAll('.opt').forEach(function(o){o.addEventListener('click',function(){document.querySelectorAll('.opt').forEach(function(x){x.classList.remove('match','open');});o.classList.add('open');if(o.dataset.ans){o.classList.add('match');}});});
+
+  render();
+})();
+</script>
+<script src="shared/engine.js"></script>
+<script>if(window.SimKit && SimKit.revealSteps) SimKit.revealSteps();</script>
+</body>
+</html>

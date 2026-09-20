@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>足球 · 先匀加速后匀减速（中时速度）</title>
+<link rel="stylesheet" href="shared/style.css">
+<style>
+  .grid-l{stroke:#eef2f7;stroke-width:1}
+  .ax-l{stroke:#cbd5e1;stroke-width:1.4}
+  .tbl{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px}
+  .tbl th,.tbl td{border:1px solid var(--border);padding:6px 8px;text-align:center}
+  .tbl th{background:#f1f5f9;font-size:12px;color:var(--text-light)}
+  .ok-p{color:var(--success);font-weight:800}
+  .no-p{color:var(--danger);font-weight:800}
+  .chk{font-weight:800}
+</style>
+</head>
+<body>
+<div class="cw">
+
+  <header>
+    <div class="crumb">互动课件 · 物理 · 匀变速直线运动 / v–t 图像</div>
+    <h1>足球 · 先匀加速后匀减速（中时速度 / v–t 三角形）</h1>
+    <p class="sub">2026 广东高考 · 单选 · 答案：A　|　a₁ 滑块 + v–t 三角形</p>
+    <a class="back" href="../solution_library.html#courseware">← 返回互动课件</a>
+  </header>
+
+  <!-- 原题 -->
+  <section class="card">
+    <h2><span class="dot"></span>原题（单选）</h2>
+    <div class="problem">
+      <div>足球比赛中，队员从静止沿直线跑动，<span class="key">先匀加速冲刺，后匀减速至接球点停止</span>。全程用时 <b>t = 5 s</b>，位移 <b>20 m</b>。则该队员在<b>某时刻</b>的速度和加速度大小可能是？</div>
+      <div style="margin-top:8px">
+        A. 6 m/s, 2 m/s²　　B. 6 m/s, 1 m/s²　　C. 9 m/s, 2 m/s²　　D. 9 m/s, 1 m/s²
+      </div>
+    </div>
+  </section>
+
+  <!-- 双栏 -->
+  <div class="wrk">
+
+    <div class="sim-panel">
+      <section class="card">
+        <h2><span class="dot"></span>互动沙盘：v–t 三角形（底 5s、面积 20 m）+ 选项约束校验</h2>
+        <div class="stage">
+          <span class="tip">拖 a₁ → 三角形转折位置变化；拖探测点 → 读该时刻 v 与 a，与四选项自动比对</span>
+          <svg id="stage" viewBox="0 0 760 520" width="760" height="520" style="touch-action:none;user-select:none">
+            <defs>
+              <marker id="ma1c" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 z" fill="#3b82f6"/></marker>
+              <marker id="ma2c" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 z" fill="#f59e0b"/></marker>
+            </defs>
+            <g id="grid"></g>
+            <line id="axT" class="ax-l" x1="70" y1="420" x2="470" y2="420"/>
+            <line id="axV" class="ax-l" x1="70" y1="420" x2="70" y2="40"/>
+            <text x="432" y="440" font-size="13" font-weight="700" fill="#475569">t / s</text>
+            <text x="22" y="46" font-size="13" font-weight="700" fill="#475569">v / (m/s)</text>
+
+            <!-- 三角形 -->
+            <line id="segA" stroke="#3b82f6" stroke-width="3.6" marker-end="url(#ma1c)"/>
+            <line id="segD" stroke="#f59e0b" stroke-width="3.6" marker-end="url(#ma2c)"/>
+            <line id="vmline" stroke="#94a3b8" stroke-width="1.6" stroke-dasharray="5 5"/>
+
+            <!-- 探测点(可沿折线拖动) -->
+            <circle id="probe" r="7" fill="#dc2626" stroke="#fff" stroke-width="2.5" style="cursor:grab"/>
+            <line id="probeL" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="3 4"/>
+            <text id="tPeak" font-size="13" font-weight="800" fill="#1e293b"></text>
+            <text id="tProbe" font-size="13" font-weight="800" fill="#dc2626"></text>
+            <text id="tCons" font-size="14" font-weight="800" text-anchor="middle" x="270" y="52"></text>
+          </svg>
+          <div class="legend">
+            <span><i style="background:#3b82f6"></i>匀加速段（加速度 a₁）</span>
+            <span><i style="background:#f59e0b"></i>匀减速段（加速度大小 a₂）</span>
+            <span><i style="background:#dc2626"></i>探测点（读某时刻 v / a）</span>
+            <span><i style="border-top:2px dashed #94a3b8"></i>最大速度 vm=8 m/s（转折处）</span>
+          </div>
+        </div>
+        <p class="note">面积法：位移 = 三角形面积 = ½·vm·t ⇒ vm = 2s/t = 2×20/5 = <b>8 m/s</b>；全程平均速度 v̄ = vm/2 = s/t = 4 m/s。任取时刻速度 ≤ 8 m/s，且 8/a₁ + 8/a₂ = t = 5。</p>
+      </section>
+    </div><!-- /sim-panel -->
+
+    <div class="param-panel">
+      <section class="card">
+        <h2><span class="dot"></span>参数控制台 · 实时读数</h2>
+        <div class="readouts">
+          <div class="ro r1"><div class="k">加速段 a₁</div><div class="v" id="rA1">0.0</div><div class="u">m/s²</div></div>
+          <div class="ro r2"><div class="k">减速段 a₂</div><div class="v" id="rA2">0.0</div><div class="u">m/s²</div></div>
+          <div class="ro rr"><div class="k">转折速度 vm</div><div class="v" id="rVm">8</div><div class="u">m/s</div></div>
+          <div class="ro"><div class="k">加速时长 t₁</div><div class="v" id="rT1">0.0</div><div class="u">s</div></div>
+          <div class="ro"><div class="k">减速时长 t₂</div><div class="v" id="rT2">0.0</div><div class="u">s</div></div>
+          <div class="ro full"><div class="k">约束 1/a₁ + 1/a₂</div><div class="v" id="rCons">0.625</div><div class="u">(须 = 0.625)</div></div>
+          <div class="ro full"><div class="k">探测点 v / a</div><div class="v" id="rProbe">…</div></div>
+        </div>
+
+        <div class="ctrl" style="margin-top:14px">
+          <label>加速段加速度 a₁（m/s²）<b id="v_a1">2.0</b></label>
+          <input id="s_a1" type="range" min="1.7" max="8" step="0.1" value="2.0">
+        </div>
+        <div class="ctrl">
+          <label>探测点时间 t（s，0–5）<b id="v_tq">3.0</b></label>
+          <input id="s_tq" type="range" min="0" max="5" step="0.05" value="3.0">
+        </div>
+        <div class="btns">
+          <button class="btn go" id="btnA1">设 A 项可行（a₁=2）</button>
+          <button class="btn" id="btnReset">重置探测点</button>
+        </div>
+
+        <div class="highlight">
+          <b>四选项自动校验（随 a₁ 实时更新）：</b>
+          <table class="tbl" style="margin-top:6px">
+            <thead><tr><th>选项</th><th>v, a</th><th>速度 ≤ vm? </th><th>a 匹配某段? </th><th>判定</th></tr></thead>
+            <tbody id="optTab"></tbody>
+          </table>
+          <p class="note" style="margin-top:6px">条件：① 某时刻速度 ≤ vm=8；② 该加速度大小恰为加速段 a₁ 或减速段 a₂（即存在时刻落在相应 [斜率] 分段上）。把 a₁ 调到 2 时，A 项被点亮成立（仅此一个可行）。</p>
+        </div>
+      </section>
+    </div><!-- /param-panel -->
+  </div><!-- /wrk -->
+
+  <!-- 记忆卡对碰 -->
+  <section class="card">
+    <h2><span class="dot"></span>记忆卡对碰 · 契合分析</h2>
+    <div class="legend" style="margin-bottom:8px">
+      <span><i style="background:#16a34a"></i>已命中记忆卡</span>
+      <span><i style="background:#f59e0b"></i>新补卡</span>
+    </div>
+    <p style="font-size:13px;line-height:1.8"><b>总评：</b>“先加速后减速到静止”的 v–t 图为三角形，位移=S=½·vm·t，命中多过程拆分(phy0297)、中时速推论(phy0272)、刹车逆向(phy0269) 与 v–t 面积(phy0243)，契合度高（4 张）。缺口在“两段匀变速衔接处速度最大、由面积定 vm 的上限约束”，已补卡一张。</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:10px">
+      <div class="ro r1"><div class="k">⚠ 信号（sig）</div><div class="v" style="font-size:14px;line-height:1.7" id="mapSig">…</div></div>
+      <div class="ro r2"><div class="k">⚙ 功法（conc）</div><div class="v" style="font-size:14px;line-height:1.7" id="mapConc">…</div></div>
+    </div>
+    <table class="tbl">
+      <thead><tr><th>卡</th><th>知识点</th><th>契合</th></tr></thead>
+      <tbody id="mapTab"></tbody>
+    </table>
+  </section>
+
+  <!-- 分步讲解 -->
+  <section class="card">
+    <h2><span class="dot"></span>分步讲解</h2>
+    <div class="step"><div class="hd"><i>①</i>画 v–t 三角形、定 vm</div><div class="bd">静止匀加速、转折、匀减速到静止 ⇒ v–t 图为<b>底边 5 s 的等腰三角形</b>。位移=面积=½·vm·t ⇒ <span class="formula">vm = 2s/t = 2×20/5 = 8 m/s</span></div></div>
+    <div class="step"><div class="hd"><i>②</i>速度上限约束</div><div class="bd">任取时刻速度 ≤ vm ⇒ <b>≤ 8 m/s</b>，故 9 m/s 的选项 <b>C、D 立即排除</b>。</div></div>
+    <div class="step"><div class="hd"><i>③</i>加速度自洽约束</div><div class="bd">由 vm=8 与 t=5：8/a₁ + 8/a₂ = 5 ⇒ <span class="formula">1/a₁ + 1/a₂ = 0.625</span>。逐一代入剩余 A(2)、B(1)：
+      <br>A：设 a₁=2 ⇒ 1/2+1/a₂=0.625 ⇒ 1/a₂=0.125 ⇒ a₂=8（可行：加速 3 s 达 6 m/s、4 s 达 8，再 1 s 减速到 0）。
+      <br>B：a=1 ⇒ 1/1+1/a₂=0.625 ⇒ 1/a₂=−0.375＜0，不可行。</div></div>
+    <div class="step"><div class="hd"><i>④</i>结论</div><div class="bd">只有 <b>A（6 m/s, 2 m/s²）</b> 满足“速度 ≤ vm”与“加速度段自洽”双约束 ⇒ 答案 <b>A</b>。回到沙盘把 a₁ 调到 2，A 项点亮即验证。</div></div>
+  </section>
+
+  <div class="footer">互动课件 · 物理《匀变速直线运动 / v–t 图像》 · 纯 SVG + 原生 JS · 由错题本网站生成</div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  var NS="http://www.w3.org/2000/svg", svg=document.getElementById('stage');
+  function $(id){return document.getElementById(id);}
+  var tTOT=5, S=20, VM=2*S/tTOT; // vm=8
+  var X0=70, PXT=78;   // t->px per s
+  var Y0=420, PYV=36;  // v->px per (m/s)
+  function tx(t){return X0+t*PXT;}
+  function vy(v){return Y0-v*PYV;}
+  var a1=2.0;
+  function t1(){return VM/a1;}
+  function a2v(){return VM/(tTOT-t1());}
+
+  (function(){
+    var g=$('grid');
+    for(var i=0;i<=5;i++){var t=i;var L=document.createElementNS(NS,'line');L.setAttribute('class','grid-l');L.setAttribute('x1',tx(t));L.setAttribute('y1',40);L.setAttribute('x2',tx(t));L.setAttribute('y2',420);g.appendChild(L);}
+    for(var j=0;j<=5;j++){var v=j*2;var L2=document.createElementNS(NS,'line');L2.setAttribute('class','grid-l');L2.setAttribute('x1',70);L2.setAttribute('y1',vy(v));L2.setAttribute('x2',470);L2.setAttribute('y2',vy(v));g.appendChild(L2);}
+  })();
+  function setL(id,x1,y1,x2,y2){var L=$(id);L.setAttribute('x1',x1);L.setAttribute('y1',y1);L.setAttribute('x2',x2);L.setAttribute('y2',y2);}
+
+  var tq=3.0;
+  function vAt(t){
+    if(t<=t1()) return a1*t;
+    else return VM - a2v()*(t-t1());
+  }
+  function aAt(t){ return t<t1()? a1 : a2v(); }
+
+  function render(){
+    function ran(xn,xm,yn,ym,o){var len=Math.hypot(xm-xn,ym-yn);if(len===0)return o;return {x:(xm-xn)/len,y:(ym-yn)/len};}
+    var T1=t1(), A2=a2v();
+    // 三角形
+    setL('segA',tx(0),vy(0),tx(T1),vy(VM));
+    setL('segD',tx(T1),vy(VM),tx(tTOT),vy(0));
+    setL('vmline',tx(T1),vy(VM),tx(T1),vy(0));
+    $('tPeak').textContent='vm='+VM+' m/s';
+    $('tPeak').setAttribute('x',tx(T1)+8);$('tPeak').setAttribute('y',vy(VM)+18);
+    $('tCons').textContent='1/a₁ + 1/a₂ = '+ (1/a1+1/A2).toFixed(3)+'（=0.625 自洽）';
+
+    // 探测点
+    var pv=vAt(tq);
+    $('probe').setAttribute('cx',tx(tq));$('probe').setAttribute('cy',vy(pv));
+    $('probeL').setAttribute('x1',tx(tq));$('probeL').setAttribute('y1',vy(pv));$('probeL').setAttribute('x2',tx(tq));$('probeL').setAttribute('y2',vy(0));
+    $('tProbe').textContent='t='+tq.toFixed(2)+'s, v='+pv.toFixed(1);
+    $('tProbe').setAttribute('x',tx(tq)-40);$('tProbe').setAttribute('y',vy(pv)-10);
+
+    // 读数
+    $('rA1').textContent=a1.toFixed(1); $('rA2').textContent=A2.toFixed(1);
+    $('rVm').textContent=VM; $('rT1').textContent=T1.toFixed(2); $('rT2').textContent=(tTOT-T1).toFixed(2);
+    $('rCons').textContent=(1/a1+1/A2).toFixed(3);
+    $('rProbe').textContent='v='+pv.toFixed(1)+' m/s, a='+aAt(tq).toFixed(1)+' m/s²';
+    $('v_a1').textContent=a1.toFixed(1);
+    $('v_tq').textContent=tq.toFixed(2);
+
+    fillOptions(A2);
+  }
+
+  var OPT=[
+    {k:'A',v:6,a:2},{k:'B',v:6,a:1},{k:'C',v:9,a:2},{k:'D',v:9,a:1}
+  ];
+  function fillOptions(A2){
+    var tab=$('optTab'); tab.innerHTML='';
+    OPT.forEach(function(o){
+      var okV = o.v<=VM+1e-6;
+      var okA = Math.abs(o.a-a1)<0.01 || Math.abs(o.a-A2)<0.01;
+      var pass = okV && okA;
+      var tr=document.createElement('tr');
+      tr.innerHTML='<td><b>'+o.k+'</b></td><td>'+o.v+', '+o.a+'</td>'
+        +'<td class="'+(okV?'ok-p':'no-p')+'">'+(okV?'✓':'✗')+'</td>'
+        +'<td class="'+(okA?'ok-p':'no-p')+'">'+(okA?'✓':'✗')+'</td>'
+        +'<td class="'+(pass?'ok-p':'no-p')+'">'+(pass?'可行':'不可行')+'</td>';
+      tab.appendChild(tr);
+    });
+  }
+
+  $('s_a1').addEventListener('input',function(){a1=parseFloat(this.value);render();});
+  $('s_tq').addEventListener('input',function(){tq=parseFloat(this.value);render();});
+
+  // 探测点点按拖动
+  var dragging=false;
+  svg.addEventListener('pointerdown',function(ev){dragging=true;svg.setPointerCapture&&svg.setPointerCapture(ev.pointerId);}); // pulled whole canvas; instead restrict
+  $('probe').addEventListener('pointerdown',function(ev){ev.stopPropagation();dragging='probe';ev.target.setPointerCapture&&ev.target.setPointerCapture(ev.pointerId);});
+  svg.addEventListener('pointermove',function(ev){
+    if(dragging==='probe'){
+      var rect=svg.getBoundingClientRect();
+      var px=(ev.clientX-rect.left)*(760/svg.clientWidth);
+      var tt=(px-X0)/PXT; tt=Math.min(tTOT,Math.max(0,tt));
+      tq=Math.round(tt*20)/20; $('s_tq').value=tq; render();
+    }
+  });
+  ['pointerup','pointercancel'].forEach(function(e){svg.addEventListener(e,function(){dragging=false;});});
+
+  $('btnReset').addEventListener('click',function(){tq=3.0;$('s_tq').value=3.0;render();});
+  $('btnA1').addEventListener('click',function(){a1=2.0;$('s_a1').value=2.0;render();});
+
+  var cards=[
+    {id:'phy0272',kp:'中时速推论',sig:'匀变速求中间时刻速度、平均速度转瞬时',conc:'v̄=v(t/2)；中间时刻≠位移中点',fit:'强契合'},
+    {id:'phy0269',kp:'刹车逆向思维',sig:'匀减速到停止求位移/时间',conc:'逆向看成初速为0的反向匀加速更简洁',fit:'强契合'},
+    {id:'phy0297',kp:'多过程拆分',sig:'运动含多过程(匀加速/匀减速等)',conc:'拆段独立列式，再用段间关系联立',fit:'强契合'},
+    {id:'phy0243',kp:'v–t 面积',sig:'v–t 图中三角形/梯形面积求位移、比加速度',conc:'匀变速段位移=面积(S=½×t×v_max)；斜率看加速度',fit:'强契合'}
+  ];
+  var newCard=[{id:'new·1',kp:'多过程判转折速度',sig:'由静止匀加速接匀减速到静止，给 t、s 问某时刻 v/a 可能值',conc:'v–t 图是底为 t 的等腰三角形：转折处 v 最大且 s=½·vm·t ⇒ vm=2s/t；某时刻速度≤vm；全程平均=vm/2',fit:'新卡'}];
+  (function(){
+    var tab=$('mapTab');
+    cards.forEach(function(c){var tr=document.createElement('tr');tr.innerHTML='<td>'+c.id+'</td><td>'+c.kp+'</td><td class="ok-p">'+c.fit+'</td>';tab.appendChild(tr);});
+    var tr=document.createElement('tr');tr.innerHTML='<td>new</td><td>'+newCard[0].kp+'</td><td class="no-p">新卡</td>';tab.appendChild(tr);
+    $('mapSig').textContent=newCard[0].sig; $('mapConc').textContent=newCard[0].conc;
+  })();
+
+  render();
+})();
+</script>
+<script src="shared/engine.js"></script>
+<script>if(window.SimKit && SimKit.revealSteps) SimKit.revealSteps();</script>
+</body>
+</html>

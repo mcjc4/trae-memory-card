@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>互动课件 · 刨子 · 斜力与冲量</title>
+<link rel="stylesheet" href="shared/style.css">
+<style>
+  .mc{border:1px solid var(--border);border-radius:10px;background:var(--card);padding:12px 14px;margin-bottom:10px}
+  .mc-head{display:flex;justify-content:space-between;align-items:center;font-weight:800;font-size:13px;margin-bottom:6px;gap:8px;flex-wrap:wrap}
+  .mc-row{font-size:13px;color:var(--text-light);line-height:1.8;margin-bottom:5px}
+  .mc-row b{color:var(--text)}
+  .fit-badge{padding:2px 9px;border-radius:999px;font-size:11px;font-weight:800;white-space:nowrap}
+  .fit-s{background:var(--success-light);color:var(--success)}
+  .fit-m{background:var(--warning-light);color:var(--warning)}
+  .newcard{border:1px dashed var(--primary);background:var(--primary-light);border-radius:10px;padding:12px 14px;margin-top:12px;font-size:13px;line-height:1.8}
+  .newcard b{color:var(--primary-dark)}
+  .grid-l{stroke:#eef2f7;stroke-width:1}
+</style>
+</head>
+<body>
+<div class="cw">
+
+  <header>
+    <div class="crumb">互动课件 · 物理 · 受力分析 / 冲量 (动量定理)</div>
+    <h1>刨子 · 斜向下力 + 匀加速冲量</h1>
+    <p class="sub">力学计算 · 斜向下力的双效应 · 动量定理 / 冲量 · 2020 重庆高考(拟)</p>
+    <a class="back" href="../solution_library.html#courseware">← 返回互动课件</a>
+  </header>
+
+  <!-- 原题 -->
+  <section class="card">
+    <h2><span class="dot"></span>原题（刨子：匀速 + 匀加速冲量）</h2>
+    <div class="problem">
+      <div>传统木工用具“刨子”由刨身与刨刀组成。小明取下刨刀，从<span class="key">水平方向下方以夹角 θ 施加拉力 F</span> 推刨身，在水平木面上<span class="key">匀速直线运动</span>。重力加速度为 g。</div>
+      <div style="margin-top:8px">装好刨刀后，总质量 M，改施推力使刨身从静止以加速度 a <span class="key">匀加速</span>前进距离 L。</div>
+      <div style="margin-top:8px">(1) 匀速运动中，求刨身所受滑动摩擦力的大小；</div>
+      <div>(2) 已知动摩擦因数为 μ，求刨身质量；</div>
+      <div>(3) 改施推力后，求合力对刨身的冲量大小。</div>
+    </div>
+  </section>
+
+  <!-- 双栏 -->
+  <div class="wrk">
+    <div class="sim-panel">
+      <section class="card">
+        <h2><span class="dot"></span>互动沙盘：斜向下力分解 + 匀加速冲量</h2>
+        <div class="stage">
+          <span class="tip">调 θ、F、μ → 观察水平/竖直分量与 f=μN；点“播放”看匀加速冲量</span>
+          <svg id="stage" viewBox="0 0 760 520" width="760" height="520">
+            <defs>
+              <marker id="mF" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#8b5cf6"/></marker>
+              <marker id="mFx" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3b82f6"/></marker>
+              <marker id="mFy" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0ea5e9"/></marker>
+              <marker id="mN" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#10b981"/></marker>
+              <marker id="mf" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#f43f5e"/></marker>
+              <marker id="mG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker>
+            </defs>
+            <g id="grid"></g>
+            <!-- 桌面 -->
+            <line x1="20" y1="400" x2="740" y2="400" stroke="#94a3b8" stroke-width="3"/>
+            <text x="24" y="418" font-size="12" fill="#94a3b8">水平木面</text>
+            <!-- 距离标尺（第3问） -->
+            <line x1="100" y1="470" x2="660" y2="470" stroke="#cbd5e1" stroke-width="2"/>
+            <text x="100" y="488" font-size="11" fill="#64748b">0</text>
+            <text x="648" y="488" font-size="11" fill="#64748b">L</text>
+            <text x="250" y="490" font-size="12" fill="#94a3b8">匀加速滑行距离 L</text>
+            <circle id="pmark" r="6" fill="#dc2626" cx="100" cy="470"/>
+            <text id="plab" x="118" y="462" font-size="12" font-weight="700" fill="#dc2626"/>
+            <!-- 刨身 -->
+            <g id="block">
+              <rect id="blk" x="200" y="352" width="120" height="48" rx="6" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
+              <text x="248" y="380" font-size="13" font-weight="800" fill="#92400e">刨身</text>
+              <!-- 参考箭骨 --><line id="compP" x1="260" y1="0" x2="260" y2="0" stroke="#e2e8f0" stroke-width="1"/>
+            </g>
+            <!-- 力箭 -->
+            <line id="aF"  stroke="#8b5cf6" stroke-width="5" marker-end="url(#mF)"/>
+            <line id="aN"  stroke="#10b981" stroke-width="4.5" marker-end="url(#mN)"/>
+            <line id="aG"  stroke="#64748b" stroke-width="4.5" marker-end="url(#mG)"/>
+            <line id="af"  stroke="#f43f5e" stroke-width="4.5" marker-end="url(#mf)"/>
+            <line id="aFx" stroke="#3b82f6" stroke-width="3.2" marker-end="url(#mFx)"/>
+            <line id="aFy" stroke="#0ea5e9" stroke-width="3.2" marker-end="url(#mFy)"/>
+            <text id="lF" font-size="14" font-weight="800" fill="#7c3aed"/>
+            <text id="lN" font-size="13" font-weight="800" fill="#059669"/>
+            <text id="lG" font-size="13" font-weight="800" fill="#64748b"/>
+            <text id="lf" font-size="13" font-weight="800" fill="#e11d48"/>
+            <text id="lFx" font-size="12" font-weight="700" fill="#2563eb"/>
+            <text id="lFy" font-size="12" font-weight="700" fill="#0284c7"/>
+            <text id="badge2" font-size="16" font-weight="800" text-anchor="middle" x="380" y="40"/>
+          </svg>
+          <div class="legend">
+            <span><i style="background:#8b5cf6"></i>斜向推力 F</span>
+            <span><i style="background:#3b82f6"></i>水平分量 Fx</span>
+            <span><i style="background:#0ea5e9"></i>竖直分量 Fy</span>
+            <span><i style="background:#10b981"></i>正压力 N</span>
+            <span><i style="background:#f43f5e"></i>滑动摩擦力 f</span>
+            <span><i style="background:#64748b"></i>重力 mg</span>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="param-panel">
+      <section class="card">
+        <h2><span class="dot"></span>参数控制台</h2>
+        <div class="readouts" style="grid-template-columns:1fr 1fr">
+          <div class="ro r1"><div class="k">水平分量 F<sub>x</sub></div><div class="v" id="rFx">—<span class="u">N</span></div></div>
+          <div class="ro r2"><div class="k">竖直分量 F<sub>y</sub></div><div class="v" id="rFy">—<span class="u">N</span></div></div>
+          <div class="ro r3"><div class="k">正压力 N</div><div class="v" id="rN">—<span class="u">N</span></div></div>
+          <div class="ro rr"><div class="k">滑动摩擦 f=μN</div><div class="v" id="rf">—<span class="u">N</span></div></div>
+          <div class="ro full"><div class="k">匀速判定（应 |Fx − f|≈0）</div><div class="v" id="rEq" style="font-size:15px">读取中…</div></div>
+        </div>
+
+        <div class="ctrl" style="margin-top:14px">
+          <label>推力 F（N）<b id="v_F">20</b></label>
+          <input id="s_F" type="range" min="4" max="40" step="0.2" value="20">
+        </div>
+        <div class="ctrl">
+          <label>推力与水平面夹角 θ（°，向下）<b id="v_th">30</b></label>
+          <input id="s_th" type="range" min="0" max="60" step="1" value="30">
+        </div>
+        <div class="ctrl">
+          <label>动摩擦因数 μ<b id="v_mu">0.40</b></label>
+          <input id="s_mu" type="range" min="0.1" max="0.8" step="0.01" value="0.40">
+        </div>
+
+        <h2 style="font-size:14px;margin:8px 0 4px"><span class="dot"></span>第(3)问 · 匀加速冲量</h2>
+        <div class="readouts" style="grid-template-columns:1fr 1fr">
+          <div class="ro r1"><div class="k">总质量 M（kg）</div><div class="v" id="rM">—<span class="u">kg</span></div></div>
+          <div class="ro r2"><div class="k">末速 v=√(2aL)</div><div class="v" id="rv">—<span class="u">m/s</span></div></div>
+          <div class="ro full"><div class="k">合冲量 |I| = M·v</div><div class="v" id="rI">—<span class="u">N·s</span></div></div>
+        </div>
+        <div class="ctrl"><label>总质量 M（kg）<b id="v_M">5.0</b></label>
+          <input id="s_M" type="range" min="1" max="20" step="0.1" value="5"></div>
+        <div class="ctrl"><label>加速度 a（m/s²）<b id="v_a">2.0</b></label>
+          <input id="s_a" type="range" min="0.5" max="6" step="0.1" value="2"></div>
+        <div class="ctrl"><label>匀加速位移 L（m）<b id="v_L">4.0</b></label>
+          <input id="s_L" type="range" min="1" max="12" step="0.2" value="4"></div>
+
+        <div class="btns">
+          <button class="btn go" id="btnPlay">播放匀加速 ▶</button>
+          <button class="btn" id="btnReset">复位</button>
+        </div>
+        <p class="note" style="margin-top:8px"><b>要点：</b>斜向下的 F 水平分量驱动运动、竖直分量 <b>F<sub>y</sub>=Fsinθ</b> 增大正压力 N=mg+Fsinθ，从而增大 f=μN。这是“双效应”。</p>
+      </section>
+    </div>
+  </div>
+
+  <!-- 记忆卡对碰 -->
+  <section class="card">
+    <h2><span class="dot"></span>记忆卡对碰 · 契合分析</h2>
+    <div class="mc">
+      <div class="mc-head">phy0106 · 力学·摩擦力·正压力 N 与重力<span class="fit-badge fit-m">中契合</span></div>
+      <div class="mc-row"><b>题干信号：</b>写滑动摩擦力公式</div>
+      <div class="mc-row"><b>结论：</b>N 由受力分析确定，f=μN；警惕不加分析地把 N 换成 mg。</div>
+    </div>
+    <div class="mc">
+      <div class="mc-head">phy0932 · 动量定理·与动能定理对比<span class="fit-badge fit-m">中契合</span></div>
+      <div class="mc-row"><b>题干信号：</b>涉及时间/能选择动量定理还是动能定理</div>
+      <div class="mc-row"><b>结论：</b>动量定理可分解方向单独列式，动能定理须对合运动整体列式。</div>
+    </div>
+    <div class="mc">
+      <div class="mc-head">phy0917 · 动量·动力学三大视角<span class="fit-badge fit-m">中契合</span></div>
+      <div class="mc-row"><b>题干信号：</b>动力学问题需选择瞬时/空间积累/时间积累视角</div>
+      <div class="mc-row"><b>结论：</b>涉及时间用动量定理 I=Δp，冲量对应动量变化、功对应动能变化。</div>
+    </div>
+    <div class="mc">
+      <div class="mc-head">phy0933 · 动量定理·变力求末速度步骤<span class="fit-badge fit-m">中契合</span></div>
+      <div class="mc-row"><b>题干信号：</b>变力作用下求末速度</div>
+      <div class="mc-row"><b>结论：</b>定对象 → 受力分段 → 规定正方向 → 求冲量 → 列 I合=Δp。</div>
+    </div>
+    <div class="highlight">
+      <b>契合分析：</b>(1)(2)问命中滑动摩擦力与正交分解卡（phy0106）；第(3)问“匀加速经位移 L 求合冲量”需先由 v²=2aL 求末速、再由动量定理 I=mv，命中“动量定理与动能定理对比”（phy0932）。缺口在‘斜向下力同时带动水平运动并增大正压力’这一双效应分解。
+    </div>
+    <div class="newcard">
+      <b>✦ 新卡 ① · 受力分析·斜向下作用力在水平接触面上的双效应</b>
+      <br><b>题干信号：</b>外力斜向下压向接触面、物体在该面上运动（水平或斜面）
+      <br><b>结论：</b>正交分解该力：水平分量提供（或抵消）运动动力，竖直分量增大正压力 N，从而增大滑动摩擦力 f=μN；警惕把斜向力整体当单单推动力而漏了竖直分量对 f 的贡献。
+    </div>
+    <div class="newcard" style="margin-top:8px">
+      <b>✦ 新卡 ② · 动量·由运动学搭桥再用动量定理求冲量</b>
+      <br><b>题干信号：</b>匀加速直线运动经位移 L（或已知 v₀/L/a），求合力冲量或平均作用力
+      <br><b>结论：</b>先由 v²=v₀²+2aL 求末速 v，再对全程用动量定理：合冲量 I=F合Δt=mv−mv₀；警惕忘记末速由 L 搭桥、直接无从下手。
+    </div>
+  </section>
+
+  <!-- 分步讲解 -->
+  <section class="card">
+    <h2><span class="dot"></span>分步讲解</h2>
+    <div class="step"><div class="hd"><i>①</i>(1) 匀速 → 水平合力为 0</div><div class="bd">匀速直线运动，水平方向合力为 0。<b>水平分量 F<sub>x</sub>=F·cosθ</b> 与滑动摩擦力平衡，故 <span style="font-family:var(--mono)">f = F·cosθ</span>。</div></div>
+    <div class="step"><div class="hd"><i>②</i>(2) 竖直方向求质量</div><div class="bd">竖直方向：<b>N = mg + F·sinθ</b>（斜向下的竖直分量增大了正压力），且 <b>f = μN</b>。联立：F·cosθ = μ(mg + F·sinθ) ⇒ <span style="font-family:var(--mono)">m = (F·cosθ − μF·sinθ)/(μg)</span>。</div></div>
+    <div class="step"><div class="hd"><i>③</i>(3) 运动学搭桥求末速</div><div class="bd">总质量 M，从静止匀加速经位移 L：<b>v² = 2aL</b> ⇒ v = √(2aL)。这是“时间积累→空间积累”的搭桥。</div></div>
+    <div class="step"><div class="hd"><i>④</i>(3) 动量定理求冲量</div><div class="bd">合力冲量 = 动量的变化量：<b>I = Δp = M·v − 0 = M√(2aL)</b>。点“播放匀加速”观察冲量随位移增长（I=M·v，v∝√s）。</div></div>
+    <div class="note"><b>要点：</b>斜向下力水平分量给动力、竖直分量加压 N 增大 f，切勿把 N 直接当 mg；冲量用动量定理 I=Δp，先用 v²=2aL 求末速搭桥。</div>
+  </section>
+
+  <div class="footer">互动课件 · 物理 · 刨子（斜力双效应 + 冲量） · 纯 SVG + 原生 JS</div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  var svg=document.getElementById('stage');
+  var W=760,H=520,CX=260,CY=376,FSC=4.0,G=9.8;
+  function el(id){return document.getElementById(id);}
+  var NS='http://www.w3.org/2000/svg';
+  (function grid(){
+    var g=el('grid');
+    for(var i=0;i<16;i++){var x=20+i*48;var L=document.createElementNS(NS,'line');L.setAttribute('class','grid-l');L.setAttribute('x1',x);L.setAttribute('y1',8);L.setAttribute('x2',x);L.setAttribute('y2',512);g.appendChild(L);}
+    for(var j=0;j<12;j++){var y=20+j*44;var M=document.createElementNS(NS,'line');M.setAttribute('class','grid-l');M.setAttribute('x1',8);M.setAttribute('y1',y);M.setAttribute('x2',752);M.setAttribute('y2',y);g.appendChild(M);}
+  })();
+  function seg(id,x1,y1,x2,y2){var g=el(id);g.setAttribute('x1',x1);g.setAttribute('y1',y1);g.setAttribute('x2',x2);g.setAttribute('y2',y2);}
+  function nf(v){return Math.round(v*100)/100;}
+
+  var S={F:20,th:30,mu:0.40,M:5,a:2,L:4};
+  var anim=null;
+
+  function compute(){
+    var th=S.th*Math.PI/180;
+    var Fx=S.F*Math.cos(th), Fy=S.F*Math.sin(th);
+    var mu=S.mu, F=S.F;
+    var m=(F*Math.cos(th)-mu*F*Math.sin(th))/(mu*G);
+    var mg=m*G;
+    var N=mg+Fy;
+    var f=mu*N;
+    var v=Math.sqrt(2*S.a*S.L);
+    var I=S.M*v;
+    return {th:th,Fx:Fx,Fy:Fy,m:m,mg:mg,N:N,f:f,v:v,I:I};
+  }
+
+  function render(){
+    var c=compute();
+    var X=CX, Y=CY;
+    seg('aG', X, Y, X, Y+Math.min(c.mg*FSC,180));
+    seg('aN', X, Y+20, X, Y+20-Math.min(c.N*FSC,210));
+    seg('af', X, Y+16, X-c.f*FSC, Y+16);
+    var th=c.th;
+    var fdx=Math.min(c.F*Math.cos(th)*FSC,330), fdy=Math.min(c.F*Math.sin(th)*FSC,130);
+    seg('aF', X+6, Y+6, X+6+fdx, Y+6+fdy);
+    seg('aFx', X, Y+6, X+c.Fx*FSC, Y+6);
+    seg('aFy', X+c.Fx*FSC, Y, X+c.Fx*FSC, Y+Math.min(c.Fy*FSC,130));
+
+    el('lF').setAttribute('x',X+8+fdx);el('lF').setAttribute('y',Y-6+fdy);el('lF').textContent='F';
+    el('lN').setAttribute('x',X+10);el('lN').setAttribute('y',Y+20-Math.min(c.N*FSC,210)-6);el('lN').textContent='N';
+    el('lG').setAttribute('x',X-22);el('lG').setAttribute('y',Y+Math.min(c.mg*FSC,180)-6);el('lG').textContent='mg';
+    el('lf').setAttribute('x',X-12-c.f*FSC-6);el('lf').setAttribute('y',Y+22);el('lf').textContent='f';
+    el('lFx').setAttribute('x',X+c.Fx*FSC+6);el('lFx').setAttribute('y',Y-2);el('lFx').textContent='Fx';
+    el('lFy').setAttribute('x',X+c.Fx*FSC+6);el('lFy').setAttribute('y',Y+Math.min(c.Fy*FSC,130)-6);el('lFy').textContent='Fy';
+
+    el('rFx').innerHTML=nf(c.Fx)+'<span class="u">N</span>';
+    el('rFy').innerHTML=nf(c.Fy)+'<span class="u">N</span>';
+    el('rN').innerHTML=nf(c.N)+'<span class="u">N</span>';
+    el('rf').innerHTML=nf(c.f)+'<span class="u">N</span>';
+    var eq=el('rEq');
+    if(c.m<=0){eq.textContent='此 θ / μ 下无法匀速（需 tanθ &lt; 1/μ）';eq.style.color='var(--danger)';}
+    else if(Math.abs(c.Fx-c.f)<0.15){eq.textContent='✓ 匀速成立：Fx ≈ f';eq.style.color='var(--success)';}
+    else{eq.textContent='非匀速：|Fx − f| = '+nf(Math.abs(c.Fx-c.f))+' N';eq.style.color='var(--accent)';}
+
+    el('rM').innerHTML=(c.m<=0?'n/a':nf(S.M))+'<span class="u">kg</span>';
+    el('rv').innerHTML=nf(c.v)+'<span class="u">m/s</span>';
+    el('rI').innerHTML=nf(c.I)+'<span class="u">N·s</span>';
+    el('badge2').setAttribute('fill','#dc2626');
+    el('badge2').textContent='第(3)问：v = √(2aL) = '+nf(c.v)+' m/s，|I| = M·v = '+nf(c.I)+' N·s';
+
+    el('v_F').textContent=S.F;el('v_th').textContent=S.th;el('v_mu').textContent=S.mu.toFixed(2);
+    el('v_M').textContent=S.M;el('v_a').textContent=S.a;el('v_L').textContent=S.L;
+  }
+
+  function bind(id,key,fn){el(id).addEventListener('input',function(){var v=parseFloat(el(id).value);S[key]=fn?v: v;if(typeof fn==='function')S[key]=fn(v);render();});}
+  el('s_F').addEventListener('input',function(){S.F=+el('s_F').value;render();});
+  el('s_th').addEventListener('input',function(){S.th=+el('s_th').value;render();});
+  el('s_mu').addEventListener('input',function(){S.mu=+el('s_mu').value;render();});
+  el('s_M').addEventListener('input',function(){S.M=+el('s_M').value;render();});
+  el('s_a').addEventListener('input',function(){S.a=+el('s_a').value;render();});
+  el('s_L').addEventListener('input',function(){S.L=+el('s_L').value;render();});
+
+  function stop(){if(anim){cancelAnimationFrame(anim);anim=null;}}
+  el('btnPlay').addEventListener('click',function(){
+    stop();
+    var mark=el('pmark'),t0=performance.now(),dur=2600;
+    (function step(t){
+      var frac=Math.min(1,(t-t0)/dur);
+      var x=100+(660-100)*frac;
+      mark.setAttribute('cx',x);
+      var s=S.L*frac;
+      var v=Math.sqrt(2*S.a*s);
+      var I=S.M*v;
+      el('plab').setAttribute('x',118);el('plab').setAttribute('y',460);
+      el('plab').textContent='s = '+nf(s)+' m → v = '+nf(v)+' m/s';
+      el('rv').innerHTML=nf(v)+'<span class="u">m/s</span>';
+      el('rI').innerHTML=nf(I)+'<span class="u">N·s</span>';
+      if(frac<1){anim=requestAnimationFrame(step);}else{anim=null;el('plab').textContent='匀加速到 L：v='+nf(v)+' m/s，|I|='+nf(I)+' N·s';}
+    })(performance.now());
+  });
+  el('btnReset').addEventListener('click',function(){
+    stop();
+    S.F=20;S.th=30;S.mu=0.4;S.M=5;S.a=2;S.L=4;
+    el('s_F').value=20;el('s_th').value=30;el('s_mu').value=0.4;el('s_M').value=5;el('s_a').value=2;el('s_L').value=4;
+    el('pmark').setAttribute('cx',100);el('plab').textContent='';
+    render();
+  });
+
+  render();
+})();
+</script>
+<script src="shared/engine.js"></script>
+<script>if(window.SimKit && SimKit.revealSteps) SimKit.revealSteps();</script>
+</body>
+</html>

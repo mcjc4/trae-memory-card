@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>C08 · 两人+光滑圆环吊重物 · 缓慢放绳</title>
+<link rel="stylesheet" href="shared/style.css">
+<style>
+  .grid-l{stroke:#eef2f7;stroke-width:1}
+  .ax-l{stroke:#cbd5e1;stroke-width:1.4}
+  .chk{box-sizing:border-box}
+  .btns{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+  .btn{flex:1;min-width:110px;padding:11px 14px;border-radius:8px;cursor:pointer;border:1px solid var(--border);background:#fff;color:var(--text);font-family:var(--font);font-size:14px;font-weight:700;transition:all .15s}
+  .btn:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.08)}
+  .btn.go{background:var(--primary);border-color:var(--primary);color:#fff}
+  .badge-chip{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:800;margin-left:6px}
+  .b-strong{background:var(--success-light);color:var(--success)}
+  .b-mid{background:var(--warning-light);color:var(--warning)}
+  .mc{border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:10px;background:#fafbff}
+  .mc .hd{display:flex;align-items:center;gap:8px;font-weight:800;font-size:14px;flex-wrap:wrap}
+  .mc .sg{font-size:12px;color:var(--text-light);margin-top:5px}
+  .mc .sg b{color:var(--success)}
+  .mc .cc{font-size:12px;color:var(--text-light);margin-top:3px}
+  .mc .cc b{color:var(--danger)}
+</style>
+</head>
+<body>
+<div class="cw">
+
+  <header>
+    <div class="crumb">互动课件 · 物理 · 共点力平衡 · 光滑圆环套绳</div>
+    <h1>两人 + 光滑圆环吊重物 · 缓慢放绳</h1>
+    <p class="sub">力学 · 共点力平衡 / 轻绳活结 · 多选演练 · 拖拽滑块沙盘交互</p>
+    <a class="back" href="../solution_library.html#courseware">← 返回互动课件</a>
+  </header>
+
+  <!-- 原题 -->
+  <section class="card">
+    <h2><span class="dot"></span>原题</h2>
+    <div class="problem">
+      <div><span class="key">甲、乙</span>站在水平地面上，<b>光滑圆环</b>套在一条<span class="key">不可伸长</span>的轻绳上，圆环下端吊一重物。两人<span class="key">缓慢放绳</span>，重物竖直向下移动一小段距离。</div>
+      <div class="note" style="margin-top:6px">设光滑环为“活结”：两段绳张力处处相等；重物下行 → 两段绳相对竖直变陡（绳角 θ 减小）。</div>
+    </div>
+  </section>
+
+  <!-- 双栏：沙盘 + 参数 -->
+  <div class="wrk">
+
+    <div class="sim-panel">
+      <section class="card">
+        <h2><span class="dot"></span>互动沙盘：两段等张力绳 · 地面支持力/摩擦随放绳变化</h2>
+        <div class="stage">
+          <span class="tip">拖动/调整滑块「绳与竖直夹角 θ（放绳程度）」→ 观察张力与地面支持力/摩擦变化</span>
+          <svg id="stage" viewBox="0 0 760 560" width="760" height="560" style="touch-action:none;user-select:none">
+            <defs>
+              <marker id="mT"  markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 z" fill="#dc2626"/></marker>
+              <marker id="mTy" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 z" fill="#16a34a"/></marker>
+              <marker id="mTx" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 z" fill="#3b82f6"/></marker>
+              <marker id="mG"  markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 z" fill="#64748b"/></marker>
+              <marker id="mNn" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 z" fill="#0d9488"/></marker>
+            </defs>
+            <g id="grid"></g>
+            <!-- 地面 -->
+            <rect id="ground" x="0" y="492" width="760" height="30" fill="#e2e8f0"/>
+            <line x1="0" y1="492" x2="760" y2="492" class="ax-l"/>
+            <!-- 甲（左）乙（右）人体 -->
+            <rect id="bodyL" x="120" y="388" width="46" height="104" rx="8" fill="#cbd5e1"/>
+            <rect id="bodyR" x="594" y="388" width="46" height="104" rx="8" fill="#cbd5e1"/>
+            <text id="labL" x="120" y="382" font-size="15" font-weight="800" fill="#1e293b">甲</text>
+            <text id="labR" x="636" y="382" font-size="15" font-weight="800" fill="#1e293b">乙</text>
+            <!-- 手臂 / 手位置（随 θ 移动） -->
+            <circle id="handL" r="7" fill="#0d9488"/>
+            <circle id="handR" r="7" fill="#0d9488"/>
+            <!-- 绳段（张力红色） -->
+            <line id="ropeL" stroke="#dc2626" stroke-width="4" marker-end="url(#mT)"/>
+            <line id="ropeR" stroke="#dc2626" stroke-width="4" marker-end="url(#mT)"/>
+            <!-- 圆环 + 重物 -->
+            <circle id="ring" r="9" fill="#1e293b" stroke="#fff" stroke-width="2"/>
+            <line id="hang" stroke="#94a3b8" stroke-width="3"/>
+            <rect id="wgt" x="360" y="430" width="40" height="34" rx="5" fill="#f59e0b"/>
+            <text id="lwgt" x="380" y="452" font-size="13" font-weight="800" fill="#fff" text-anchor="middle">mg</text>
+            <!-- 甲脚部受力：支持力 N（绿青上）与静摩擦 f（蓝色向） -->
+            <line id="fN" stroke="#0d9488" stroke-width="4" marker-end="url(#mNn)"/>
+            <line id="ff" stroke="#3b82f6" stroke-width="4" marker-end="url(#mTx)"/>
+            <text id="lN" font-size="14" font-weight="800" fill="#0d9488">N甲</text>
+            <text id="lf" font-size="14" font-weight="800" fill="#3b82f6">f甲</text>
+            <!-- 环结点受力：T 分解 -->
+            <text id="lT" font-size="13" font-weight="800" fill="#dc2626">T</text>
+            <!-- 小曲线图（下方）：N(θ) 平线 / f(θ) 增大 -->
+            <g id="chart">
+              <line x1="520" y1="66" x2="740" y2="66" class="ax-l"/>
+              <line x1="520" y1="66" x2="520" y2="230" class="ax-l"/>
+              <text x="628" y="52" font-size="12" font-weight="800" fill="#1e293b" text-anchor="middle">力 — 绳角 θ 图</text>
+              <text x="524" y="222" font-size="10" fill="#64748b">θ小(放绳多) →</text>
+              <text x="738" y="222" font-size="10" fill="#64748b">θ大 →</text>
+              <text x="516" y="78"  font-size="10" fill="#0d9488" text-anchor="end">N</text>
+              <text x="516" y="206" font-size="10" fill="#3b82f6" text-anchor="end">f</text>
+              <polyline id="chartN" fill="none" stroke="#0d9488" stroke-width="2.4"/>
+              <polyline id="chartf" fill="none" stroke="#3b82f6" stroke-width="2.4"/>
+            </g>
+            <text id="cmt" x="20" y="544" font-size="13" font-weight="700"></text>
+          </svg>
+          <div class="legend">
+            <span><i style="background:#dc2626"></i>绳张力 T（两段等大）</span>
+            <span><i style="background:#16a34a"></i>绳竖直分量 Ty=mg/2（恒定）</span>
+            <span><i style="background:#3b82f6"></i>绳水平分量 Tx=静摩擦（随 θ）</span>
+            <span><i style="background:#0d9488"></i>地面支持力 N（恒定）</span>
+          </div>
+        </div>
+      </section>
+    </div><!-- /sim-panel -->
+
+    <div class="param-panel">
+      <section class="card">
+        <h2><span class="dot"></span>参数控制台</h2>
+        <div class="readouts" style="grid-template-columns:1fr 1fr">
+          <div class="ro"><div class="k">绳与竖直夹角 θ</div><div class="v" id="rT">45</div><div class="u">°</div></div>
+          <div class="ro"><div class="k">绳张力 T</div><div class="v" id="rF">70.7</div><div class="u">N</div></div>
+          <div class="ro ro r1"><div class="k">每侧绳竖直分量 Ty</div><div class="v" id="rTy">50.0</div><div class="u">N（恒定）</div></div>
+          <div class="ro ro r2"><div class="k">静摩擦 f 甲（=Tx）</div><div class="v" id="rTx">50.0</div><div class="u">N</div></div>
+          <div class="ro ro r3"><div class="k">地面对甲支持力 N</div><div class="v" id="rN">550</div><div class="u">N（恒定）</div></div>
+          <div class="ro rr"><div class="k">判定</div><div class="v" id="rVer" style="font-size:15px">A 正确</div></div>
+        </div>
+        <div class="ctrl" style="margin-top:14px">
+          <label>放绳程度：绳与竖直夹角 θ（°）<b id="v_th">45</b></label>
+          <input id="s_th" type="range" min="15" max="70" step="1" value="45">
+        </div>
+        <div class="ctrl">
+          <label>重物质量 m（kg）<b id="v_m">10</b></label>
+          <input id="s_m" type="range" min="4" max="20" step="1" value="10">
+        </div>
+        <div class="btns">
+          <button class="btn go" id="btnReset">重置</button>
+        </div>
+        <div class="highlight">
+          <b>互动重点：</b>光滑环套绳 → 两段绳张力相等 T；重物竖直下移(放绳) → θ 减小。<br>
+          (1) 竖直：2T·cosθ = mg ⇒ T = mg/(2cosθ)；每侧竖直分量 <b>Ty = T·cosθ = mg/2 恒定</b> → 地面<b>支持力 N 分不变</b>。<br>
+          (2) 水平：静摩擦源于绳水平分量 <b>Tx = T·sinθ = (mg/2)·tanθ</b>，放绳使 θ 减小 → <b>Tx(摩擦)减小</b>（不“保持不变”、也不“变大”）。
+        </div>
+      </section>
+    </div><!-- /param-panel -->
+  </div><!-- /wrk -->
+
+  <!-- 选项 -->
+  <section class="card opts">
+    <h2><span class="dot"></span>选项判定</h2>
+    <div class="opt" data-ans data-badge="A"><div class="row"><div class="k">A</div><div class="t">地面对甲的支持力保持不变</div></div><div class="reveal"><b>◆ 正确：</b><span class="ok">A 对。</span> 每侧绳竖直分量 Ty = mg/2 恒为常数，与 θ 无关；地面支持力 N 甲 = G甲 + Ty 恒定。</div></div>
+    <div class="opt" data-ans data-badge="B"><div class="row"><div class="k">B</div><div class="t">地面对甲的支持力逐渐变大</div></div><div class="reveal"><b>◆</b><span class="no">B 错。</span> 绳竖直分量恒定 → 支持力不变（并非变大）。</div></div>
+    <div class="opt" data-ans data-badge="C"><div class="row"><div class="k">C</div><div class="t">地面对乙的摩擦力保持不变</div></div><div class="reveal"><b>◆</b><span class="no">C 错。</span> 摩擦 f = (mg/2)·tanθ，放绳使 θ 减小 → f 减小（在变化），并非“保持不变”。</div></div>
+    <div class="opt" data-ans data-badge="D"><div class="row"><div class="k">D</div><div class="t">地面对乙的摩擦力逐渐变大</div></div><div class="reveal"><b>◆</b><span class="no">D 错。</span> 放绳使 θ 减小 → tanθ 减小 → 静摩擦 <b>减小</b>，而非“变大”。</div></div>
+    <p class="note" style="margin-top:8px">故正确为 <b>A</b>：支持力恒不变；绳角减小使摩擦单调减小。</p>
+  </section>
+
+  <!-- 记忆卡对碰·契合分析 -->
+  <section class="card">
+    <h2><span class="dot"></span>记忆卡对碰 · 契合分析</h2>
+    <div class="mc"><div class="hd">phy0080 · 力学·弹力·轻质物体定义<span class="badge-chip b-mid">中契合</span></div>
+      <div class="sg"><b>信号：</b>题目出现“轻绳/轻杆/弹簧/质量不计” → <b>结论：</b>按 m=0 理想模型，内部受力处处相等、合力恒为零。</div></div>
+    <div class="mc"><div class="hd">phy0155 · 受力分析·求内力必须隔离<span class="badge-chip b-mid">中契合</span></div>
+      <div class="sg"><b>信号：</b>求系统内部物体间的力 → <b>结论：</b>求内力必须隔离法，求外力优先整体法「外力整体、内力隔离」。</div></div>
+    <div class="mc"><div class="hd">phy0157 · 受力分析·整体法求地面摩擦<span class="badge-chip b-mid">中契合</span></div>
+      <div class="sg"><b>信号：</b>斜面上物体运动但整体静止，问地面摩擦力 → <b>结论：</b>整体法看水平方向有无外力，可快速判断地面对物体系统的支持力/摩擦。</div></div>
+    <div class="mc"><div class="hd">phy0335 · 牛顿第三定律·平衡力与相互作用力区分<span class="badge-chip b-mid">中契合</span></div>
+      <div class="sg"><b>信号：</b>判断“平衡力 vs 作用力与反作用力” → <b>结论：</b>看作用对象：同体等大反向是平衡力，异体等大反向是相互作用力。</div></div>
+    <div class="problem" style="margin-top:12px">
+      <div><b>契合点评：</b>光滑圆环套绳使两段绳张力处处相等，命中轻质绳卡（phy0080）与整体法求地面支持力/摩擦（phy0157）；关键缺口在于“光滑环节点由两段等大张力的合成分量平衡重物、且随绳角 θ 变化”这一特有模型，见下方新卡。</div>
+    </div>
+    <div class="mc" style="border-color:var(--success);background:var(--success-light)"><div class="hd">✨ 新课标新卡 · 光滑细环套绳的张力等大与节点合成<span class="badge-chip b-strong">本次新增</span></div>
+      <div><b>信号：</b>光滑圆环(或光滑小环)套在不可伸长的绳上、绳两端系于人/两固定点、重物挂于环下 → <b>结论：</b>环光滑→绳中张力处处相等 T；环(节点)受两段等大绳张力+重物拉力，用力的分解（2Tcosθ=mg）列式；绳竖直分量 Ty=mg/2 恒定 → 地面支持力不变，水平分量 Tx=(mg/2)tanθ 随绳角变化决定静摩擦。<b>警惕：</b>把环当“死结”而误以为两段绳张力不等，或忘了绳越放越竖直则 θ 减小、摩擦变小。</div></div>
+  </section>
+
+  <!-- 分步讲解 -->
+  <section class="card">
+    <h2><span class="dot"></span>分步讲解</h2>
+    <div class="step"><div class="hd"><i>①</i>锁死活结本质</div><div class="bd">光滑圆环套绳，绳可在环内自由滑动 → 属<b>活结</b>：绳中张力<b>处处相等 T</b>，且重物使两段绳关于竖直对称。</div></div>
+    <div class="step"><div class="hd"><i>②</i>环结点三力平衡</div><div class="bd">结点受两段绳张力（各 T，与竖直夹角 θ）+ 重物重力 mg，三力平衡：竖直方向 <b>2T·cosθ = mg</b> ⇒ T = mg/(2cosθ)。</div></div>
+    <div class="step"><div class="hd"><i>③</i>地面垂直方向（支持力）</div><div class="bd">每侧绳对各自的人仅提供<b>竖直分量</b> Ty = T·cosθ = mg/2（恒为常数）。地面对甲支持力 N<sub>甲</sub> = G<sub>甲</sub> + Ty，<b>恒定不变 ⇒ A 对</b>；B 错。</div></div>
+    <div class="step"><div class="hd"><i>④</i>地面水平方向（静摩擦）</div><div class="bd">绳的水平分量沿水平指向内，需地面静摩擦来平衡：<b>f = Tx = T·sinθ = (mg/2)·tanθ</b>。放绳→重物下移→两段绳更竖直→θ 减小→tanθ 减小→<b>摩擦减小</b> ⇒ 非“保持不变(错)”、非“变大(错)”，C、D 均错。</div></div>
+    <div class="step"><div class="hd"><i>⑤</i>答案</div><div class="bd">综上，只有 <b>A</b> 正确。回到沙盘调小 θ（更放绳）可见 N 平线不变、f 曲线下降。</div></div>
+    <div class="note" style="margin-top:8px"><b>易错：</b>①把光滑环当死结（两段张力不等）；②把奇数竖直分力当变化、误判支持力/摩擦方向；③混淆绳角随放绳是变“陡”还是变“平”——放绳使绳变陡（θ 减）即摩擦变小。</div>
+  </section>
+
+  <div class="footer">互动课件 · 物理《光滑圆环吊重·缓慢放绳》 · 纯 SVG + 原生 JS · 由错题本网站生成</div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  var NS="http://www.w3.org/2000/svg", svg=document.getElementById('stage');
+  function $(id){return document.getElementById(id);}
+  function setXY(id,x1,y1,x2,y2){var L=document.getElementById(id);L.setAttribute('x1',x1);L.setAttribute('y1',y1);L.setAttribute('x2',x2);L.setAttribute('y2',y2);}
+  function cxy(id,cx,cy){var C=document.getElementById(id);C.setAttribute('cx',cx);C.setAttribute('cy',cy);}
+  function txy(id,x,y){var T=document.getElementById(id);T.setAttribute('x',x);T.setAttribute('y',y);}
+  var D2R=Math.PI/180;
+
+  (function(){ // 网格
+    var g=$('grid');
+    for(var i=0;i<15;i++){var L=document.createElementNS(NS,'line');L.setAttribute('class','grid-l');L.setAttribute('x1',i*55);L.setAttribute('y1',20);L.setAttribute('x2',i*55);L.setAttribute('y2',486);g.appendChild(L);}
+    for(var j=0;j<6;j++){var L2=document.createElementNS(NS,'line');L2.setAttribute('class','grid-l');L2.setAttribute('x1',0);L2.setAttribute('y1',80+j*80);L2.setAttribute('x2',760);L2.setAttribute('y2',80+j*80);g.appendChild(L2);}
+  })();
+
+  var m=10, th=45*D2R, g=10;
+  var CX=380, RINGY=340, LY=220; // 环中心、环高、手高(屏)
+
+  function render(){
+    var mg=m*g;
+    var T=mg/(2*Math.cos(th));
+    var Ty=mg/2, Tx=(mg/2)*Math.tan(th);
+    var M=50, Np=M*g+Ty;
+    var deg=th/D2R;
+    $('#rT').textContent=deg.toFixed(0);
+    $('#rF').textContent=T.toFixed(1);
+    $('#rTy').textContent=Ty.toFixed(1);
+    $('#rTx').textContent=Tx.toFixed(1);
+    $('#rN').textContent=Np.toFixed(0);
+    $('#s_m').value=m; $('#v_m').textContent=m;
+    $('#s_th').value=deg; $('#v_th').textContent=deg.toFixed(0);
+    // 手位置：水平 x = horiz = LY_RINGDROP * tan(th)  → 手 x
+    var hoff= (RINGY-LY)*Math.tan(th); // 手与环水平间距(px)
+    // 环顶点固定，手向内/外移动
+    var hL=CX-hoff, hR=CX+hoff;
+    cxy('handL',hL,LY); cxy('handR',hR,LY);
+    setXY('ropeL',hL,LY,CX,RINGY);
+    setXY('ropeR',hR,LY,CX,RINGY);
+    // 人体随动手（手臂跟随）
+    $('bodyL').setAttribute('x',hL-23);
+    $('bodyR').setAttribute('x',hR-23);
+    txy('labL',hL-8,LY-18);
+    txy('labR',hR-8,LY-18);
+    cxy('ring',CX,RINGY+8);
+    setXY('hang',CX,RINGY+17,CX,430);
+    $('wgt').setAttribute('x',CX-20);
+    // 甲脚部：支持力向上、摩擦向内（指向中心）
+    var fxL=hL, fyL=492;
+    var fScl=1, nScl=1;
+    var fLen=Math.min(90, 30+Tx*2.2);
+    var nLen=Math.min(90, 40+Np*0.05);
+    setXY('fN',fxL,fyL,fxL,fyL-nLen);
+    setXY('ff',fxL,fyL,fxL+ (CX>fxL?1:-1)*fLen,fyL);
+    txy('lN',fxL+10,fyL-nLen-6);
+    txy('lf',fxL+(CX>fxL?1:-1)*fLen/2, fyL+18);
+    // 图表：x∈[15°,70°] → 拟合 N 平线 / f 曲线
+    var x0=520,x1=740,y0=66,y1=230;
+    function X(degv){return x0+(x1-x0)*(degv-15)/(70-15);}
+    // N: 0.5..1.1  用 Np 最小~ (80+50)*1?? 取归一 0.35..0.85
+    var NmaxN=Math.max(Np,1);
+    var fv=Tx; var fmax= (m*g/2)*Math.tan(70*D2R);
+    function Nval(degv){ var t=Math.max(1, degv); return Np; } // constant
+    // draw polylines
+    var chartN='', chartf='';
+    for(var i=0;i<=220;i++){ var d=15+(70-15)*i/220;
+      var nn=Np; var nN=0.55+0.08*(nn/NmaxN);
+      var ffval=(m*g/2)*Math.tan(d*D2R); var nF=0.15+0.72*(ffval/fmax);
+      if(chartN) {chartN+=' ';} chartN+=X(d).toFixed(1)+','+(y1-nN*(y1-y0)).toFixed(1);
+      if(chartf) {chartf+=' ';} chartf+=X(d).toFixed(1)+','+(y1-nF*(y1-y0)).toFixed(1);
+    }
+    $('#chartN').setAttribute('points',chartN);
+    $('#chartf').setAttribute('points',chartf);
+    // 标注当前点（小圆）
+    // 简易判定文本
+    var ver='A 正确（支持力不变）';
+    $('#rVer').textContent=ver;
+    $('#cmt').textContent='每侧绳竖直分量恒为 mg/2='+Ty.toFixed(0)+'N（支持力不变）；放绳使 θ='+deg.toFixed(0)+'°、摩擦='+Tx.toFixed(1)+'N。';
+  }
+
+  function bind(id,lbl,setter){ var s=$(id),l=$(lbl);
+    s.addEventListener('input',function(){ setter(parseFloat(s.value)); l.textContent=s.value; render(); }); }
+  bind('s_th','v_th',function(v){th=v*D2R;});
+  bind('s_m','v_m',function(v){m=v;});
+  $('btnReset').addEventListener('click',function(){th=45*D2R;m=10;render();});
+
+  // 选项判定
+  document.querySelectorAll('.opt').forEach(function(o){
+    o.addEventListener('click',function(){
+      document.querySelectorAll('.opt').forEach(function(x){x.classList.remove('match','open');});
+      o.classList.add('open');
+      if(o.dataset.ans){ o.classList.add('match'); }
+    });
+  });
+
+  render();
+})();
+</script>
+<script src="shared/engine.js"></script>
+<script>if(window.SimKit && SimKit.revealSteps) SimKit.revealSteps();</script>
+</body>
+</html>

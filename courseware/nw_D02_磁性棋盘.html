@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>题D02·竖直磁性棋盘 · 平衡力 vs 相互作用力</title>
+<link rel="stylesheet" href="shared/style.css">
+<style>
+  /* 课件局部补充样式 */
+  .grid-l{stroke:#eef2f7;stroke-width:1}
+  .pairbtn{display:block;width:100%;text-align:left;padding:10px 12px;margin-bottom:8px;border:1.5px solid var(--border);border-radius:10px;background:#fff;font-family:var(--font);font-size:13px;cursor:pointer;transition:all .15s;line-height:1.6}
+  .pairbtn:hover{border-color:var(--primary);transform:translateY(-1px)}
+  .pairbtn .tag{font-size:11px;font-weight:800;padding:1px 8px;border-radius:999px;background:#f1f5f9;color:var(--text-light)}
+  .pairbtn.on-pair{border-color:var(--primary);box-shadow:0 0 0 2px rgba(99,102,241,.15)}
+  body.sel-bal .pb-bal, body.sel-int .pb-int{border-color:var(--primary);box-shadow:0 0 0 2px rgba(99,102,241,.15)}
+  .eqvtag{font-size:11px;font-weight:800;padding:2px 8px;border-radius:999px}
+  .eqvtag.eq{background:var(--success-light);color:var(--success)}
+  .eqvtag.nt{background:var(--danger-light);color:var(--danger)}
+</style>
+</head>
+<body>
+<div class="cw">
+
+  <header>
+    <div class="crumb">互动课件 · 物理 · 相互作用 · 平衡力</div>
+    <h1>竖直磁性棋盘 · 棋子的静摩擦与平衡力</h1>
+    <p class="sub">围棋评析 · 单选 · 受力分析与平衡力 / 相互作用力 · 拖拽沙盘交互</p>
+    <a class="back" href="../solution_library.html#courseware">← 返回互动课件</a>
+  </header>
+
+  <!-- 原题 -->
+  <section class="card">
+    <h2><span class="dot"></span>原题（竖直磁性棋盘 · 单选）</h2>
+    <div class="problem">
+      <div>围棋评析<span class="key">棋盘竖直</span>放置，棋盘布<span class="key">磁石</span>，棋子为小磁铁，静止在竖直磁性棋盘上。下列说法正确的是？</div>
+    </div>
+    <div class="opts">
+      <div class="opt" data-badge="A"><div class="row"><div class="k">A</div><div class="t">棋子对棋盘的摩擦力与棋盘对棋子的摩擦力是平衡力</div></div><div class="reveal"><b>✗ 错误</b>——棋盘对棋子的摩擦力与棋子对棋盘的摩擦力<b>作用在两个物体上</b>（棋盘与棋子），属<span class="no">作用力与反作用力（相互作用力）</span>，只能等大反向，但不能「抵消」，故不是平衡力。</div></div>
+      <div class="opt" data-badge="B"><div class="row"><div class="k">B</div><div class="t">棋子所受重力与棋子所受摩擦力是平衡力</div></div><div class="reveal"><b>◆ 正确答案</b>：<span class="ok">B</span><br>棋子竖直静止：竖直方向仅受<span class="ok">重力 mg</span>（向下）与<span class="ok">静摩擦力 f</span>（向上），二者<b>同体、等大、反向、共线</b>，合力为零，故为一对平衡力。</div></div>
+      <div class="opt" data-badge="C"><div class="row"><div class="k">C</div><div class="t">要使棋子不易滑下，一般用相对光滑的材料作棋盘面</div></div><div class="reveal"><b>✗ 错误</b>——不易滑下应增大最大静摩擦，<span class="no">应选用更粗糙</span>的面料，光滑材料反而易滑落。</div></div>
+      <div class="opt" data-badge="D"><div class="row"><div class="k">D</div><div class="t">棋子不会掉落是因为棋子质量小，重力可忽略</div></div><div class="reveal"><b>✗ 错误</b>——<hx></hx>棋子不掉落是因为竖直方向静摩擦<span class="no">恰好平衡重力</span>（f=mg），与质量大小无关，重力<b>不可忽略</b>。</div></div>
+    </div>
+  </section>
+
+  <!-- 双栏布局 -->
+  <div class="wrk">
+   <div class="sim-panel">
+    <section class="card">
+      <h2><span class="dot"></span>互动沙盘：棋子四力 · 平衡力 vs 相互作用力</h2>
+      <div class="stage">
+        <span class="tip">点下方「力对判定」按钮 → 相关受力在沙盘上高亮并给出分类</span>
+        <svg id="stage" viewBox="0 0 760 520" width="760" height="520" style="touch-action:none;user-select:none">
+          <defs>
+            <marker id="mA" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 z" fill="#3b82f6"/></marker>
+            <marker id="mP" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 z" fill="#8b5cf6"/></marker>
+            <marker id="mO" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 z" fill="#f59e0b"/></marker>
+            <marker id="mG" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 z" fill="#16a34a"/></marker>
+          </defs>
+
+          <!-- 竖直棋盘 -->
+          <rect x="596" y="78" width="40" height="372" fill="#cbd5e1" stroke="#94a3b8" stroke-width="1.6" rx="6"/>
+          <rect x="600" y="86" width="10" height="356" fill="#e2e8f0" opacity="0.8" rx="3"/>
+          <text x="616" y="60" font-size="14" font-weight="700" fill="#64748b" text-anchor="middle">磁性棋盘(竖直)</text>
+
+          <!-- 棋子（小磁铁，吸附在棋盘上） -->
+          <g id="pieceG">
+            <circle id="pc" cx="530" cy="300" r="34" fill="#f8fafc" stroke="#475569" stroke-width="2.4"/>
+            <rect x="506" y="302" width="48" height="12" fill="#e2e8f0" rx="6"/>
+            <text x="530" y="300" font-size="11" font-weight="800" fill="#475569" text-anchor="middle" dy="14">棋·磁铁</text>
+          </g>
+
+          <!-- 引力线：磁力(右→棋盘)、支持力(左) -->
+          <line id="Fmag" stroke="#3b82f6" stroke-width="5" marker-end="url(#mA)" opacity="0.95"/>
+          <text id="lFmag" font-size="14" font-weight="800" fill="#3b82f6">F磁</text>
+          <line id="FN" stroke="#8b5cf6" stroke-width="5" marker-end="url(#mP)" opacity="0.95"/>
+          <text id="lFN" font-size="14" font-weight="800" fill="#8b5cf6">N</text>
+
+          <!-- 竖直重力(下)、静摩擦(上) -->
+          <line id="Fmg" stroke="#f59e0b" stroke-width="5" marker-end="url(#mO)" opacity="0.95"/>
+          <text id="lFmg" font-size="14" font-weight="800" fill="#f59e0b">mg</text>
+          <line id="Ff" stroke="#16a34a" stroke-width="5" marker-end="url(#mG)" opacity="0.95"/>
+          <text id="lFf" font-size="14" font-weight="800" fill="#16a34a">f</text>
+
+          <!-- 中心原点 -->
+          <circle id="cen" r="5" fill="#1e293b"/>
+
+          <!-- 分类徽标 -->
+          <text id="clsBadge" font-size="15" font-weight="800" text-anchor="middle" x="382" y="34"></text>
+        </svg>
+        <div class="legend">
+          <span><i style="background:#3b82f6"></i>磁力 F磁 (棋子→棋盘，水平)</span>
+          <span><i style="background:#8b5cf6"></i>支持力 N (棋盘→棋子，水平)</span>
+          <span><i style="background:#f59e0b"></i>重力 mg (竖直向下)</span>
+          <span><i style="background:#16a34a"></i>静摩擦 f (竖直向上)</span>
+        </div>
+      </div>
+    </section>
+   </div>
+
+   <div class="param-panel">
+    <section class="card">
+      <h2><span class="dot"></span>参数控制台</h2>
+      <div class="readouts">
+        <div class="ro r1"><div class="k">磁力 F磁</div><div class="v" id="rF">8</div><div class="u">N →</div></div>
+        <div class="ro r3"><div class="k">支持力 N = F磁</div><div class="v" id="rN">8</div><div class="u">N ←</div></div>
+        <div class="ro r2"><div class="k">重力 mg</div><div class="v" id="rmg">20</div><div class="u">N ↓</div></div>
+        <div class="ro r1"><div class="k">静摩擦 f = mg</div><div class="v" id="rf">20</div><div class="u">N ↑</div></div>
+        <div class="ro full"><div class="k">水平平衡 F磁 = N</div><div class="v" id="rH" style="font-size:15px">✓</div></div>
+        <div class="ro full"><div class="k">竖直平衡 mg = f</div><div class="v" id="rV" style="font-size:15px">✓</div></div>
+      </div>
+
+      <div class="ctrl" style="margin-top:14px">
+        <label>磁引力大小 F磁（N）<b id="vF">8</b></label>
+        <input id="sF" type="range" min="2" max="16" step="1" value="8">
+      </div>
+      <div class="ctrl">
+        <label>棋子质量 m（kg，g=10）<b id="vm">2.0</b></label>
+        <input id="sm" type="range" min="0.5" max="5" step="0.1" value="2.0">
+      </div>
+    </section>
+
+    <section class="card">
+      <h2><span class="dot"></span>力对判定 · 平衡力还是相互作用力？</h2>
+      <button class="pairbtn pb-bal" id="p1"><span class="tag">答案 ●</span> 重力 mg ↔ 静摩擦 f</button>
+      <button class="pairbtn" id="p2"><span class="tag"></span> 磁力 F磁 ↔ 支持力 N</button>
+      <button class="pairbtn pb-int" id="p3"><span class="tag">选项A ✗</span> 棋子对棋盘的摩擦 ↔ 棋盘对棋子的摩擦</button>
+      <button class="pairbtn" id="p4"><span class="tag"></span> 棋子对棋盘的磁力 ↔ 棋盘对棋子的磁力</button>
+      <div class="highlight">
+        <b>口诀：</b>「同体等大反向 ⇒ 平衡力；异体等大反向 ⇒ 相互作用力。」
+        <br>两对竖直方向的力（重力 mg 与静摩擦 f）都作用在棋子这一个物体上 → 可写进棋子的平衡方程（答案 B）。
+        <br>两物体之间的摩擦力、磁力分别作用在不同物体上 → 只能“等大反向”，不能“抵消”，更不能写进同一平衡方程。
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="readouts" style="grid-template-columns:1fr">
+        <div class="ro full"><div class="k">当前判定</div><div class="v" id="rCls" style="font-size:13px">请点选上面力对</div></div>
+      </div>
+    </section>
+   </div>
+  </div>
+
+  <!-- 记忆卡对碰 -->
+  <section class="card">
+    <h2><span class="dot"></span>记忆卡对碰 · 契合分析</h2>
+    <div class="problem">
+      <div>该题是<b>受力分析 + 平衡力/相互作用力</b>的基础判断题。竖直静止的棋子只考虑「水平两力平衡 + 竖直两力平衡」两个独立方向，不加速度、不加斜面，是牛顿第三定律概念题的标准考法。</div>
+    </div>
+    <div class="readouts" style="grid-template-columns:1fr">
+      <div class="ro full"><div class="k">契合度</div><div class="v" style="color:var(--success)">强契合</div></div>
+    </div>
+    <div style="margin-top:12px">
+      <hx></hx>
+      <div class="problem" style="background:#f6fbf6;border-color:var(--success-light)">
+        <b>◆ 命中卡 1 · phy0335（强契合）</b>　<span class="eqvtag eq">命中</span><br>
+        <b>信号：</b>判断一对力是平衡力还是作用力与反作用力。<br>
+        <b>结论：</b>看作用对象：同体等大反向是平衡力，异体等大反向是相互作用力；警惕相互作用力不同体、永远不能「抵消」、不能写进同一物体的平衡方程。
+      </div>
+      <div class="problem">
+        <b>◆ 命中卡 2 · phy0357（强契合）</b>　<span class="eqvtag eq">命中</span><br>
+        <b>信号：</b>人在加速/匀速斜面上判断支持力与摩擦力（类「作用力」识别）。<br>
+        <b>结论：</b>沿水平竖直建系正交分解：竖直方向由 N−mg 提供，水平方向由 f 提供；把「相互作用力」与「平衡力」分开看。
+      </div>
+      <div class="problem">
+        <b>◆ 命中卡 3 · phy0332（强契合）</b>　<span class="eqvtag eq">命中</span><br>
+        <b>信号：</b>问两物体间相互作用力的大小/方向关系。<br>
+        <b>结论：</b>作用力与反作用力恒等大反向共线，且同质、异体、同生同灭，与物体是否平衡无关。
+      </div>
+      <div class="problem">
+        <b>◆ 命中卡 4 · phy0149（中契合）</b>　<span class="eqvtag nt">辅助</span><br>
+        <b>信号：</b>求约束弹力方向（此处为棋盘支持力 N）。<br>
+        <b>结论：</b>支持力不一定沿杆/垂直于接触面想当然，应结合平衡或加速度方向判定；竖直静止时 N 与 F磁 正好反向共线。
+      </div>
+    </div>
+    <div class="highlight">
+      <b>契合结论：</b>棋子静止竖直：重力 = 静摩擦力（平衡力）、磁力与棋盘压力为相互作用力且等大反向、作用在不同物体。核心判别全部命中『平衡力与相互作用力区分』（phy0335），契合度高，<b>无需新卡</b>。
+    </div>
+  </section>
+
+  <!-- 分步讲解 -->
+  <section class="card">
+    <h2><span class="dot"></span>分步讲解</h2>
+    <div class="step"><div class="hd"><i>①</i>确定研究对象与方向</div><div class="bd">研究对象取<b>棋子</b>一个物体，建立水平 + 竖直两个独立坐标系。竖直静止 → 两个方向合力均为 0。</div></div>
+    <div class="step"><div class="hd"><i>②</i>水平方向</div><div class="bd">棋盘对棋子的磁引力 <b>F磁</b>（指向棋盘）与棋盘对棋子的<b>支持力 N</b>（离开棋盘）等大反向：<span class="formula">F磁 = N ＝> 水平平衡</span>这对力作用在棋子同一物体上，是平衡力。</div></div>
+    <div class="step"><div class="hd"><i>③</i>竖直方向</div><div class="bd">棋子受向下<b>重力 mg</b>与向上<b>静摩擦 f</b>，二力平衡：<span class="formula">f = mg ＝> 竖直平衡</span>这对力同样作用在棋子同一物体上，是一对<b>平衡力</b>（答案 B）。</div></div>
+    <div class="step"><div class="hd"><i>④</i>相互作用力（选项 A 辨析）</div><div class="bd">「棋子对棋盘的摩擦力」与「棋盘对棋子的摩擦力」<b>作用在两个不同物体</b>上，是<b>作用力与反作用力</b>。它们等大反向但永远不能「抵消」，也就不能写进棋子的平衡方程，故<span class="no">不是平衡力</span>（A 错）。</div></div>
+    <div class="step"><div class="hd"><i>⑤</i>易滑落与重力（C、D 辨析）</div><div class="bd">不易滑下应选<b>更粗糙</b>的面料以增大最大静摩擦（C 错）；棋子不掉落是因为静摩擦 f 恰好平衡重力 mg，<b>质量小不能排除重力</b>（D 错）。</div></div>
+    <div class="note" style="margin-top:10px"><b>易错点：</b>把「等大反向」当作「平衡力」是常见误判。判定必须看作用对象：<b>同体 → 平衡力（可抵消、可入同一方程）；异体 → 相互作用力（不能抵消）</b>。可回到上方沙盘点选第 3、4 组力对观察高亮区分。</div>
+  </section>
+
+  <div class="footer">互动课件 · 物理《相互作用 · 平衡力》 · 磁力/支持力/重力/静摩擦四力沙盘 · 边做边记</div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  var NS="http://www.w3.org/2000/svg";
+  var CX=530, CY=302;            // 棋子中心
+  var KF=5.2, KG=3.0;            // 水平力/竖直力 像素刻度(N->px)
+  var Fmag=8, N0=8, m=2.0, g=10;
+  var $=function(id){return document.getElementById(id);};
+  function setL(id,x1,y1,x2,y2){$(id).setAttribute('x1',x1);$(id).setAttribute('y1',y1);$(id).setAttribute('x2',x2);$(id).setAttribute('y2',y2);}
+  function setT(id,x,y,a){var t=$(id);t.setAttribute('x',x);t.setAttribute('y',y);t.setAttribute('text-anchor',a||'start');}
+
+  function render(){
+    var mg=m*g;
+    var lFmag=Fmag*KF, lN=N0*KF, lmg=mg*KG, lf=mg*KG;
+    // 水平：磁力向右，支持力向左
+    setL('Fmag', CX,CY, CX+lFmag, CY);
+    setL('FN',   CX,CY, CX-lN,    CY);
+    // 竖直：重力向下，静摩擦向上
+    setL('Fmg',  CX,CY, CX, CY+lmg);
+    setL('Ff',   CX,CY, CX, CY-lf);
+    // 标签
+    setT('lFmag', CX+lFmag+8, CY-10);
+    setT('lFN',   CX-lN-8,    CY+18);
+    setT('lFmg',  CX+10,      CY+lmg+18);
+    setT('lFf',   CX+10,      CY-lf-8);
+    // 读数
+    $('rF').textContent=Fmag.toFixed(0);
+    $('rN').textContent=N0.toFixed(0);
+    $('rmg').textContent=mg.toFixed(1);
+    $('rf').textContent=mg.toFixed(1);
+    $('rH').textContent=Math.abs(Fmag-N0)<1e-6 ? '✓ F磁 = N' : '✗ 不相等';
+    $('rV').textContent='✓ mg = f';
+  }
+
+  function resetAll(){
+    ['Fmag','FN','Fmg','Ff'].forEach(function(id){$(id).setAttribute('stroke-width',5);$(id).setAttribute('opacity',0.95);});
+    $('lFmag').style.fill='#3b82f6';$('lFN').style.fill='#8b5cf6';
+    $('lFmg').style.fill='#f59e0b';$('lFf').style.fill='#16a34a';
+    $('clsBadge').textContent='';
+  }
+
+  // 力对判定按钮
+  var pairs=[
+    {b:'p1',on:['Fmg','Ff'],c:'平衡力', cls:'eq', txt:'重力 mg 与 静摩擦 f 都作用在【棋子】同一物体上，竖直平衡 mg=f ⇒ 平衡力（答案 B）'},
+    {b:'p2',on:['Fmag','FN'],c:'平衡力', cls:'eq', txt:'磁力 F磁 与 支持力 N 都作用在【棋子】同一物体上，水平平衡 F磁=N ⇒ 平衡力'},
+    {b:'p3',on:['Fmag','FN'],c:'相互作用力', cls:'nt', txt:'棋子对棋盘的摩擦 与 棋盘对棋子的摩擦 作用在【两个物体】上 ⇒ 作用力与反作用力（选项 A 错）'},
+    {b:'p4',on:['Fmag','FN'],c:'相互作用力', cls:'nt', txt:'棋子对棋盘的磁力 与 棋盘对棋子的磁力 作用在【两个物体】上 ⇒ 作用力与反作用力'}
+  ];
+  pairs.forEach(function(p){
+    $(p.b).addEventListener('click', function(){
+      resetAll();
+      var mine=['#3b82f6','#8b5cf6'];
+      p.on.forEach(function(id){$(id).setAttribute('stroke-width',8);$(id).setAttribute('opacity',1);});
+      if(p.c==='平衡力'){ $('lFmg').style.fill='#16a34a';$('lFf').style.fill='#16a34a';
+        $('lFmag').style.fill='#8b5cf6';$('lFN').style.fill='#8b5cf6'; }
+      else { $('lFmg').style.fill='#dc2626';$('lFf').style.fill='#dc2626';
+        $('lFmag').style.fill='#dc2626';$('lFN').style.fill='#dc2626'; }
+      var b=$(p.b);
+      b.style.outline='2px solid var(--primary)';
+      var badge=$('clsBadge');
+      badge.setAttribute('fill', p.c==='平衡力'?'#16a34a':'#dc2626');
+      badge.textContent = p.c==='平衡力' ? '✓ 平衡力（作用于同一物体）' : '✗ 相互作用力（作用于不同物体）';
+      $('rCls').textContent = p.c + '：' + p.txt;
+      // 记录选中力对用于重绘后保持高亮
+      currentPair=p;
+    });
+  });
+  var currentPair=null;
+
+  // 选项判定
+  document.querySelectorAll('.opt').forEach(function(o){
+    o.addEventListener('click', function(){
+      document.querySelectorAll('.opt').forEach(function(x){x.classList.remove('match','open');});
+      o.classList.add('open');
+      if(o.querySelector('.reveal') && o.textContent.indexOf('正确答案')>=0){ o.classList.add('match'); }
+    });
+  });
+
+  $('sF').addEventListener('input', function(){ Fmag=+$('sF').value; N0=Fmag; $('vF').textContent=Fmag; render(); });
+  $('sm').addEventListener('input', function(){ m=+$('sm').value; $('vm').textContent=m.toFixed(1); render(); });
+
+  render();
+})();
+</script>
+<script src="shared/engine.js"></script>
+<script>if(window.SimKit && SimKit.revealSteps) SimKit.revealSteps();</script>
+</body>
+</html>

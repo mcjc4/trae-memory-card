@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>圆柱 · 双挡板 P/Q 动态平衡</title>
+<link rel="stylesheet" href="shared/style.css">
+<style>
+  .grid-l{stroke:#eef2f7;stroke-width:1}
+  .ax-l{stroke:#cbd5e1;stroke-width:1.4}
+  .tbl{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px}
+  .tbl th,.tbl td{border:1px solid var(--border);padding:6px 8px;text-align:center}
+  .tbl th{background:#f1f5f9;font-size:12px;color:var(--text-light)}
+  .ok-p{color:var(--success);font-weight:800}
+  .no-p{color:var(--danger);font-weight:800}
+</style>
+</head>
+<body>
+<div class="cw">
+
+  <header>
+    <div class="crumb">互动课件 · 物理 · 共点力平衡 / 动态平衡力三角形</div>
+    <h1>圆柱 · 双挡板 P/Q 动态平衡（旋转挡板）</h1>
+    <p class="sub">生活小车 · 单选 · 答案：A　|　θ 滑块 + 三力动态三角形</p>
+    <a class="back" href="../solution_library.html#courseware">← 返回互动课件</a>
+  </header>
+
+  <!-- 原题 -->
+  <section class="card">
+    <h2><span class="dot"></span>原题（单选）</h2>
+    <div class="problem">
+      <div>搬运小车简图：<span class="key">光滑匀质圆柱</span>紧靠“L”形挡板，挡板 <b>P</b> 与 <b>Q</b> 垂直。当挡板 Q 与水平方向夹角 <b>θ</b> 从 <b>0°</b> 缓慢增大到 <b>90°</b> 过程中，挡板 P 对圆柱的支持力 <b>FP</b> 与挡板 Q 的支持力 <b>FQ</b> 如何变化？</div>
+      <div style="margin-top:8px">下列说法正确的是？</div>
+    </div>
+  </section>
+
+  <!-- 双栏 -->
+  <div class="wrk">
+
+    <div class="sim-panel">
+      <section class="card">
+        <h2><span class="dot"></span>互动沙盘：三力动态三角形 + FP/FQ 随 θ 曲线</h2>
+        <div class="stage">
+          <span class="tip">拖动 θ 滑块 → 挡板 Q 转动，力三角形实时重算，右侧曲线标出当前 θ</span>
+          <svg id="stage" viewBox="0 0 900 520" width="900" height="520" style="touch-action:none;user-select:none">
+            <defs>
+              <marker id="mFqc" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 z" fill="#16a34a"/></marker>
+              <marker id="mFpc" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 z" fill="#3b82f6"/></marker>
+              <marker id="mGc" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 z" fill="#dc2626"/></marker>
+            </defs>
+            <!-- 左：几何 + 力三角形 -->
+            <g id="gridL"></g>
+            <!-- 挡板 Q -->
+            <line id="plateQ" stroke="#94a3b8" stroke-width="26" stroke-linecap="round"/>
+            <!-- 挡板 P -->
+            <line id="plateP" stroke="#cbd5e1" stroke-width="26" stroke-linecap="round"/>
+            <line id="plateQedge" stroke="#64748b" stroke-width="2"/>
+            <!-- 圆柱 -->
+            <circle id="cyl" r="34" fill="#eef2ff" stroke="#c7d2fe" stroke-width="2"/>
+            <text id="lCyl" font-size="13" font-weight="800" fill="#4338ca">圆柱</text>
+            <!-- 力（从圆心出发）-->
+            <line id="fG" stroke="#dc2626" stroke-width="5" marker-end="url(#mGc)"/>
+            <line id="fFq" stroke="#16a34a" stroke-width="5" marker-end="url(#mFqc)"/>
+            <line id="fFp" stroke="#3b82f6" stroke-width="5" marker-end="url(#mFpc)"/>
+            <line id="parQ" stroke="#16a34a" stroke-width="2" stroke-dasharray="5 5" opacity=".55"/>
+            <line id="parP" stroke="#3b82f6" stroke-width="2" stroke-dasharray="5 5" opacity=".55"/>
+            <circle id="piv" r="5" fill="#1e293b"/>
+            <text id="tQl" font-size="12" font-weight="800" fill="#64748b"></text>
+            <text id="tPl" font-size="12" font-weight="800" fill="#94a3b8"></text>
+
+            <!-- 右：曲线 -->
+            <g id="gridR"></g>
+            <line id="axXc" class="ax-l" x1="470" y1="430" x2="880" y2="430"/>
+            <line id="axYc" class="ax-l" x1="470" y1="430" x2="470" y2="60"/>
+            <text x="850" y="450" font-size="13" font-weight="700" fill="#475569">θ / °</text>
+            <text x="366" y="70" font-size="13" font-weight="700" fill="#475569">力 / N</text>
+            <!-- FP/FQ 曲线 -->
+            <path id="curFP" fill="none"/>
+            <path id="curFQ" fill="none"/>
+            <text id="lblFP" font-size="12" font-weight="800" fill="#3b82f6">FP</text>
+            <text id="lblFQ" font-size="12" font-weight="800" fill="#16a34a">FQ</text>
+            <!-- 当前 θ 标记 -->
+            <line id="vmark" stroke="#1e293b" stroke-width="2" stroke-dasharray="4 5"/>
+            <circle id="pFP" r="6" fill="#3b82f6" stroke="#fff" stroke-width="2"/>
+            <circle id="pFQ" r="6" fill="#16a34a" stroke="#fff" stroke-width="2"/>
+            <text id="txtAns" font-size="16" font-weight="800" text-anchor="middle" x="230" y="36"></text>
+          </svg>
+          <div class="legend">
+            <span><i style="background:#3b82f6"></i>FP = mg·sinθ（挡板 P）</span>
+            <span><i style="background:#16a34a"></i>FQ = mg·cosθ（挡板 Q）</span>
+            <span><i style="background:#dc2626"></i>重力 mg（对角线、与合力等大反向）</span>
+          </div>
+        </div>
+        <p class="note"><b>物理：</b>两挡板互相垂直 ⇒ 支持力 FP⊥FQ，与固定重力 G 构成<b>直角三角形</b>力三角形（G 为斜边）：FP=G·sinθ<b>单调增大</b>、FQ=G·cosθ<b>单调减小</b>。As θ:0°→90°，FP:0→G，FQ:G→0。</p>
+      </section>
+    </div><!-- /sim-panel -->
+
+    <div class="param-panel">
+      <section class="card">
+        <h2><span class="dot"></span>参数控制台 · 实时读数</h2>
+        <div class="readouts">
+          <div class="ro r1"><div class="k">FP（挡板 P）</div><div class="v" id="rFP">0.0</div><div class="u">N</div></div>
+          <div class="ro r2"><div class="k">FQ（挡板 Q）</div><div class="v" id="rFQ">0.0</div><div class="u">N</div></div>
+          <div class="ro rr"><div class="k">重力 mg</div><div class="v" id="rMg">0.0</div><div class="u">N</div></div>
+          <div class="ro"><div class="k">挡板角 θ</div><div class="v" id="rTh">0</div><div class="u">°</div></div>
+          <div class="ro full"><div class="k">FP 变化趋势</div><div class="v" id="rTrenFp">单调增大 ↑</div></div>
+          <div class="ro full"><div class="k">FQ 变化趋势</div><div class="v" id="rTrenFq">单调减小 ↓</div></div>
+        </div>
+
+        <div class="ctrl" style="margin-top:14px">
+          <label>挡板 Q 与水平夹角 θ（°）<b id="v_th">40</b></label>
+          <input id="s_th" type="range" min="0" max="90" step="1" value="40">
+        </div>
+        <div class="ctrl">
+          <label>圆柱质量 m（kg）<b id="v_m">2.0</b></label>
+          <input id="s_m" type="range" min="1" max="5" step="0.1" value="2.0">
+        </div>
+        <div class="btns">
+          <button class="btn go" id="btnPlay">扫描 θ</button>
+          <button class="btn" id="btnReset">重置 θ=0</button>
+        </div>
+        <div class="highlight">
+          <b>判定对照（单选）：</b>
+          <br><span class="ok-p">A ✓　FP 逐渐增大</span>（P 垂直挡板，θ 增大时更多重量由 P 承担）。
+          <br><span class="no-p">B ✗</span> FQ 逐渐<b>减小</b>（非增大）。
+          <br><span class="no-p">C ✗</span> FP 单调增大，<b>非先减后增</b>。
+          <br><span class="no-p">D ✗</span> FQ 单调减小，<b>非先增后减</b>。
+          <br>正确：<b>A</b>。
+        </div>
+      </section>
+    </div><!-- /param-panel -->
+  </div><!-- /wrk -->
+
+  <!-- 记忆卡对碰 -->
+  <section class="card">
+    <h2><span class="dot"></span>记忆卡对碰 · 契合分析</h2>
+    <div class="legend" style="margin-bottom:8px"><span><i style="background:#16a34a"></i>已命中记忆卡</span></div>
+    <div style="font-size:13px;line-height:1.8">
+      <p><b>总评：</b>Q 板缓慢转动属动态平衡，命中「先减后增判断」(phy0192)、「动态平衡识别·缓慢」(phy0188)、「相似三角形法」(phy0195) 与「平衡状态判定」(phy0147)，契合度高（4 张）。本模型因挡板互相垂直，FP/FQ 恰为直角三角形（FP=Gsinθ 增、FQ=Gcosθ 减），曲线单调，无需新卡。</p>
+    </div>
+    <table class="tbl">
+      <thead><tr><th>卡</th><th>知识点</th><th>契合</th></tr></thead>
+      <tbody id="mapTab"></tbody>
+    </table>
+    <div class="note" style="margin-top:8px">要点：<b>缓慢</b>→每瞬平衡（ΣF=0）；力三角形中变力与定方向力垂直时取极值。本例挡板垂直故为直角三角形，FP/FQ 均单调。</div>
+  </section>
+
+  <!-- 分步讲解 -->
+  <section class="card">
+    <h2><span class="dot"></span>分步讲解</h2>
+    <div class="step"><div class="hd"><i>①</i>受力分析</div><div class="bd">圆柱受三力：<b>重力 G=mg</b>（向下）、挡板 P 支持力 <b>FP</b>（垂直于 P）、挡板 Q 支持力 <b>FQ</b>（垂直于 Q）。因 P⊥Q ⇒ <b>FP⊥FQ</b>，三者构成<b>直角三角形</b>力三角形，G 为斜边。</div></div>
+    <div class="step"><div class="hd"><i>②</i>θ 与力三角形几何</div><div class="bd">θ 为 Q 板与水平夹角：θ=0° 时 Q 水平（圆柱压在 Q 上）⇒ FQ=G、FP=0；θ=90° 时 Q 竖直 ⇒ FQ=0、FP=G。由直角三角形关系有：
+      <span class="formula">FQ = G·cosθ，FP = G·sinθ</span></div></div>
+    <div class="step"><div class="hd"><i>③</i>判定变化趋势</div><div class="bd">θ:0°→90° 时 cosθ 减小、sinθ 增大 ⇒ <b>FQ 单调减小（G→0）、FP 单调增大（0→G）</b>。故四个选项中只有 <b>A（FP 逐渐增大）</b> 正确。</div></div>
+    <div class="step"><div class="hd"><i>④</i>易错提醒</div><div class="bd">缓慢转动每一瞬平衡（ΣF=0）；不要把挡板夹角关系搞反——本例挡板垂直，FP/FQ 反向一增一减，均单调，不出现「先减后增」极值。</div></div>
+  </section>
+
+  <div class="footer">互动课件 · 物理《共点力平衡 / 动态平衡力三角形》 · 纯 SVG + 原生 JS · 由错题本网站生成</div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  var NS="http://www.w3.org/2000/svg", svg=document.getElementById('stage');
+  function $(id){return document.getElementById(id);}
+  function setL(id,x1,y1,x2,y2){var L=$(id);L.setAttribute('x1',x1);L.setAttribute('y1',y1);L.setAttribute('x2',x2);L.setAttribute('y2',y2);}
+  var g=10, m=2, th=40; // th in deg
+  var D2R=Math.PI/180;
+
+  /* 左网格 + 右网格 */
+  (function(){
+    var gl=$('gridL');
+    for(var i=0;i<=9;i++){var x=0+i*48;var L=document.createElementNS(NS,'line');L.setAttribute('class','grid-l');L.setAttribute('x1',x);L.setAttribute('y1',0);L.setAttribute('x2',x);L.setAttribute('y2',520);gl.appendChild(L);}
+    for(var j=0;j<=10;j++){var y=0+j*52;var L2=document.createElementNS(NS,'line');L2.setAttribute('class','grid-l');L2.setAttribute('x1',0);L2.setAttribute('y1',y);L2.setAttribute('x2',450);L2.setAttribute('y2',y);gl.appendChild(L2);}
+    var gr=$('gridR');
+    for(var i2=0;i2<=14;i2++){var x2=470+i2*30;var L3=document.createElementNS(NS,'line');L3.setAttribute('class','grid-l');L3.setAttribute('x1',x2);L3.setAttribute('y1',60);L3.setAttribute('x2',x2);L3.setAttribute('y2',500);gr.appendChild(L3);}
+    for(var j2=0;j2<=8;j2++){var y2=430-j2*46;var L4=document.createElementNS(NS,'line');L4.setAttribute('class','grid-l');L4.setAttribute('x1',470);L4.setAttribute('y1',y2);L4.setAttribute('x2',880);L4.setAttribute('y2',y2);gr.appendChild(L4);}
+  })();
+
+  var PIV={x:120,y:360};
+  var SC=7; // px/N
+  var OX=200, OY=250;
+
+  function render(){
+    var G=m*g;
+    var thR=th*D2R;
+    var FP=G*Math.sin(thR), FQ=G*Math.cos(thR);
+    $('rFP').textContent=FP.toFixed(1); $('rFQ').textContent=FQ.toFixed(1);
+    $('rMg').textContent=G.toFixed(1); $('rTh').textContent=th;
+    $('rTrenFp').textContent='单调增大 ↑'; $('rTrenFq').textContent='单调减小 ↓';
+
+    /* 几何：L 挡板绕 PIV 旋转 */
+    // Q 表面方向 (cosθ,sinθ)，P 表面方向 (-sinθ,cosθ)
+    var uQ={x:Math.cos(thR),y:-Math.sin(thR)}; // screen y down flips
+    var uP={x:Math.sin(thR),y:-Math.cos(thR)};
+    var LQ=250, LP=150;
+    setL('plateQ',PIV.x,PIV.y,PIV.x+uQ.x*LQ,PIV.y+uQ.y*LQ);
+    setL('plateP',PIV.x,PIV.y,PIV.x+uP.x*LP,PIV.y+uP.y*LP);
+    setL('plateQedge',PIV.x,PIV.y,PIV.x+uQ.x*LQ,PIV.y+uQ.y*LQ);
+    // 圆柱圆心：沿角平分线方向放置
+    var bis={x:Math.cos(thR)-Math.sin(thR),y:-Math.sin(thR)-Math.cos(thR)};
+    var bm=Math.hypot(bis.x,bis.y)||1; bis.x/=bm;bis.y/=bm;
+    var O={x:PIV.x+bis.x*118, y:PIV.y+bis.y*118};
+    $('cyl').setAttribute('cx',O.x);$('cyl').setAttribute('cy',O.y);
+    $('lCyl').setAttribute('x',O.x-16);$('lCyl').setAttribute('y',O.y+22);
+    $('piv').setAttribute('cx',PIV.x);$('piv').setAttribute('cy',PIV.y);
+
+    /* 力矢量 */
+    var Gv={x:O.x, y:O.y+G*SC};                // G 向下
+    var FQv={x:O.x - FQ*SC*Math.sin(thR), y:O.y - FQ*SC*Math.cos(thR)};
+    var FPv={x:O.x + FP*SC*Math.cos(thR), y:O.y - FP*SC*Math.sin(thR)};
+    var Rs={x:FQv.x+FPv.x-O.x, y:FQv.y+FPv.y-O.y}; // 合力 FQ+FP（应等于 G 位置）
+    setL('fG',O.x,O.y,Gv.x,Gv.y);
+    setL('fFq',O.x,O.y,FQv.x,FQv.y);
+    setL('fFp',O.x,O.y,FPv.x,FPv.y);
+    setL('parQ',FQv.x,FQv.y,Rs.x,Rs.y);
+    setL('parP',FPv.x,FPv.y,Rs.x,Rs.y);
+    $('tQl').setAttribute('x',PIV.x+uQ.x*(LQ+8)-20);$('tQl').setAttribute('y',PIV.y+uQ.y*(LQ+8));$('tQl').textContent='Q';
+    $('tPl').setAttribute('x',PIV.x+uP.x*(LP+8));$('tPl').setAttribute('y',PIV.y+uP.y*(LP+8));$('tPl').textContent='P';
+    $('txtAns').textContent=th+'° → FP增大 / FQ减小';
+
+    /* 右：曲线 */
+    remDraw('curFP'); remDraw('curFQ');
+    drawCurve('curFP',function(a){return G*Math.sin(a*D2R);},'#3b82f6');
+    drawCurve('curFQ',function(a){return G*Math.cos(a*D2R);},'#16a34a');
+    $('lblFP').setAttribute('x',820);$('lblFP').setAttribute('y',cy(G*Math.sin(70*D2R))-6);
+    $('lblFQ').setAttribute('x',700);$('lblFQ').setAttribute('y',cy(G*Math.cos(20*D2R))-8);
+    // 当前点
+    var cxv=cx(th), cPF=cy(FP), cFq=cy(FQ);
+    $('vmark').setAttribute('x1',cxv);$('vmark').setAttribute('y1',60);$('vmark').setAttribute('x2',cxv);$('vmark').setAttribute('y2',430);
+    $('pFP').setAttribute('cx',cxv);$('pFP').setAttribute('cy',cPF);
+    $('pFQ').setAttribute('cx',cxv);$('pFQ').setAttribute('cy',cFq);
+
+    $('v_th').textContent=th;
+  }
+  function remDraw(id){var p=$(id);p.setAttribute('d','');}
+  function cx(a){return 470 + a/90*306;}   // θ to px
+  function cy(F){ var G=m*g; return 430 - F/G*350; } // force to py (normalized to mg)
+  function drawCurve(id,fn,color){
+    var d='';
+    for(var a=0;a<=90;a+=2){ var x=cx(a), y=cy(fn(a)); d+=(a===0?'M':'L')+x.toFixed(1)+','+y.toFixed(1); }
+    $(id).setAttribute('d',d);$(id).setAttribute('stroke',color);$(id).setAttribute('stroke-width','3.4');$(id).setAttribute('fill','none');$(id).setAttribute('stroke-linecap','round');
+  }
+
+  $('s_th').addEventListener('input',function(){stopAnim();th=parseInt(this.value);render();});
+  $('s_m').addEventListener('input',function(){m=parseFloat(this.value);$('v_m').textContent=m.toFixed(1);render();});
+
+  var playing=false, animId=null;
+  function stopAnim(){if(animId){cancelAnimationFrame(animId);animId=null;}playing=false;$('btnPlay').textContent='扫描 θ';}
+  $('btnPlay').addEventListener('click',function(){
+    if(playing){stopAnim();return;}
+    playing=true;$('btnPlay').textContent='暂停';
+    function step(){
+      if(!playing)return;
+      th=th+1.2; if(th>90)th=0; $('s_th').value=th; render(); animId=requestAnimationFrame(step);
+    }
+    animId=requestAnimationFrame(step);
+  });
+  $('btnReset').addEventListener('click',function(){stopAnim();th=0;$('s_th').value=0;render();});
+
+  var cards=[
+    {id:'phy0192',kp:'动态平衡·先减后增判断',sig:'旋转挡板/斜面问某力先减后增',conc:'找变力最小值位置：与不变方向力垂直时最小，前减后增',fit:'强契合'},
+    {id:'phy0188',kp:'动态平衡·识别',sig:'题干含"缓慢/渐渐"',conc:'每瞬平衡（ΣF=0），分析力随参数变化规律',fit:'强契合'},
+    {id:'phy0195',kp:'动态平衡·相似三角形法',sig:'变力沿连线方向',conc:'力三角形与几何三角形相似，列比例由边长变化判力变化',fit:'强契合'},
+    {id:'phy0147',kp:'平衡状态判定',sig:'"缓慢移动/逐渐拉动"',conc:'缓慢属动态平衡，合力为零按平衡处理',fit:'中契合'}
+  ];
+  (function(){
+    var tab=$('mapTab');
+    cards.forEach(function(c){var tr=document.createElement('tr');tr.innerHTML='<td>'+c.id+'</td><td>'+c.kp+'</td><td class="ok-p">'+c.fit+'</td>';tab.appendChild(tr);});
+  })();
+
+  render();
+})();
+</script>
+<script src="shared/engine.js"></script>
+<script>if(window.SimKit && SimKit.revealSteps) SimKit.revealSteps();</script>
+</body>
+</html>

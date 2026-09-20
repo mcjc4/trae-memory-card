@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>互动课件 · 定滑轮斜面动态平衡</title>
+<link rel="stylesheet" href="shared/style.css">
+<style>
+  .mc{border:1px solid var(--border);border-radius:10px;background:var(--card);padding:12px 14px;margin-bottom:10px}
+  .mc-head{display:flex;justify-content:space-between;align-items:center;font-weight:800;font-size:13px;margin-bottom:6px;gap:8px;flex-wrap:wrap}
+  .mc-row{font-size:13px;color:var(--text-light);line-height:1.8;margin-bottom:5px}
+  .mc-row b{color:var(--text)}
+  .fit-badge{padding:2px 9px;border-radius:999px;font-size:11px;font-weight:800;white-space:nowrap}
+  .fit-s{background:var(--success-light);color:var(--success)}
+  .fit-m{background:var(--warning-light);color:var(--warning)}
+  .resultbox{border:1.5px solid var(--success);border-radius:10px;background:var(--success-light);padding:10px 12px;font-size:14px;font-weight:700;color:var(--success);margin-top:10px}
+  .grid-l{stroke:#eef2f7;stroke-width:1}
+</style>
+</head>
+<body>
+<div class="cw">
+
+  <header>
+    <div class="crumb">互动课件 · 物理 · 连接体 / 动态平衡</div>
+    <h1>斜面 M / 悬挂 N · 定滑轮动态平衡</h1>
+    <p class="sub">连接体 · 定滑轮绳约束 · 动态平衡 · 2019 全国Ⅰ卷(多选)·交互沙盘</p>
+    <a class="back" href="../solution_library.html#courseware">← 返回互动课件</a>
+  </header>
+
+  <!-- 原题 -->
+  <section class="card">
+    <h2><span class="dot"></span>原题（选择题 · 多选）</h2>
+    <div class="problem">
+      <div>一根<span class="key">粗糙斜面固定在地面</span>，顶端装有<span class="key">光滑定滑轮</span>。细绳跨过滑轮，一端悬挂物块 N，另一端与斜面上物块 M 相连，系统处于静止。现用<span class="key">水平向左的拉力缓慢拉动 N</span>，直到悬挂 N 的细绳与竖直方向成 <b>45°</b>，M 始终保持静止。</div>
+    </div>
+    <div class="opts" style="margin-top:10px">
+      <div class="opt match"><div class="row"><div class="k">A</div><div class="t">水平拉力的大小可能保持不变</div></div><div class="reveal"></div></div>
+      <div class="opt match"><div class="row"><div class="k">B</div><div class="t">M 所受细绳的拉力大小一定一直增加</div></div><div class="reveal"><b>◆ 正确答案：</b><span class="ok">B</span></div></div>
+      <div class="opt match"><div class="row"><div class="k">C</div><div class="t">M 所受斜面的摩擦力大小一定一直增加</div></div><div class="reveal"></div></div>
+      <div class="opt match"><div class="row"><div class="k">D</div><div class="t">M 所受斜面的摩擦力大小可能先减小后增加</div></div><div class="reveal"><b>◆ 正确答案：</b><span class="ok">D</span></div></div>
+    </div>
+    <div class="resultbox">正确选项：<b>B、D</b> —— 绳张力 T 随 N 拉偏而单调增大(→B)；M 的静摩擦取决于 T 与 Mg·sinα 比较，先减小后增加(→D)。</div>
+  </section>
+
+  <!-- 双栏 -->
+  <div class="wrk">
+    <div class="sim-panel">
+      <section class="card">
+        <h2><span class="dot"></span>互动沙盘：N 结点三力平衡 + M 摩擦切换</h2>
+        <div class="stage">
+          <span class="tip">拖 β 滑块把 N 拉偏到 45°，观察 T 单调增、M 摩擦方向/大小切换，及下方曲线</span>
+          <svg id="stage" viewBox="0 0 760 520" width="760" height="520">
+            <defs>
+              <marker id="mT" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#8b5cf6"/></marker>
+              <marker id="mFh" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#f59e0b"/></marker>
+              <marker id="mGN" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#16a34a"/></marker>
+              <marker id="mf" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#f43f5e"/></marker>
+              <marker id="mMg" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/></marker>
+            </defs>
+            <g id="grid"></g>
+            <text id="badge" x="380" y="34" font-size="16" font-weight="800" text-anchor="middle" fill="#1e293b"/>
+            <!-- 滑轮与绳 -->
+            <circle id="pulley" cx="470" cy="60" r="12" fill="#fff" stroke="#1e293b" stroke-width="2"/>
+            <line id="ropePN" stroke="#8b5cf6" stroke-width="2.5" stroke-dasharray="4 3"/>
+            <line id="ropePM" stroke="#8b5cf6" stroke-width="2.5" stroke-dasharray="4 3"/>
+            <!-- 斜面 -->
+            <line id="plane" stroke="#64748b" stroke-width="4"/>
+            <text id="lAlpha" x="600" y="30" font-size="12" fill="#64748b"/>
+            <!-- M 物块 -->
+            <rect id="blkM" x="500" y="150" width="80" height="30" rx="6" fill="#fef9c3" stroke="#d97706" stroke-width="2"/>
+            <text x="528" y="170" font-size="13" font-weight="800" fill="#92400e">M</text>
+            <!-- M 受力 -->
+            <line id="aMg" stroke="#94a3b8" stroke-width="3"/>
+            <line id="aT_M" stroke="#8b5cf6" stroke-width="3.5" marker-end="url(#mT)"/>
+            <line id="af_M" stroke="#f43f5e" stroke-width="3.5" marker-end="url(#mf)"/>
+            <text id="lfM" font-size="12" font-weight="700" fill="#e11d48"/>
+            <!-- N 物块与结点受力 -->
+            <circle id="blkN" r="13" fill="#e0e7ff" stroke="#4338ca" stroke-width="2"/>
+            <text id="lN" font-size="13" font-weight="800" fill="#3730a3">N</text>
+            <line id="aT_N" stroke="#8b5cf6" stroke-width="4" marker-end="url(#mT)"/>
+            <line id="aF_N" stroke="#f59e0b" stroke-width="4" marker-end="url(#mFh)"/>
+            <line id="aGN" stroke="#16a34a" stroke-width="4" marker-end="url(#mGN)"/>
+            <text id="lT" font-size="13" font-weight="800" fill="#7c3aed"/>
+            <text id="lFh" font-size="13" font-weight="800" fill="#b45309"/>
+            <text id="lGN" font-size="13" font-weight="800" fill="#059669"/>
+            <!-- 摩擦曲线 |
+f
+|(β) -->
+            <g id="fplot"></g>
+            <text x="80" y="512" font-size="11" fill="#64748b">|f| 随 β（β=0→60°）—— 先减后增呈 V 形（若存在反号区间）</text>
+          </svg>
+          <div class="legend">
+            <span><i style="background:#8b5cf6"></i>绳张力 T</span>
+            <span><i style="background:#f59e0b"></i>水平拉力 F</span>
+            <span><i style="background:#16a34a"></i>N 的重力 m<sub>N</sub>g</span>
+            <span><i style="background:#f43f5e"></i>M 的静摩擦 f</span>
+            <span><i style="background:#94a3b8"></i>M 的重力沿斜分量 Mg·sinα</span>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="param-panel">
+      <section class="card">
+        <h2><span class="dot"></span>参数控制台</h2>
+        <div class="readouts">
+          <div class="ro r1"><div class="k">绳与竖直夹角 β</div><div class="v" id="rB">—<span class="u">°</span></div></div>
+          <div class="ro r2"><div class="k">绳张力 T=m<sub>N</sub>g/cosβ</div><div class="v" id="rT">—<span class="u">N</span></div></div>
+          <div class="ro r3"><div class="k">水平拉力 F</div><div class="v" id="rF">—<span class="u">N</span></div></div>
+          <div class="ro r1"><div class="k">Mg·sinα（沿斜向下）</div><div class="v" id="rMg">—<span class="u">N</span></div></div>
+          <div class="ro rr"><div class="k">M 静摩擦 |f|</div><div class="v" id="rf">—<span class="u">N</span></div></div>
+          <div class="ro full"><div class="k">M 摩擦方向</div><div class="v" id="rDir" style="font-size:14px">读取中…</div></div>
+        </div>
+
+        <div class="ctrl" style="margin-top:14px">
+          <label>绳与竖直夹角 β（°）<b id="v_B">0</b></label>
+          <input id="s_B" type="range" min="0" max="60" step="1" value="0">
+        </div>
+        <div class="ctrl">
+          <label>N 质量 m<sub>N</sub>（kg）<b id="v_mN">2.0</b></label>
+          <input id="s_mN" type="range" min="1" max="4" step="0.1" value="2">
+        </div>
+        <div class="ctrl">
+          <label>M 质量（kg）<b id="v_M">4.0</b></label>
+          <input id="s_M" type="range" min="1" max="8" step="0.1" value="4">
+        </div>
+
+        <div class="btns">
+          <button class="btn go" id="btn45">拉到 45°（题目终点）</button>
+          <button class="btn" id="btnZero">回到竖直 β=0</button>
+        </div>
+        <p class="note" style="margin-top:8px"><b>要点：</b>定滑轮绳约束 → 绳中张力处处相等 T；N 结点由 T、m<sub>N</sub>g、F 三力动态平衡，<b>T 随 β 增大而增大</b>；M 受静摩擦先减后增，取决于 T 与 Mg·sinα 的比较。</p>
+      </section>
+    </div>
+  </div>
+
+  <!-- 记忆卡对碰 -->
+  <section class="card">
+    <h2><span class="dot"></span>记忆卡对碰 · 契合分析</h2>
+    <div class="mc">
+      <div class="mc-head">phy0392 · 连接体·斜面+悬挂组合<span class="fit-badge fit-s">强契合</span></div>
+      <div class="mc-row"><b>题干信号：</b>斜面上物体经定滑轮连竖直悬挂物，含摩擦</div>
+      <div class="mc-row"><b>结论：</b>分别隔离列竖直侧和斜面侧（沿斜面 T−μmgcosθ−mgsinθ=ma）方程，联立消 T。警惕摩擦方向与相对运动趋势相反。</div>
+    </div>
+    <div class="mc">
+      <div class="mc-head">phy0009 · 连接体·整体法与隔离法选择<span class="fit-badge fit-s">强契合</span></div>
+      <div class="mc-row"><b>题干信号：</b>连接体求内力（绳拉力等）</div>
+      <div class="mc-row"><b>结论：</b>整体法求共同加速度、再隔离受力少的物体求内力；力不传递，勿主观认为内力等于外力。</div>
+    </div>
+    <div class="mc">
+      <div class="mc-head">phy0202 · 复杂动态平衡·应用案例（双绳旋转）<span class="fit-badge fit-s">强契合</span></div>
+      <div class="mc-row"><b>题干信号：</b>一绳方向固定、另一绳缓慢旋转到特定位置</div>
+      <div class="mc-row"><b>结论：</b>识别定角，辅助圆或拉密定理追踪角变化得力的单调性；警惕初始各力方向要明确。</div>
+    </div>
+    <div class="mc">
+      <div class="mc-head">phy0385 · 连接体·定滑轮绳约束模型<span class="fit-badge fit-s">强契合</span></div>
+      <div class="mc-row"><b>题干信号：</b>绳/定滑轮连接物块与竖直悬挂物</div>
+      <div class="mc-row"><b>结论：</b>两物体相关约束由绳连接，绳张力传递，注意正方向设定。</div>
+    </div>
+    <div class="highlight">
+      <b>契合分析：</b>系统由定滑轮滑绳连接、N 被水平力缓慢拉偏，悬绳张力 T 随偏角增大而增大（M 绳拉力必增 → B 对）；M 受静摩擦先减后增取决于 T 与 Mg·sinα 比较，命中“斜面+悬挂组合”（phy0392）与“双绳旋转动态平衡”（phy0202）。契合度高。
+    </div>
+  </section>
+
+  <!-- 分步讲解 -->
+  <section class="card">
+    <h2><span class="dot"></span>分步讲解</h2>
+    <div class="step"><div class="hd"><i>①</i>N 结点三力平衡 → T 随 β 增大</div><div class="bd">对 N：受 <b>T</b>（沿绳）、<b>m<sub>N</sub>g</b>（竖直向下）、<b>水平拉力 F</b> 三力平衡。竖直分 T·cosβ = m<sub>N</sub>g ⇒ <span style="font-family:var(--mono)">T = m<sub>N</sub>g/cosβ</span>，β↑ → cosβ↓ → <b>T 单调增大</b>（选项 B 对）；水平分 F = m<sub>N</sub>g·tanβ 也增大（故 A 的“可能保持不变”错）。</div></div>
+    <div class="step"><div class="hd"><i>②</i>M 沿斜面的摩擦方向判定</div><div class="bd">绳张力 T 沿斜面向上拉 M，M 重力沿斜分量 <b>Mg·sinα</b> 沿斜向下。比较：若 T &gt; Mg·sinα，M 有上滑趋势，<b>静摩擦沿斜向下</b>，大小 f = T − Mg·sinα；若 T &lt; Mg·sinα，静摩擦沿斜向上，f = Mg·sinα − T。</div></div>
+    <div class="step"><div class="hd"><i>③</i>静摩擦为何“先减后增”</div><div class="bd">T 随 β 单调增大。若初始 T₀ &lt; Mg·sinα（摩擦沿斜向上），则随 β 增大 f 沿斜向上逐渐<b>减小</b>到 0，越过反号点后再<b>增大</b>（方向改为沿斜向下）。故“M 的摩擦力大小<u>可能</u>先减小后增加”（选项 D 对）；只有当全程保持同向时才一直增（所以 C 的“一定一直增加”错）。</div></div>
+    <div class="step"><div class="hd"><i>④</i>组合出答案</div><div class="bd"><b>T 一定一直增加（B 对）</b>；M 的摩擦<b>可能</b>先减后增（D 对）⇒ 正确选项 <b>B、D</b>。</div></div>
+    <div class="note"><b>要点：</b>定滑轮 → 绳张力处处相等；N 结点三力平衡用拉密/力三角形看 T 单调；M 摩擦方向随 T 与 Mg·sinα 的相对大小反号。<b>“可能”</b>二字提示存在反号区间即可，不必保证全程都有。</div>
+  </section>
+
+  <div class="footer">互动课件 · 物理 · 定滑轮斜面动态平衡 · 纯 SVG + 原生 JS</div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  var svg=document.getElementById('stage');
+  var NS='http://www.w3.org/2000/svg';
+  var W=760,H=520;
+  var PUL={x:470,y:60}, NY=390, VO=330, FS=3.2;
+  var ALPHA=37*Math.PI/180, G=10;
+  function el(id){return document.getElementById(id);}
+  (function grid(){
+    var g=el('grid');
+    for(var i=0;i<16;i++){var L=document.createElementNS(NS,'line');L.setAttribute('class','grid-l');L.setAttribute('x1',10+i*50);L.setAttribute('y1',8);L.setAttribute('x2',10+i*50);L.setAttribute('y2',512);g.appendChild(L);}
+    for(var j=0;j<12;j++){var M=document.createElementNS(NS,'line');M.setAttribute('class','grid-l');M.setAttribute('x1',8);M.setAttribute('y1',20+j*44);M.setAttribute('x2',752);M.setAttribute('y2',20+j*44);g.appendChild(M);}
+  })();
+  function seg(id,x1,y1,x2,y2){var g=el(id);g.setAttribute('x1',x1);g.setAttribute('y1',y1);g.setAttribute('x2',x2);g.setAttribute('y2',y2);}
+  function nf(v){return Math.round(v*100)/100;}
+
+  var S={B:0,mN:2,M:4};
+
+  function compute(){
+    var b=S.B*Math.PI/180;
+    var T=S.mN*G/Math.cos(b);
+    var Fh=S.mN*G*Math.tan(b);
+    var down=Mgsin();
+    var df=T-down;
+    var f=Math.abs(df);
+    var dir = f<0.05?'(恰好为0)':(df>0?'沿斜向下':'沿斜向上');
+    return {b:b,T:T,Fh:Fh,down:down,f:f,df:df,dir:dir};
+  }
+  function Mgsin(){return S.M*G*Math.sin(ALPHA);}
+
+  function render(){
+    var c=compute();
+    var bS=c.b*Math.PI/180;
+    var nx=PUL.x-VO*Math.tan(bS);
+    // 斜面线
+    var P1x=150,P1y=430;var P2x=665,P2y=430-(P2x-P1x)*Math.tan(ALPHA);
+    seg('plane',P1x,P1y,P2x,P2y);
+    el('lAlpha').setAttribute('x',P2x-190);el('lAlpha').setAttribute('y',P2y+18);
+    el('lAlpha').textContent='α='+Math.round(ALPHA*180/Math.PI)+'°';
+    // 绳
+    seg('ropePN',PUL.x,PUL.y,nx,NY);
+    seg('ropePM',PUL.x,PUL.y,565,140);
+    // N
+    el('blkN').setAttribute('cx',nx);el('blkN').setAttribute('cy',NY);
+    el('lN').setAttribute('x',nx-6);el('lN').setAttribute('y',NY+4);
+    // N 受力: T 沿绳(指向滑轮), mNg 下, F 左
+    var uvx=PUL.x-nx,uvy=PUL.y-NY,ul=Math.hypot(uvx,uvy);uvx/=ul;uvy/=ul;
+    var Te=c.T*FS, Fe=c.Fh*FS, Ge=S.mN*G*FS;
+    seg('aT_N',nx,NY,nx+uvx*Te,NY+uvy*Te);
+    seg('aGN',nx,NY,nx,NY+Ge);
+    seg('aF_N',nx,NY,nx-Fe,NY);
+    el('lT').setAttribute('x',nx+uvx*Te+6);el('lT').setAttribute('y',NY+uvy*Te-4);el('lT').textContent='T';
+    el('lGN').setAttribute('x',nx+6);el('lGN').setAttribute('y',NY+Ge-4);el('lGN').textContent='mₙg';
+    el('lFh').setAttribute('x',nx-Fe-10);el('lFh').setAttribute('y',NY+12);el('lFh').textContent='F';
+    // M 受力
+    var md=2*(P2x-P1x); // 视觉压缩单位
+    var ux=Math.cos(ALPHA),uy=-Math.sin(ALPHA); // 沿斜向上方向(屏幕 y 向下)
+    var Mcx=520,Mcy=430-(520-P1x)*Math.tan(ALPHA);
+    el('blkM').setAttribute('x',Mcx-40);el('blkM').setAttribute('y',Mcy-18);
+    var l1=el('lN'); // no
+    // Mg 沿斜(向下): 方向 -u
+    seg('aMg',Mcx,Mcy,Mcx-ux*c.down*FS*0.8,Mcy-uy*c.down*FS*0.8);
+    // T 沿斜向上(到滑轮方向): 沿 u
+    seg('aT_M',Mcx,Mcy,Mcx+ux*Math.min(c.T*FS,120),Mcy+uy*Math.min(c.T*FS,120));
+    // f 方向
+    var fx=ux, fy=uy; if(c.df<0){fx=-ux;fy=-uy;}
+    seg('af_M',Mcx,Mcy,Mcx+fx*Math.min(c.f*FS+8,110),Mcy+fy*Math.min(c.f*FS+8,110));
+    el('lfM').setAttribute('x',Mcx+fx*(Math.min(c.f*FS+8,110))+6);el('lfM').setAttribute('y',Mcy+fy*(Math.min(c.f*FS+8,110))-4);el('lfM').textContent='f';
+
+    // 读数
+    el('rB').innerHTML=S.B+'<span class="u">°</span>';
+    el('rT').innerHTML=nf(c.T)+'<span class="u">N</span>';
+    el('rF').innerHTML=nf(c.Fh)+'<span class="u">N</span>';
+    el('rMg').innerHTML=nf(c.down)+'<span class="u">N</span>';
+    el('rf').innerHTML=nf(c.f)+'<span class="u">N</span>';
+    var rd=el('rDir');rd.textContent=c.dir;
+    rd.style.color = c.df>0.05?'var(--danger)':(c.df<-0.05?'var(--primary)':'var(--text-light)');
+    el('badge').textContent='T 单调增 → B ✓　| 静摩擦先减后增 → D ✓';
+    el('v_B').textContent=S.B;el('v_mN').textContent=S.mN.toFixed(1);el('v_M').textContent=S.M.toFixed(1);
+
+    // 摩擦曲线 |f|(β)
+    renderFPlot();
+  }
+
+  function renderFPlot(){
+    var gp=el('fplot'); while(gp.firstChild)gp.removeChild(gp.firstChild);
+    var x0=200,x1=700,bmax=60,ymax=Math.max(40,Mgsin()+2);
+    var X0=200,Y0=492;var X1=700;var Y1=380;
+    function bx(b){return X0+(x1-x0)*(b/bmax);}
+    function by(f){return Y1+(Y0-Y1)*(f/ymax);}
+    // axes
+    var ax=document.createElementNS(NS,'line');ax.setAttribute('x1',X0-12);ax.setAttribute('y1',Y0);ax.setAttribute('x2',X1+6);ax.setAttribute('y2',Y0);ax.setAttribute('stroke','#cbd5e1');gp.appendChild(ax);
+    var ay=document.createElementNS(NS,'line');ay.setAttribute('x1',X0);ay.setAttribute('y1',Y0+10);ay.setAttribute('x2',X0);ay.setAttribute('y2',Y1-8);ay.setAttribute('stroke','#cbd5e1');gp.appendChild(ay);
+    // curve
+    var prev=null;
+    for(var deg=0;deg<=bmax;deg+=1){
+      var rad=deg*Math.PI/180;
+      var T=S.mN*G/Math.cos(rad), dwn=Mgsin();
+      var f=Math.abs(T-dwn);
+      var px=bx(deg),py=by(f);
+      if(prev){var L=document.createElementNS(NS,'line');L.setAttribute('x1',prev.x);L.setAttribute('y1',prev.y);L.setAttribute('x2',px);L.setAttribute('y2',py);L.setAttribute('stroke','#f43f5e');L.setAttribute('stroke-width',2);gp.appendChild(L);}
+      prev={x:px,y:py};
+    }
+    // current point
+    var t=S.B, fcur=Math.abs(S.mN*G/Math.cos(t*Math.PI/180)-Mgsin());
+    var c=document.createElementNS(NS,'circle');c.setAttribute('cx',bx(S.B));c.setAttribute('cy',by(fcur));c.setAttribute('r',5);c.setAttribute('fill','#f43f5e');c.setAttribute('stroke','#fff');c.setAttribute('stroke-width',2);gp.appendChild(c);
+  }
+
+  el('s_B').addEventListener('input',function(){S.B=+el('s_B').value;render();});
+  el('s_mN').addEventListener('input',function(){S.mN=+el('s_mN').value;render();});
+  el('s_M').addEventListener('input',function(){S.M=+el('s_M').value;render();});
+  el('btn45').addEventListener('click',function(){S.B=45;el('s_B').value=45;render();});
+  el('btnZero').addEventListener('click',function(){S.B=0;el('s_B').value=0;render();});
+
+  render();
+})();
+</script>
+<script src="shared/engine.js"></script>
+<script>if(window.SimKit && SimKit.revealSteps) SimKit.revealSteps();</script>
+</body>
+</html>

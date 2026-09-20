@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>互动课件 · 滑块碰撞 · 动量守恒与冲量</title>
+<link rel="stylesheet" href="shared/style.css">
+<style>
+  .mc{border:1px solid var(--border);border-radius:10px;background:var(--card);padding:12px 14px;margin-bottom:10px}
+  .mc-head{display:flex;justify-content:space-between;align-items:center;font-weight:800;font-size:13px;margin-bottom:6px;gap:8px;flex-wrap:wrap}
+  .mc-row{font-size:13px;color:var(--text-light);line-height:1.8;margin-bottom:5px}
+  .mc-row b{color:var(--text)}
+  .fit-badge{padding:2px 9px;border-radius:999px;font-size:11px;font-weight:800;white-space:nowrap}
+  .fit-s{background:var(--success-light);color:var(--success)}
+  .fit-m{background:var(--warning-light);color:var(--warning)}
+  .resultbox{border:1.5px solid var(--success);border-radius:10px;background:var(--success-light);padding:10px 12px;font-size:14px;font-weight:700;color:var(--success);margin-top:10px}
+  .grid-l{stroke:#eef2f7;stroke-width:1}
+</style>
+</head>
+<body>
+<div class="cw">
+
+  <header>
+    <div class="crumb">互动课件 · 物理 · 动量 / 碰撞</div>
+    <h1>滑块碰撞 · 动量守恒与冲量</h1>
+    <p class="sub">动量守恒 · 完全非弹性碰撞 · 动量定理 · 平均作用力 · 2023 广东(选非)</p>
+    <a class="back" href="../solution_library.html#courseware">← 返回互动课件</a>
+  </header>
+
+  <!-- 原题 -->
+  <section class="card">
+    <h2><span class="dot"></span>原题（选择题 · 多选 · 选不正确）</h2>
+    <div class="problem">
+      <div>设计电动窗帘简化模型：<b>多个质量均为 1kg</b> 的滑块在光滑水平滑轨上滑动，忽略阻力。<span class="key">电机对滑块 1 施加水平向右恒力</span>，推动滑块 1 以 <b>0.40 m/s</b> 与静止滑块 2 碰撞，碰撞时间 <b>0.04 s</b>，碰后两滑块共同速度 <b>0.22 m/s</b>。</div>
+    </div>
+    <div class="opts" style="margin-top:10px">
+      <div class="opt match"><div class="row"><div class="k">A</div><div class="t">该过程动量守恒</div></div><div class="reveal"><b>✓ 判断：</b><span class="ok">对</span>（碰撞瞬间内力远大于外力）</div></div>
+      <div class="opt match"><div class="row"><div class="k">B</div><div class="t">滑块 1 受到合外力的冲量大小为 0.18 N·s</div></div><div class="reveal"><b>✓ 判断：</b><span class="ok">对</span>（|Δp₁| = m|v−v₁|）</div></div>
+      <div class="opt match"><div class="row"><div class="k">C</div><div class="t">滑块 2 受到合外力的冲量大小为 0.40 N·s</div></div><div class="reveal"><b>✗ 判断：</b><span class="no">错</span>（|Δp₂| = m·v = 0.22 N·s，非 0.40）</div></div>
+      <div class="opt match"><div class="row"><div class="k">D</div><div class="t">滑块 2 受到滑块 1 的平均作用力大小为 5.5 N</div></div><div class="reveal"><b>✓ 判断：</b><span class="ok">对</span>（F̄ = |Δp₂|/Δt = 0.22/0.04 = 5.5 N）</div></div>
+    </div>
+    <div class="resultbox">“选不正确的” → 答案 <b>C</b>。A、B、D 正确，仅 C 把滑块 2 冲量误写成 0.40 N·s。</div>
+  </section>
+
+  <!-- 双栏 -->
+  <div class="wrk">
+    <div class="sim-panel">
+      <section class="card">
+        <h2><span class="dot"></span>互动沙盘：碰撞动画 + 冲量柱图</h2>
+        <div class="stage">
+          <span class="tip">点“播放碰撞”看两滑块共速；柱图实时显示 Δp₁、Δp₂ 与平均力</span>
+          <svg id="stage" viewBox="0 0 760 520" width="760" height="520">
+            <defs>
+              <marker id="mA" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3b82f6"/></marker>
+            </defs>
+            <g id="grid"></g>
+            <!-- 滑轨 -->
+            <line x1="70" y1="300" x2="700" y2="300" stroke="#94a3b8" stroke-width="4"/>
+            <text x="74" y="320" font-size="12" fill="#94a3b8">光滑水平滑轨（忽略阻力）</text>
+            <!-- 相撞前的速度箭头 -->
+            <line id="v1arrow" stroke="#3b82f6" stroke-width="3.5" marker-end="url(#mA)"/>
+            <text id="v1lab" font-size="13" font-weight="800" fill="#2563eb"/>
+            <!-- 滑块1/2 -->
+            <rect id="m1" width="46" height="34" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
+            <text id="m1lab" font-size="12" font-weight="800" fill="#1e3a8a">1</text>
+            <rect id="m2" width="46" height="34" rx="6" fill="#fde68a" stroke="#d97706" stroke-width="2"/>
+            <text id="m2lab" font-size="12" font-weight="800" fill="#92400e">2</text>
+            <!-- 冲量柱图 -->
+            <line x1="180" y1="472" x2="700" y2="472" stroke="#cbd5e1" stroke-width="2"/>
+            <line x1="180" y1="470" x2="180" y2="360" stroke="#cbd5e1" stroke-width="2"/>
+            <rect id="bar1" x="230" y="470" width="44" height="0" fill="#3b82f6"/>
+            <rect id="bar2" x="320" y="470" width="44" height="0" fill="#f59e0b"/>
+            <text id="lbar1" x="236" y="440" font-size="13" font-weight="800" fill="#2563eb"/>
+            <text id="lbar2" x="326" y="440" font-size="13" font-weight="800" fill="#b45309"/>
+            <text x="230" y="490" font-size="12" fill="#64748b">|Δp₁|（滑块1）</text>
+            <text x="320" y="490" font-size="12" fill="#64748b">|Δp₂|（滑块2）</text>
+          </svg>
+          <div class="legend">
+            <span><i style="background:#3b82f6"></i>滑块1</span>
+            <span><i style="background:#f59e0b"></i>滑块2</span>
+            <span><i style="background:#3b82f6"></i>|Δp₁|=m|v−v₁|</span>
+            <span><i style="background:#f59e0b"></i>|Δp₂|=m·v</span>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="param-panel">
+      <section class="card">
+        <h2><span class="dot"></span>参数控制台</h2>
+        <div class="readouts">
+          <div class="ro r1"><div class="k">滑块1初速 v₁</div><div class="v" id="rv1">—<span class="u">m/s</span></div></div>
+          <div class="ro r2"><div class="k">共速 v</div><div class="v" id="rv">—<span class="u">m/s</span></div></div>
+          <div class="ro r3"><div class="k">碰撞前总动量 p<sub>i</sub>=mv₁</div><div class="v" id="rPi">—<span class="u">N·s</span></div></div>
+          <div class="ro r3"><div class="k">碰后总动量 p<sub>f</sub>=2mv</div><div class="v" id="rPf">—<span class="u">N·s</span></div></div>
+          <div class="ro r1"><div class="k">滑块1合冲量 |Δp₁|</div><div class="v" id="rdp1">—<span class="u">N·s</span></div></div>
+          <div class="ro r2"><div class="k">滑块2合冲量 |Δp₂|</div><div class="v" id="rdp2">—<span class="u">N·s</span></div></div>
+          <div class="ro rr full"><div class="k">滑块2平均作用力 F̄=|Δp₂|/Δt</div><div class="v" id="rF">—<span class="u">N</span></div></div>
+        </div>
+
+        <div class="ctrl" style="margin-top:14px">
+          <label>滑块1初速 v₁（m/s）<b id="v_v1">0.40</b></label>
+          <input id="s_v1" type="range" min="0.20" max="0.90" step="0.01" value="0.40">
+        </div>
+        <div class="ctrl">
+          <label>碰撞接触时间 Δt（s）<b id="v_dt">0.04</b></label>
+          <input id="s_dt" type="range" min="0.01" max="0.10" step="0.01" value="0.04">
+        </div>
+
+        <div class="btns">
+          <button class="btn go" id="btnPlay">播放碰撞 ▶</button>
+          <button class="btn" id="btnReset">复位到初始</button>
+        </div>
+        <p class="note" style="margin-top:8px"><b>要点：</b>完全非弹性碰撞→碰后共速；合冲量 = Δp（滑块1 |Δp|=m|v−v₁|，滑块2 |Δp|=m·v）；平均作用力 = |Δp|/Δt。碰撞瞬间内力≫外力→A“动量守恒”对。</p>
+      </section>
+    </div>
+  </div>
+
+  <!-- 记忆卡对碰 -->
+  <section class="card">
+    <h2><span class="dot"></span>记忆卡对碰 · 契合分析</h2>
+    <div class="mc">
+      <div class="mc-head">phy0993 · 碰撞·完全非弹性碰撞共速<span class="fit-badge fit-s">强契合</span></div>
+      <div class="mc-row"><b>题干信号：</b>两物体碰后粘在一起 / 具有共同速度</div>
+      <div class="mc-row"><b>结论：</b>按完全非弹性碰撞处理，一个动量守恒方程直接解出 v共。</div>
+    </div>
+    <div class="mc">
+      <div class="mc-head">phy0998 · 动量·完全非弹性碰撞<span class="fit-badge fit-s">强契合</span></div>
+      <div class="mc-row"><b>题干信号：</b>碰后粘在一起或达到共同速度</div>
+      <div class="mc-row"><b>结论：</b>先共速公式求 v共，动能损失用折合质量乘相对速度平方；能量损失最大但动量仍守恒。</div>
+    </div>
+    <div class="mc">
+      <div class="mc-head">phy0918 · 动量·动量定理基础<span class="fit-badge fit-s">强契合</span></div>
+      <div class="mc-row"><b>题干信号：</b>力作用一段时间后求速度变化或平均作用力</div>
+      <div class="mc-row"><b>结论：</b>用动量定理 F·Δt=Δp，平均力 F=Δp/Δt。</div>
+    </div>
+    <div class="mc">
+      <div class="mc-head">phy0963 · 动量·碰撞瞬间的守恒判断<span class="fit-badge fit-s">强契合</span></div>
+      <div class="mc-row"><b>题干信号：</b>碰撞瞬间判断守恒</div>
+      <div class="mc-row"><b>结论：</b>碰撞内力远大于外力，动量守恒；完全非弹性碰撞动能损失最大。</div>
+    </div>
+    <div class="highlight">
+      <b>契合分析：</b>碰撞后粘在一起成共同速度，属完全非弹性碰撞，直接命中 phy0993 / 0998；“滑块1受合冲量 = Δp = m|0.40−0.22|=0.18N·s，滑块2合冲量 = 0.22N·s，平均作用力 = Δp/Δt = 5.5N”，均命中动量定理卡（phy0918）。契合度高。
+    </div>
+  </section>
+
+  <!-- 分步讲解 -->
+  <section class="card">
+    <h2><span class="dot"></span>分步讲解 · 逐选项验算</h2>
+    <div class="step"><div class="hd"><i>①</i>A · 动量守恒</div><div class="bd">碰撞时间仅 0.04 s，碰撞内力（接触力）远大于电机等外力 → <b>碰撞瞬间动量守恒</b>。理想化下内部冲量占主导，“该过程动量守恒”成立（A 对）。</div></div>
+    <div class="step"><div class="hd"><i>②</i>B · 滑块1的冲量</div><div class="bd">取滑块1为对象，合力冲量 = 动量变化量：<b>Δp₁ = m·(v−v₁) = 1×(0.22−0.40) = −0.18 N·s</b>，大小 <b>0.18 N·s</b>（B 对）。</div></div>
+    <div class="step"><div class="hd"><i>③</i>C · 滑块2的冲量（易错陷阱）</div><div class="bd">滑块2由静止到共速：<b>Δp₂ = m·v = 1×0.22 = 0.22 N·s</b>，并非 0.40。<b>0.40 是滑块1的初速度数值</b>，勿把初速度当冲量（C 错）。</div></div>
+    <div class="step"><div class="hd"><i>④</i>D · 平均作用力</div><div class="bd">滑块2受滑块1的平均作用力 = 滑块2的合力（仅接触力）＝ <b>Δp₂/Δt = 0.22 / 0.04 = 5.5 N</b>（D 对）。综合：<b>A、B、D 正确，选“不正确”的 → C</b>。</div></div>
+    <div class="note"><b>要点：</b>合冲量 = Δp = 合力 × 接触时间；完全非弹性碰撞用单方程动量守恒解 v共；平均作用力 = Δp/Δt。<b>别把“初速度数值”误当“冲量”</b>。</div>
+  </section>
+
+  <div class="footer">互动课件 · 物理 · 滑块碰撞（动量守恒 + 冲量） · 纯 SVG + 原生 JS</div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  var svg=document.getElementById('stage');
+  var NS='http://www.w3.org/2000/svg';
+  function el(id){return document.getElementById(id);}
+  (function grid(){
+    var g=el('grid');
+    for(var i=0;i<16;i++){var L=document.createElementNS(NS,'line');L.setAttribute('class','grid-l');L.setAttribute('x1',10+i*50);L.setAttribute('y1',8);L.setAttribute('x2',10+i*50);L.setAttribute('y2',512);g.appendChild(L);}
+    for(var j=0;j<12;j++){var M=document.createElementNS(NS,'line');M.setAttribute('class','grid-l');M.setAttribute('x1',8);M.setAttribute('y1',20+j*44);M.setAttribute('x2',752);M.setAttribute('y2',20+j*44);g.appendChild(M);}
+  })();
+  function nf(v){return Math.round(v*1000)/1000;}
+  var BARSC=260; // px per N·s for bars
+
+  var S={v1:0.40,dt:0.04};
+  function vc(){return (S.v1/0.40)*0.22;}
+  var anim=null;
+
+  function setPos(off1,off2){
+    el('m1').setAttribute('x',off1);el('m1').setAttribute('y',266);
+    el('m1lab').setAttribute('x',off1+18);el('m1lab').setAttribute('y',288);
+    el('m2').setAttribute('x',off2);el('m2').setAttribute('y',266);
+    el('m2lab').setAttribute('x',off2+18);el('m2lab').setAttribute('y',288);
+  }
+
+  function render(animState){
+    var v=vc();
+    var d1=Math.abs(S.v1-v), d2=Math.abs(v);
+    var pi=S.v1, pf=2*v;
+    // bars
+    function setBar(id,h,txt,tx){var b=el(id);b.setAttribute('height',h);b.setAttribute('y',470-h);}
+    setBar('bar1',d1*BARSC);setBar('bar2',d2*BARSC);
+    el('lbar1').setAttribute('y',470-d1*BARSC-6);el('lbar1').textContent=d1.toFixed(2);
+    el('lbar2').setAttribute('y',470-d2*BARSC-6);el('lbar2').textContent=d2.toFixed(2);
+
+    el('rv1').innerHTML=S.v1.toFixed(2)+'<span class="u">m/s</span>';
+    el('rv').innerHTML=v.toFixed(2)+'<span class="u">m/s</span>';
+    el('rPi').innerHTML=pi.toFixed(2)+'<span class="u">N·s</span>';
+    el('rPf').innerHTML=pf.toFixed(2)+'<span class="u">N·s</span>';
+    el('rdp1').innerHTML=d1.toFixed(2)+'<span class="u">N·s</span>';
+    el('rdp2').innerHTML=d2.toFixed(2)+'<span class="u">N·s</span>';
+    var F=d2/S.dt;
+    el('rF').innerHTML=F.toFixed(1)+'<span class="u">N</span>';
+
+    // velocity arrow on block1
+    var off1=animState===undefined?180:animState.x1;
+    var off2=animState===undefined?400:animState.x2;
+    if(animState===undefined){ // resting initial: show v1 arrow
+      var m1x=180+46;
+      el('v1arrow').setAttribute('x1',m1x+4);el('v1arrow').setAttribute('y1',286);
+      el('v1arrow').setAttribute('x2',m1x+4+S.v1*520);el('v1arrow').setAttribute('y2',286);
+      el('v1arrow').setAttribute('stroke','#3b82f6');
+      el('v1lab').setAttribute('x',m1x+6+S.v1*520);el('v1lab').setAttribute('y',278);
+      el('v1lab').textContent='v₁='+S.v1.toFixed(2);
+    } else {
+      el('v1arrow').setAttribute('stroke','transparent');
+      el('v1lab').textContent='';
+    }
+    setPos(off1,off2);
+  }
+
+  el('s_v1').addEventListener('input',function(){S.v1=+el('s_v1').value;stop();render();});
+  el('s_dt').addEventListener('input',function(){S.dt=+el('s_dt').value;stop();render();});
+
+  function stop(){if(anim){cancelAnimationFrame(anim);anim=null;}}
+  el('btnPlay').addEventListener('click',function(){
+    stop();
+    var t0=performance.now(),ph1=700,ph2=1300,total=ph1+ph2;
+    (function step(t){
+      var e=Math.min(1,(t-t0)/total);
+      var x1,x2;
+      if(t-t0<ph1){ // block1 closing on block2 (stationary)
+        var u=Math.min(1,(t-t0)/ph1);
+        x1=180+(400-180-46)*u;
+        x2=400;
+        el('m2').setAttribute('y',266);
+      } else { // both move together
+        var w=(t-t0-ph1)/ph2; w=Math.min(1,w);
+        w=1-Math.pow(1-w,2); // ease steady
+        x1=400-46+(60)*w; // ~ into co-move, slide together
+        x2=400+(60)*w;
+      }
+      render({x1:x1,x2:x2});
+      if(e<1){anim=requestAnimationFrame(step);}else{anim=null;}
+    })(performance.now());
+  });
+  el('btnReset').addEventListener('click',function(){stop();render();});
+
+  render();
+})();
+</script>
+<script src="shared/engine.js"></script>
+<script>if(window.SimKit && SimKit.revealSteps) SimKit.revealSteps();</script>
+</body>
+</html>

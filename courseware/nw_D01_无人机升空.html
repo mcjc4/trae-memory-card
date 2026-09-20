@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>D01 · 无人机升空 · 超重/功/功率/机械能</title>
+<link rel="stylesheet" href="shared/style.css">
+<style>
+  .grid-l{stroke:#eef2f7;stroke-width:1}
+  .ax-l{stroke:#cbd5e1;stroke-width:1.4}
+  .btns{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+  .btn{flex:1;min-width:110px;padding:11px 14px;border-radius:8px;cursor:pointer;border:1px solid var(--border);background:#fff;color:var(--text);font-family:var(--font);font-size:14px;font-weight:700;transition:all .15s}
+  .btn:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.08)}
+  .btn.go{background:var(--primary);border-color:var(--primary);color:#fff}
+  .badge-chip{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:800;margin-left:6px}
+  .b-strong{background:var(--success-light);color:var(--success)}
+  .b-mid{background:var(--warning-light);color:var(--warning)}
+  .mc{border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:10px;background:#fafbff}
+  .mc .hd{display:flex;align-items:center;gap:8px;font-weight:800;font-size:14px;flex-wrap:wrap}
+  .mc .sg{font-size:12px;color:var(--text-light);margin-top:5px}
+  .mc .sg b{color:var(--success)}
+</style>
+</head>
+<body>
+<div class="cw">
+
+  <header>
+    <div class="crumb">互动课件 · 物理 · 超失重 / 功与功率 / 机械能</div>
+    <h1>无人机升空 · 超重/支持力做功/克服重力功率/机械能（多选）</h1>
+    <p class="sub">力学 · 超失重 · 瞬时功率 P=F·v · 机械能守恒判定 · 两阶段动画沙盘</p>
+    <a class="back" href="../solution_library.html#courseware">← 返回互动课件</a>
+  </header>
+
+  <section class="card">
+    <h2><span class="dot"></span>原题</h2>
+    <div class="problem">
+      <div>深圳大运城万架无人机表演，每架携带显像屏从地面升空。无人机竖直升空：<span class="key">先由静止匀加速</span>，再做<b>匀减速至静止</b>。</div>
+      <div class="note" style="margin-top:6px">加速阶段 a 向上 → 超重；减速阶段 a 向下 → 失重（与速度方向无关）。</div>
+    </div>
+  </section>
+
+  <div class="wrk">
+    <div class="sim-panel">
+      <section class="card">
+        <h2><span class="dot"></span>互动沙盘：两阶段升空 · v–t / P–t 曲线与超失重</h2>
+        <div class="stage">
+          <span class="tip">调 a₁/a₂ + 时间 t → 无人机沿两阶段运动，曲线实时更新</span>
+          <svg id="stage" viewBox="0 0 760 560" width="760" height="560" style="touch-action:none;user-select:none">
+            <defs>
+              <marker id="mP"  markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 z" fill="#f59e0b"/></marker>
+              <marker id="mvP" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 z" fill="#3b82f6"/></marker>
+            </defs>
+            <!-- ===== 左：无人机升空示意图 ===== -->
+            <g>
+              <line x1="40" y1="510" x2="300" y2="510" class="ax-l"/>
+              <rect x="100" y="502" width="120" height="6" fill="#cbd5e1"/>
+              <text x="70" y="27" font-size="14" font-weight="800" fill="#1e293b">① 无人机升空</text>
+              <polyline id="hScale" fill="none" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="3 4"/>
+              <!-- 无人机 -->
+              <g id="drone">
+                <line x1="120" y1="0" x2="120" y2="16" stroke="#64748b" stroke-width="4"/>
+                <rect x="100" y="10" width="40" height="16" rx="6" fill="#6366f1"/>
+                <circle id="dprop1" cx="112" cy="8" r="6" fill="none" stroke="#6366f1" stroke-width="3"/>
+                <circle id="dprop2" cx="146" cy="8" r="6" fill="none" stroke="#6366f1" stroke-width="3"/>
+                <rect x="104" y="26" width="32" height="12" rx="3" fill="#f59e0b"/>
+              </g>
+              <line id="drivel" x1="0" y1="0" x2="260" y2="0" stroke="#3b82f6" stroke-width="3" marker-end="url(#mvP)"/>
+              <line id="dacc"  x1="0" y1="0" x2="0" y2="0" stroke="#16a34a" stroke-width="3" marker-end="url(#mvP)"/>
+              <text id="lph" x="150" y="40" font-size="12" font-weight="800"></text>
+              <text id="lg2" x="30" y="535" font-size="12" font-weight="800" fill="#dc2626"></text>
+            </g>
+            <!-- ===== 右上：v–t 曲线（速度三角形） ===== -->
+            <g>
+              <text x="340" y="250" font-size="13" font-weight="800" fill="#1e293b">② v–t 曲线（先升后降至零）</text>
+              <line x1="340" y1="300" x2="745" y2="300" class="ax-l"/>
+              <line x1="340" y1="300" x2="340" y2="170"  class="ax-l"/>
+              <polyline id="vt" fill="none" stroke="#3b82f6" stroke-width="3"/>
+              <polyline id="vtFill" fill="#3b82f6" opacity="0.14"/>
+              <text x="738" y="318" font-size="10" fill="#64748b">t</text>
+              <text x="320" y="180" font-size="10" fill="#3b82f6">v</text>
+              <line id="vmark" stroke="#dc2626" stroke-width="1.4" stroke-dasharray="4 3"/>
+              <circle id="mkv" r="5" fill="#dc2626"/>
+            </g>
+            <!-- ===== 右下：P=mg·vy 克服重力功率曲线（同三角形） ===== -->
+            <g>
+              <text x="340" y="395" font-size="13" font-weight="800" fill="#1e293b">③ P = mg·v<sub>y</sub> 克服重力功率（先增后减）</text>
+              <line x1="340" y1="445" x2="745" y2="445" class="ax-l"/>
+              <line x1="340" y1="445" x2="340" y2="315"  class="ax-l"/>
+              <polyline id="pt" fill="none" stroke="#f59e0b" stroke-width="3"/>
+              <polyline id="ptFill" fill="#f59e0b" opacity="0.16"/>
+              <text x="738" y="463" font-size="10" fill="#64748b">t</text>
+              <text x="318" y="325" font-size="10" fill="#f59e0b">P</text>
+              <line id="pmark" stroke="#dc2626" stroke-width="1.4" stroke-dasharray="4 3"/>
+              <circle id="mkP" r="5" fill="#dc2626"/>
+            </g>
+          </svg>
+          <div class="legend">
+            <span><i style="background:#3b82f6"></i>上升速度 v</span>
+            <span><i style="background:#f59e0b"></i>克服重力功率 P=mg·v</span>
+            <span><i style="background:#16a34a"></i>支持力方向（始终向上）</span>
+            <span><i style="background:#dc2626"></i>当前时刻</span>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="param-panel">
+      <section class="card">
+        <h2><span class="dot"></span>参数控制台</h2>
+        <div class="readouts" style="grid-template-columns:1fr 1fr">
+          <div class="ro"><div class="k">加速段 a₁</div><div class="v" id="rA1">5</div><div class="u">m/s²</div></div>
+          <div class="ro"><div class="k">减速段 a₂</div><div class="v" id="rA2">3</div><div class="u">m/s²</div></div>
+          <div class="ro r1"><div class="k">显像屏支持力 N</div><div class="v" id="rN">30.0</div><div class="u">N</div></div>
+          <div class="ro r2"><div class="k">阶段 / 状态</div><div class="v" id="rS" style="font-size:15px">加速·超重</div><div class="u">a 方向 ↑</div></div>
+          <div class="ro r3"><div class="k">克服重力功率 P</div><div class="v" id="rP">200</div><div class="u">W</div></div>
+          <div class="ro rr"><div class="k">支持力做功 W</div><div class="v" id="rW" style="font-size:15px">正功</div><div class="u">全程为正</div></div>
+          <div class="ro full"><div class="k">机械能变化（升力做正功）</div><div class="v" id="rMe" style="font-size:15px">增加 → 不守恒</div></div>
+        </div>
+        <div class="ctrl" style="margin-top:14px">
+          <label>加速段加速度 a₁（m/s²，向上）<b id="v_a1">5</b></label>
+          <input id="s_a1" type="range" min="2" max="8" step="0.5" value="5">
+        </div>
+        <div class="ctrl">
+          <label>减速段加速度 a₂（m/s²，向下）<b id="v_a2">3</b></label>
+          <input id="s_a2" type="range" min="1" max="5" step="0.5" value="3">
+        </div>
+        <div class="ctrl">
+          <label>时刻 t（s）<b id="v_t">0.0</b></label>
+          <input id="s_t" type="range" min="0" max="10" step="0.1" value="0">
+        </div>
+        <div class="btns">
+          <button class="btn go" id="btnPlay">播放</button>
+          <button class="btn" id="btnReset">重置</button>
+        </div>
+        <div class="highlight">
+          <b>互动重点（对应 C） ：</b>克服重力功率 <b>P = mg·v<sub>y</sub></b>。<br>
+          加速段 vy 线性增大 → P 线性增大；减速段 vy 线性减小 → P 线性减小 ⇒ <b>先增大后减小（C 对）</b>。<br>
+          A 第二阶段失重（错）；B 支持力始终与位移同向→恒做正功（错）；D 升力做正功→机械能不守恒（错）。
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <section class="card opts">
+    <h2><span class="dot"></span>选项判定</h2>
+    <div class="opt" data-ans data-badge="A"><div class="row"><div class="k">A</div><div class="t">显像屏一直处于超重状态</div></div><div class="reveal"><b>◆</b><span class="no">A 错。</span> 加速段 a 向上超重，减速段 a 向下<b>失重</b>，并非一直超重。</div></div>
+    <div class="opt" data-ans data-badge="B"><div class="row"><div class="k">B</div><div class="t">无人机对显像屏的支持力先做正功后做负功</div></div><div class="reveal"><b>◆</b><span class="no">B 错。</span> 支持力始终向上、位移始终向上，方向相同 → <b>全程做正功</b>，无“后做负功”。</div></div>
+    <div class="opt" data-ans data-badge="C"><div class="row"><div class="k">C</div><div class="t">显像屏克服重力做功的功率先增大后减小</div></div><div class="reveal"><b>◆ 正确：</b><span class="ok">C 对。</span> P = mg·v<sub>y</sub>，速度先增后减 ⇒ 功率<b>先增大后减小</b>。</div></div>
+    <div class="opt" data-ans data-badge="D"><div class="row"><div class="k">D</div><div class="t">无人机及显像屏构成系统上升过程机械能守恒</div></div><div class="reveal"><b>◆</b><span class="no">D 错。</span> 无人机以升力做功（非保守力做正功）增能 → 系统<b>机械能不守恒</b>（增大）。正确：<b>C</b>。</div></div>
+  </section>
+
+  <section class="card">
+    <h2><span class="dot"></span>记忆卡对碰 · 契合分析</h2>
+    <div class="mc"><div class="hd">phy0352 · 牛顿第二定律·超重/失重/完全失重<span class="badge-chip b-strong">强契合</span></div>
+      <div class="sg"><b>信号：</b>判断物体超重还是失重 → <b>结论：</b>只看加速度方向：a 向上超重、a 向下失重、a=g 向下完全失重。<b>警惕：</b>向上减速也是 a 向下，同样是失重。</div></div>
+    <div class="mc"><div class="hd">phy0354 · 电梯升降的超失重（v–t 分段）<span class="badge-chip b-strong">强契合</span></div>
+      <div class="sg"><b>信号：</b>v–t 图像分段升降问各阶段超失重 → <b>结论：</b>逐段读加速度方向：加速上升超重、减速上升失重…匀速段 a=0 既不超重也不失重。</div></div>
+    <div class="mc"><div class="hd">phy0797 · 机械能·功率公式<span class="badge-chip b-strong">强契合</span></div>
+      <div class="sg"><b>信号：</b>考查做功快慢/功率 → <b>结论：</b>平均功率 P=W/t，瞬时功率 <b>P=Fv</b>（含角 P=Fvcosθ）。<b>警惕：</b>区分平均与瞬时。</div></div>
+    <div class="mc"><div class="hd">phy0798 · 机械能·本章知识框架<span class="badge-chip b-mid">中契合</span></div>
+      <div class="sg"><b>信号：</b>功能关系整体考查 → <b>结论：</b>先算各力功（注意正负）→ 动能定理 → 判断是否满足守恒条件（只有重力/弹力做功）。</div></div>
+    <div class="problem" style="margin-top:12px">
+      <div><b>契合点评：</b>升空先匀加速（超重）后匀减速（失重）、支持力做功正负、克服重力功率、机械能不守恒，逐项命中超失重（phy0352/0354）与功率（phy0797/0820）卡。<b>缺口：</b>“非保守力（升力）做正功 → 机械能不守恒”的整体判断，见下方新卡。</div>
+    </div>
+    <div class="mc" style="border-color:var(--success);background:var(--success-light)"><div class="hd">✨ 新课标新卡 · 存在做正功的非保守力时机械能不守恒<span class="badge-chip b-strong">本次新增</span></div>
+      <div><b>信号：</b>物体靠升力/牵引力/推力做正功竖直或沿轨道运动，问机械能是否守恒 → <b>结论：</b>只要动力（升力等）做正功（或阻力做负功），系统机械能就改变而不守恒；机械能增量 = 动力做正负功的代数和；仅重力（或弹力）做功才守恒。<b>警惕：</b>误把“动能与势能转化”当成“不守恒”——转化但总和不变仍守恒。</div></div>
+  </section>
+
+  <section class="card">
+    <h2><span class="dot"></span>分步讲解</h2>
+    <div class="step"><div class="hd"><i>①</i>两阶段加速度</div><div class="bd">阶段一：匀加速上升，<b>a 向上</b>（超重）；阶段二：匀减速上升，<b>a 向下</b>（失重）→ <span class="no">A 错</span>。</div></div>
+    <div class="step"><div class="hd"><i>②</i>支持力做功正负</div><div class="bd">无人机对显像屏的支持力始终沿竖直向上，位移恒向上，二者同向 → <b>全程做正功</b> ⇒ <span class="no">B 错</span>。</div></div>
+    <div class="step"><div class="hd"><i>③</i>克服重力功率</div><div class="bd">瞬时功率 P = F·v。克服重力 P = mg·v<sub>y</sub>。阶段一 vy 线性增 → P 线性增；阶段二 vy 线性减 → P 线性减 ⇒ <b>先增大后减小</b> ⇒ <span class="ok">C 对</span>。</div></div>
+    <div class="step"><div class="hd"><i>④</i>机械能守恒判定</div><div class="bd">无人机以升力做正功增能（另有非保守力做功）→ 系统上升过程<b>机械能不守恒</b>（增大）⇒ <span class="no">D 错</span>。</div></div>
+    <div class="step"><div class="hd"><i>⑤</i>答案</div><div class="bd">正确 <b>C</b>。回到沙盘按“播放”，可见无人机两阶段（超重→失重）、P–t 呈先升后降的三角形。</div></div>
+    <div class="note" style="margin-top:8px"><b>易错：</b>①只看是否由于重力做功判断守恒，“上升且动能势能都增”也是机械能增加（升力做功）；②瞬时功率用 P=Fv，随速度先增后减。</div>
+  </section>
+
+  <div class="footer">互动课件 · 物理《无人机升空·超重/功/功率/机械能》 · 纯 SVG + 原生 JS · 由错题本网站生成</div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  var NS="http://www.w3.org/2000/svg", svg=document.getElementById('stage');
+  function $(id){return document.getElementById(id);}
+  function cxy(id,x,y){var C=document.getElementById(id);C.setAttribute('cx',x);C.setAttribute('cy',y);}
+  function setXY(id,x1,y1,x2,y2){var L=document.getElementById(id);L.setAttribute('x1',x1);L.setAttribute('y1',y1);L.setAttribute('x2',x2);L.setAttribute('y2',y2);}
+  var m=2, g=10, vm=20;
+  var a1=5, a2=3, tcur=0;
+  var t1=0, t2=0, T=0;
+
+  var VX0=340,VY0=300,VW=400,VH=130;
+  var PX0=340,PY0=445,PW=400,PH=130;
+  var ORUN_X=40, ORUN_Y0=504, OHMAX=440;
+
+  function recompute(){ t1=vm/a1; t2=vm/a2; T=t1+t2; }
+
+  function vAt(t){ if(t<=t1) return a1*t; var tt=t-t1; return Math.max(0, vm-a2*tt); }
+  function hAt(t){ if(t<=t1) return 0.5*a1*t*t; var tt=t-t1; return 0.5*a1*t1*t1 + vm*tt - 0.5*a2*tt*tt; }
+  function hmax(){ return hAt(T); }
+
+  function render(){
+    $('#rA1').textContent=a1.toFixed(0);
+    $('#rA2').textContent=a2.toFixed(0);
+    $('#s_a1').value=a1; $('#v_a1').textContent=a1.toFixed(0);
+    $('#s_a2').value=a2; $('#v_a2').textContent=a2.toFixed(0);
+    $('#s_t').max=T.toFixed(1);
+    $('#s_t').value=tcur.toFixed(1); $('#v_t').textContent=tcur.toFixed(1);
+
+    var v=vAt(tcur), h=hAt(tcur), Hm=hmax();
+    var stage = tcur<=t1 ? 1 : 2;
+    var aPy = stage===1 ? a1 : -a2;
+    var N = stage===1 ? m*(g+a1) : m*(g-a2);
+    var state = stage===1 ? '加速·超重' : '减速·失重';
+    var aStr = stage===1 ? 'a向上 ↑' : 'a向下 ↓';
+    var P= m*g*v;
+    $('#rN').textContent=N.toFixed(1);
+    $('#rS').textContent=state;
+    $('#rP').textContent=P.toFixed(0);
+    $('#rW').textContent='正功（全程）';
+    $('#rMe').textContent='增加 → 不守恒';
+
+    // drone 图：高度 h 映射 0..OHMAX (向上，屏幕 y 减小)
+    var droneY = ORUN_Y0 - (h/Hm)*OHMAX;
+    var drone=document.getElementById('drone');
+    drone.setAttribute('transform','translate(0,'+droneY+')');
+    // 高度标尺（虚线竖标）
+    setXY('hScale',ORUN_X+270,ORUN_Y0,ORUN_X+270,ORUN_Y0-OHMAX);
+    // 速度箭头（向上/变速标记）
+    setXY('drivel',150,droneY,150+v*6,droneY); // 水平线示意？ 改：垂直移速箭头沿上升
+    setXY('dacc',170,droneY,170, droneY - aPy*6);
+    var lab='h='+h.toFixed(1)+' m · 阶段'+stage+' · '+state+' · a='+aStr;
+    $('#lph').textContent=lab;
+    $('#lg2').textContent='N('+N.toFixed(0)+'N) '+(stage===1?'>mg 超重':'<mg 失重')+' · 支持力做功为正';
+
+    // v-t 曲线
+    var vPts='', vF='', kx;
+    var pxMax=VX0+VW;
+    for(var i=0;i<=140;i++){var tt=T*i/140; var vv=vAt(tt); var x=tt/T*VW+VX0; var y=VY0-(vv/vm)*VH;
+      vPts+=(vPts?' ':'')+x.toFixed(1)+','+y.toFixed(1);
+      if(i<=140){vF+= (i>0?' ':'')+x.toFixed(1)+','+y.toFixed(1);}}
+    $('#vt').setAttribute('points',vPts);
+    $('#vtFill').setAttribute('points',vPts+' '+pxMax.toFixed(1)+','+VY0.toFixed(1));
+    var vx=tcur/T*VW+VX0, vyy=VY0-(v/vm)*VH;
+    setXY('vmark',vx,VY0,vx,VY0-VH); cxy('mkv',vx,vyy);
+    // P-t 曲线
+    var pPts='', pF='', Pmax=m*g*vm;
+    for(var j=0;j<=140;j++){var tt=T*j/140; var pp=m*g*vAt(tt); var x=tt/T*PW+PX0; var y=PY0-(pp/Pmax)*PH;
+      pPts+=(pPts?' ':'')+x.toFixed(1)+','+y.toFixed(1);
+      if(j<=140) pF+=(j>0?' ':'')+x.toFixed(1)+','+y.toFixed(1);}
+    $('#pt').setAttribute('points',pPts);
+    $('#ptFill').setAttribute('points',pPts+' '+(PX0+PW).toFixed(1)+','+PY0.toFixed(1));
+    var px=tcur/T*PW+PX0, pyy=PY0-(P/Pmax)*PH;
+    setXY('pmark',px,PY0,px,PY0-PH); cxy('mkP',px,pyy);
+  }
+
+  function bind(id,lbl,setter,digits){var s=$(id),l=$(lbl);s.addEventListener('input',function(){var v=parseFloat(s.value);setter(v);if(l)l.textContent=(digits===undefined)?String(v):v.toFixed(digits);recompute();render();});}
+  bind('s_a1','v_a1',function(v){a1=v;},0);
+  bind('s_a2','v_a2',function(v){a2=v;},0);
+  bind('s_t','v_t',function(v){tcur=v;},1);
+
+  var playTimer=null;
+  $('btnPlay').addEventListener('click',function(){
+    if(playTimer){clearInterval(playTimer);playTimer=null;$('btnPlay').textContent='播放';return;}
+    tcur=0; render();
+    $('btnPlay').textContent='暂停';
+    playTimer=setInterval(function(){
+      tcur+=0.06; if(tcur>T){clearInterval(playTimer);playTimer=null;$('btnPlay').textContent='播放';tcur=T;}
+      render();
+    },30);
+  });
+  $('btnReset').addEventListener('click',function(){ if(playTimer){clearInterval(playTimer);playTimer=null;$('btnPlay').textContent='播放';} tcur=0; a1=5;a2=3; recompute(); render(); });
+
+  document.querySelectorAll('.opt').forEach(function(o){o.addEventListener('click',function(){document.querySelectorAll('.opt').forEach(function(x){x.classList.remove('match','open');});o.classList.add('open');if(o.dataset.ans){o.classList.add('match');}});});
+
+  recompute();
+  render();
+})();
+</script>
+<script src="shared/engine.js"></script>
+<script>if(window.SimKit && SimKit.revealSteps) SimKit.revealSteps();</script>
+</body>
+</html>

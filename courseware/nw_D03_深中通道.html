@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>题D03·深中通道 · 主索/吊索拉力分解</title>
+<link rel="stylesheet" href="shared/style.css">
+<style>
+  /* 课件局部补充样式 */
+  .grid-l{stroke:#eef2f7;stroke-width:1}
+  .formula{font-family:var(--mono);background:#f8fafc;border:1px dashed var(--border);border-radius:8px;padding:8px 12px;margin:6px 0;font-size:14px;display:block;white-space:pre-wrap}
+  .bigv{color:var(--primary);font-family:var(--mono);font-weight:800}
+</style>
+</head>
+<body>
+<div class="cw">
+
+  <header>
+    <div class="crumb">互动课件 · 物理 · 受力分析 · 悬索桥</div>
+    <h1>深中通道 · 主索 / 吊索拉力分解</h1>
+    <p class="sub">深中通道大桥 · 单选 · 对称受力的分摊与沿向反推 · 拖拽沙盘交互</p>
+    <a class="back" href="../solution_library.html#courseware">← 返回互动课件</a>
+  </header>
+
+  <!-- 原题 -->
+  <section class="card">
+    <h2><span class="dot"></span>原题（深中通道 · 单选）</h2>
+    <div class="problem">
+      <div>深中通道大桥：内、外侧<span class="key">主索与桥梁平面夹角 30°</span>。桥梁重 <span class="key">1.6×10⁸ N</span> 仅由 <span class="key">200 条</span>竖直吊索承担，吊索固定于主索上，主索由东西两锚碇稳定。每条主索承担竖直吊索的拉力为？</div>
+    </div>
+    <div class="opts">
+      <div class="opt" data-badge="A"><div class="row"><div class="k">A</div><div class="t">1.6×10⁸ N</div></div><div class="reveal"><b>◆ 正确答案</b>：<span class="ok">A · 1.6×10⁸ N</span><br>每侧主索需平衡总重的竖直分量 G/2 = 0.8×10⁸ N，主索拉力 T 满足 T·sin30° = G/2 ⇒ <b>T = (G/2)/sin30° = 1.6×10⁸ N</b>。</div></div>
+      <div class="opt" data-badge="B"><div class="row"><div class="k">B</div><div class="t">0.8×10⁸ N</div></div><div class="reveal"><b>✗ 错误</b>——0.8×10⁸ N 是<b>每侧主索承担的竖直分量 G/2</b>，并非主索拉力本身；主索拉力需把竖直分量沿 30° 方向反推（再除以 sin30°）。</div></div>
+      <div class="opt" data-badge="C"><div class="row"><div class="k">C</div><div class="t">0.8×10⁷ N</div></div><div class="reveal"><b>✗ 错误</b>——这是 <b>每条吊索的竖直分力</b>（G/200 = 8×10⁵ N ≈ 0.08×10⁷ N）数量级混淆，并非主索拉力。</div></div>
+      <div class="opt" data-badge="D"><div class="row"><div class="k">D</div><div class="t">0.8√3×10⁷ N</div></div><div class="reveal"><b>✗ 错误</b>——若用水平分力与夹角反推会得 <b>G/(2·cosθ) = (G/2)/cos30° = 0.8×10⁸/0.866 ≈ 0.92×10⁸ N</b>，与√3 混淆；正确是除以 sin30°。</div></div>
+    </div>
+  </section>
+
+  <!-- 双栏布局 -->
+  <div class="wrk">
+   <div class="sim-panel">
+    <section class="card">
+      <h2><span class="dot"></span>互动沙盘：先分摊（G/N）→ 再沿主索 30° 反推（T）</h2>
+      <div class="stage">
+        <span class="tip">拖动「吊索条数」「主索夹角」滑块 → 右侧受力箭头与数值实时重算</span>
+        <svg id="stage" viewBox="0 0 760 520" width="760" height="520" style="touch-action:none;user-select:none">
+          <defs>
+            <marker id="mT" markerWidth="11" markerHeight="11" refX="9" refY="3" orient="auto"><path d="M0,0 L9,3 L0,6 z" fill="#8b5cf6"/></marker>
+            <marker id="mV" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 z" fill="#f59e0b"/></marker>
+            <marker id="mH" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 z" fill="#3b82f6"/></marker>
+          </defs>
+
+          <!-- 网格 -->
+          <g id="grid"></g>
+
+          <!-- 桥面 -->
+          <rect x="100" y="404" width="560" height="22" fill="#16a34a" opacity="0.16" stroke="#16a34a" stroke-width="2" rx="4"/>
+          <text x="380" y="468" font-size="13" font-weight="700" fill="#16a34a" text-anchor="middle">桥梁平面（桥重 G = 1.6×10⁸ N）</text>
+
+          <!-- 左右吊索（竖直，示意 N 条中的若干） -->
+          <g id="suspenders"></g>
+
+          <!-- 锚碇/塔 -->
+          <rect x="92" y="340" width="16" height="84" fill="#94a3b8" rx="3"/>
+          <rect x="672" y="300" width="16" height="124" fill="#94a3b8" rx="3"/>
+          <text x="100" y="330" font-size="11" fill="#64748b" text-anchor="middle">西锚碇</text>
+          <text x="680" y="294" font-size="11" fill="#64748b" text-anchor="middle">东锚碇</text>
+
+          <!-- 主索：右主索（从东锚碇 → 桥面挂点）-->
+          <g id="cableG"></g>
+
+          <!-- 受力分解（右主索挂点 A）：T 沿主索 + 竖直分量 G/2 -->
+          <g id="decomp">
+            <line id="T" stroke="#8b5cf6" stroke-width="6" marker-end="url(#mT)"/>
+            <line id="Vc" stroke="#f59e0b" stroke-width="6" marker-end="url(#mV)" stroke-dasharray="6 4"/>
+            <line id="Hc" stroke="#3b82f6" stroke-width="5" marker-end="url(#mH)" stroke-dasharray="4 4" opacity="0.7"/>
+            <text id="lT" font-size="14" font-weight="800" fill="#8b5cf6">T</text>
+            <text id="lV" font-size="14" font-weight="800" fill="#f59e0b">G/2</text>
+            <text id="lH" font-size="13" font-weight="800" fill="#3b82f6">T·cosθ</text>
+            <text id="lTh" font-size="13" font-weight="800" fill="#1e293b"></text>
+            <circle id="A" r="6" fill="#1e293b"/>
+            <text id="lA" font-size="12" font-weight="700" fill="#475569">挂点 A</text>
+          </g>
+
+          <text id="clsBadge" font-size="16" font-weight="800" text-anchor="middle" x="382" y="30"></text>
+        </svg>
+        <div class="legend">
+          <span><i style="background:#8b5cf6"></i>主索拉力 T（沿主索 30°）</span>
+          <span><i style="background:#f59e0b"></i>主索竖直分量 = G/2</span>
+          <span><i style="background:#3b82f6"></i>主索水平分量 = T·cosθ</span>
+        </div>
+      </div>
+    </section>
+   </div>
+
+   <div class="param-panel">
+    <section class="card">
+      <h2><span class="dot"></span>参数控制台</h2>
+      <div class="readouts">
+        <div class="ro full"><div class="k">桥总重 G</div><div class="v" style="font-size:16px">1.6×10⁸</div><div class="u">N</div></div>
+        <div class="ro r3"><div class="k">每条吊索竖直分力 G/N</div><div class="v" id="rEach" style="font-size:15px">8.0×10⁵</div><div class="u">N</div></div>
+        <div class="ro r2"><div class="k">每侧主索竖直分量 G/2</div><div class="v" id="rV2" style="font-size:15px">8.0×10⁷</div><div class="u">N</div></div>
+        <div class="ro r1"><div class="k">主索拉力 T=(G/2)/sinθ</div><div class="v" id="rT" style="font-size:16px">1.60×10⁸</div><div class="u">N</div></div>
+      </div>
+
+      <div class="ctrl" style="margin-top:14px">
+        <label>吊索条数 N（条）<b id="vN">200</b></label>
+        <input id="sN" type="range" min="100" max="300" step="10" value="200">
+      </div>
+      <div class="ctrl">
+        <label>主索与桥面夹角 θ（°）<b id="vTh">30</b></label>
+        <input id="sTh" type="range" min="15" max="45" step="1" value="30">
+      </div>
+      <div class="btns"><button class="btn go" id="btnDef">恢复题设(200条/30°)</button></div>
+
+      <div class="highlight">
+        <b>两步反推法：</b><br>
+        <span style="color:var(--ct)">第 1 步 · 先分摊</span>：总重由 N 条吊索承担，每条竖直分力 = G/N = 1.6×10⁸/200 = <span style="color:var(--ct);font-weight:800">8×10⁵ N</span>。<br>
+        <span style="color:var(--primary)">第 2 步 · 沿向反推</span>：每侧主索承担总重一半的竖直分量 G/2，沿主索 30° 反推 T：<br>
+        <span class="formula">T·sinθ = G/2  ⇒  T = (G/2)/sin30° = 0.8×10⁸/0.5 = 1.6×10⁸ N</span>
+        <b style="color:var(--danger)">切勿把总重当单条 / 勿忘除以条数与 sinθ。</b>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="readouts" style="grid-template-columns:1fr">
+        <div class="ro full"><div class="k">选项对照</div><div class="v" id="rOpt" style="font-size:13px">答案 = A（1.6×10⁸ N）</div></div>
+      </div>
+    </section>
+   </div>
+  </div>
+
+  <!-- 记忆卡对碰 -->
+  <section class="card">
+    <h2><span class="dot"></span>记忆卡对碰 · 契合分析</h2>
+    <div class="problem">
+      <div>悬索桥模型的核心是<b>找准“分摊”再“反推”</b>：先把总重按吊索条数摊成每条竖直分量，再沿主索方向（与桥面夹角 θ）把该竖直分量反推成主索拉力。对称结构使每侧主索承担 <b>G/2</b>。</div>
+    </div>
+    <div style="margin-top:12px">
+      <div class="problem">
+        <b>◆ 命中卡 1 · phy0186（中契合）</b>　对称双绳悬挂：2Tcos(θ/2)=mg，夹角增大拉力增大。<br>
+        <b>◆ 命中卡 2 · phy0175（中契合）</b>　对称受力求侧压：利用对称性列几何关系分解。<br>
+        <b>◆ 命中卡 3 · phy0169（中契合）</b>　封闭图形推论：首尾连接成闭合三角形时合力为 0。<br>
+        <b>◆ 命中卡 4 · phy0166（中契合）</b>　多力合成：先观察对称性与特殊角度再合成（本桥两侧对称）。</div>
+    </div>
+    <div class="highlight">
+      <b>契合结论：</b>桥重由 200 条竖直吊索承担、每条吊索拉力沿主索（与桥面 30°）分解，命中『对称受力求侧压 / 对称双绳』（phy0175/0186）。核心缺口在<b>“由总重力摊成每条吊索、再沿主索方向反推拉力”</b>这一悬索桥特有两步运算。
+    </div>
+    <div class="problem" style="background:#f6fbf6;border-color:var(--success-light);margin-top:12px">
+      <b>★ 新增记忆卡 · 力的分解·悬索桥/吊索模型的分摊与沿向反推</b><br>
+      <b>信号：</b>悬索桥、吊索、主索间距题：给定总重由 N 条竖直吊索承担，或主索与桥面夹角，求每条吊索拉力。<br>
+      <b>结论：</b>先由总数把总重分摊为每条竖直分量 F竖=G/N；再沿主索方向分解：F索=F竖/sin(夹角)（把竖直分量当作 F索 的竖直分量反推）。全程注意单位（总重分给 N 条）与角（与桥面夹角）。<br>
+      <b>警惕：</b>忘记先除以条数、直接把总重当单条算。
+    </div>
+  </section>
+
+  <!-- 分步讲解 -->
+  <section class="card">
+    <h2><span class="dot"></span>分步讲解</h2>
+    <div class="step"><div class="hd"><i>①</i>厘清受力对象</div><div class="bd">总重 <b>G = 1.6×10⁸ N</b> 由 <b>200 条</b>竖直吊索承担，每条吊索竖直向上拉桥面。竖直方向每一条吊索分得：<span class="formula">F竖_每条 = G/N = 1.6×10⁸/200 = 8×10⁵ N</span>（这是<b>每条吊索的竖直拉力</b>）。</div></div>
+    <div class="step"><div class="hd"><i>②</i>并入主索：每条竖直分量</div><div class="bd">吊索固定于主索上，主索把各条吊索的竖直拉力汇集。由于左右对称、东西两锚碇均衡，<b>每侧主索</b>承担总重一半的竖直分量：<span class="formula">V = G/2 = 8×10⁷ N</span></div></div>
+    <div class="step"><div class="hd"><i>③</i>沿主索 30° 反推拉力</div><div class="bd">主索与桥面夹角 θ=30°。主索拉力 T 的<b>竖直分量 = T·sinθ</b> 恰等于该侧承担的竖直分量 V：<span class="formula">T·sin30° = G/2  ⇒  T = (G/2)/sin30° = (8×10⁷)/0.5 = 1.6×10⁸ N</span></div></div>
+    <div class="step"><div class="hd"><i>④</i>对照选项</div><div class="bd">T = <b>1.6×10⁸ N</b>，即 <span class="ok">选项 A</span>。辨析：0.8×10⁸ N（B）只是每侧竖直分量 G/2；8×10⁵ N（≈0.08×10⁷）是<b>每条吊索</b>分力而非主索拉力，两者数量级都不同。</div></div>
+    <div class="step"><div class="hd"><i>⑤</i>防错要点</div><div class="bd">① <b>先除以条数 N</b>，勿把总重 1.6×10⁸ 直接当单条；② 反推用的是<b>竖直分量除以 sinθ</b>（下拉）而不是 cosθ；③ 分清「每条吊索 8×10⁵ N」与「每条主索 8×10⁷ N」两个层级。</div></div>
+    <div class="note" style="margin-top:10px"><b>一句话：</b>「先分摊 G/N → 每侧得 G/2 → 再沿主索 30° 反推 T=(G/2)/sinθ」。拖动上方滑块验证：条数越多每条越省力，夹角越小主索拉力越大。</div>
+  </section>
+
+  <div class="footer">互动课件 · 物理《受力分析 · 悬索桥》 · 深中通道真题 · 分摊+反推两步沙盘</div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  var NS="http://www.w3.org/2000/svg";
+  var G=1.6e8, N=200, theta=30;
+  var $=function(id){return document.getElementById(id);};
+  function km(v){ // 科学计数法显示
+    if(v>=1e8) return (v/1e8).toFixed(2)+'×10⁸';
+    if(v>=1e7) return (v/1e7).toFixed(1)+'×10⁷';
+    if(v>=1e6) return (v/1e6).toFixed(1)+'×10⁶';
+    if(v>=1e5) return (v/1e5).toFixed(1)+'×10⁵';
+    return v.toExponential(1);
+  }
+  function setL(id,x1,y1,x2,y2){$(id).setAttribute('x1',x1);$(id).setAttribute('y1',y1);$(id).setAttribute('x2',x2);$(id).setAttribute('y2',y2);}
+  function setT(id,x,y,a){var t=$(id);t.setAttribute('x',x);t.setAttribute('y',y);t.setAttribute('text-anchor',a||'start');}
+
+  // 网格
+  (function(){
+    var g=$('grid');
+    for(var i=0;i<=15;i++){var x=40+i*48;var l=document.createElementNS(NS,'line');l.setAttribute('x1',x);l.setAttribute('y1',20);l.setAttribute('x2',x);l.setAttribute('y2',500);l.setAttribute('class','grid-l');g.appendChild(l);}
+    for(var j=0;j<=12;j++){var y=20+j*40;var l2=document.createElementNS(NS,'line');l2.setAttribute('x1',40);l2.setAttribute('y1',y);l2.setAttribute('x2',760);l2.setAttribute('y2',y);l2.setAttribute('class','grid-l');g.appendChild(l2);}
+  })();
+
+  var AX=560, AY=404; // 右主索挂点
+
+  function angleSec(){
+    return 90; // 吊索竖直方向示意（垂直桥面）
+  }
+
+  function render(){
+    var rad=theta*Math.PI/180;
+    var each=G/N, V2=G/2, T=(G/2)/Math.sin(rad);
+    // 读数科学计数
+    $('rT').textContent = (T/1e8).toFixed(2)+'×10⁸';
+    $('rV2').textContent = (V2/1e8).toFixed(1)+'×10⁸';
+    $('rEach').textContent = (each/1e5).toFixed(1)+'×10⁵';
+    $('vN').textContent=N; $('vTh').textContent=theta;
+
+    // 吊索（示意若干竖直短线跨越桥面以下）
+    var sg=$('suspenders'); sg.innerHTML='';
+    var cnt=Math.min(Math.max(6, Math.round(N/20)),20);
+    for(var i=0;i<cnt;i++){
+      var x=150+i*(480/(cnt-1));
+      var l=document.createElementNS(NS,'line');
+      l.setAttribute('x1',x);l.setAttribute('y1',380);l.setAttribute('x2',x);l.setAttribute('y2',404);
+      l.setAttribute('stroke','#cbd5e1');l.setAttribute('stroke-width',1.6);
+      sg.appendChild(l);
+    }
+    var lab=document.createElementNS(NS,'text');
+    lab.setAttribute('x',380);lab.setAttribute('y',392);lab.setAttribute('text-anchor','middle');
+    lab.setAttribute('font-size',11);lab.setAttribute('fill','#64748b');
+    lab.textContent='共 '+N+' 条竖直吊索，每条竖直向上 '+km(each);
+    sg.appendChild(lab);
+
+    // 主索（右侧：东锚碇顶部 → 挂点 A），长度随 θ
+    var run=150, rise=Math.tan(rad)*run;
+    var bx=AX+run, by=AY-rise;
+    var cg=$('cableG'); cg.innerHTML='';
+    // 主索线
+    var cl=document.createElementNS(NS,'line');
+    cl.setAttribute('x1',680);cl.setAttribute('y1',300);cl.setAttribute('x2',AX);cl.setAttribute('y2',AY);
+    cl.setAttribute('stroke','#8b5cf6');cl.setAttribute('stroke-width',3);cl.setAttribute('opacity',0.7);
+    cg.appendChild(cl);
+
+    // 受力分解在挂点 A
+    var lT=Math.min(150, AY-60);
+    var tx=AX+Math.cos(rad)*lT, ty=AY-Math.sin(rad)*lT;
+    setL('T', AX,AY, tx,ty);
+    // 竖直分量
+    setL('Vc', AX,AY, AX, AY-lT*Math.sin(rad));
+    // 水平分量
+    setL('Hc', AX,AY, AX+lT*Math.cos(rad)*0.0, AY); // 占位
+    setL('Hc', tx,ty, AX+lT*Math.cos(rad), ty); // 从顶点向右
+    // 标签
+    setT('lT', (AX+tx)/2-14, (AY+ty)/2-8);
+    setT('lV', AX+8, AY-lT*Math.sin(rad)+16);
+    setT('lH', AX+lT*Math.cos(rad)+6, ty+16);
+    var lThTxt=$('lTh');
+    setT('lTh', AX+26, AY+24);
+    lThTxt.textContent='θ='+theta+'°';
+    // 角度弧
+    var ar=$('angleArc'); if(ar) ar.remove();
+    var arc=document.createElementNS(NS,'path');
+    var ar0=Math.PI, ar1=Math.PI-rad;
+    var r=34;
+    var ax1=AX+r*Math.cos(ar0), ay1=AY-r*Math.sin(ar0);
+    var ax2=AX+r*Math.cos(ar1), ay2=AY-r*Math.sin(ar1);
+    var large = (Math.abs(ar1-ar0)>Math.PI)?1:0;
+    arc.setAttribute('id','angleArc');
+    arc.setAttribute('d','M '+ax1.toFixed(1)+' '+ay1.toFixed(1)+' A '+r+' '+r+' 0 '+large+' 1 '+ax2.toFixed(1)+' '+ay2.toFixed(1));
+    arc.setAttribute('fill','none');arc.setAttribute('stroke','#94a3b8');arc.setAttribute('stroke-width',1.6);
+    $('A').parentNode.insertBefore(arc, $('A'));
+
+    // 徽标
+    var badge=$('clsBadge');
+    badge.setAttribute('fill','#8b5cf6');
+    badge.textContent='T = (G/2)/sin'+theta+'° = '+km(T) + ' N（答案 A）';
+    var opt=$('rOpt');
+    opt.textContent = 'T = '+km(T)+' N  ⇒ 答案 A（选项 A）';
+  }
+
+  $('sN').addEventListener('input',function(){N=+$('sN').value;render();});
+  $('sTh').addEventListener('input',function(){theta=+$('sTh').value;render();});
+  $('btnDef').addEventListener('click',function(){N=200;theta=30;$('sN').value=200;$('sTh').value=30;render();});
+
+  document.querySelectorAll('.opt').forEach(function(o){
+    o.addEventListener('click',function(){document.querySelectorAll('.opt').forEach(function(x){x.classList.remove('match','open');});o.classList.add('open');if(o.textContent.indexOf('正确答案')>=0)o.classList.add('match');});
+  });
+
+  render();
+})();
+</script>
+<script src="shared/engine.js"></script>
+<script>if(window.SimKit && SimKit.revealSteps) SimKit.revealSteps();</script>
+</body>
+</html>

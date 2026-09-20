@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>无人机 Ek–h 图像 · 动能定理（多选）</title>
+<link rel="stylesheet" href="shared/style.css">
+<style>
+  .grid-l{stroke:#eef2f7;stroke-width:1}
+  .ax-l{stroke:#cbd5e1;stroke-width:1.4}
+  .tbl{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px}
+  .tbl th,.tbl td{border:1px solid var(--border);padding:6px 8px;text-align:center}
+  .tbl th{background:#f1f5f9;font-size:12px;color:var(--text-light)}
+  .ok-p{color:var(--success);font-weight:800}
+  .no-p{color:var(--danger);font-weight:800}
+</style>
+</head>
+<body>
+<div class="cw">
+
+  <header>
+    <div class="crumb">互动课件 · 物理 · 功能关系 / 动能定理</div>
+    <h1>无人机 Ek–h 图像 · 动能定理与超失重判断（多选）</h1>
+    <p class="sub">航模 · 多选 · 答案：B、D　|　拖拽沙盘交互</p>
+    <a class="back" href="../solution_library.html#courseware">← 返回互动课件</a>
+  </header>
+
+  <!-- 原题 -->
+  <section class="card">
+    <h2><span class="dot"></span>原题（多选）</h2>
+    <div class="problem">
+      <div>某航模比赛，同学操控无人机在<span class="key">升力</span>作用下竖直向上运动，其动能 <b>Ek</b> 与上升高度 <b>h</b> 的关系如图：从 <b>(0, 50 J)</b> 线性降到 <b>(10 m, 0)</b>。无人机质量 <b>m = 1.0 kg</b>，<b>g = 10 m/s²</b>。上升 10 m 的过程中：</div>
+      <div style="margin-top:8px">下列说法正确的是？</div>
+    </div>
+  </section>
+
+  <!-- 双栏：沙盘 + 参数控制台 -->
+  <div class="wrk">
+
+    <div class="sim-panel">
+      <section class="card">
+        <h2><span class="dot"></span>互动沙盘：Ek–h 直线斜率 = 合力，实时读超失重 / 升力功率</h2>
+        <div class="stage">
+          <span class="tip">在能量图上点按 / 拖滑块 h → 沿 Ek 直线移动，Ep、总机械能、功率实时更新</span>
+          <svg id="stage" viewBox="0 0 760 520" width="760" height="520" style="touch-action:none;user-select:none">
+            <defs>
+              <marker id="mgA" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 z" fill="#dc2626"/></marker>
+              <marker id="mkA" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 z" fill="#3b82f6"/></marker>
+              <marker id="mnA" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 z" fill="#16a34a"/></marker>
+            </defs>
+            <!-- 网格与坐标轴（能量-高度图） -->
+            <g id="grid"></g>
+            <line id="axH" class="ax-l" x1="70" y1="420" x2="560" y2="420"/>
+            <line id="axE" class="ax-l" x1="90" y1="500" x2="90" y2="40"/>
+            <text x="536" y="438" font-size="13" font-weight="700" fill="#475569">h / m</text>
+            <text x="20" y="46" font-size="13" font-weight="700" fill="#475569">E / J</text>
+
+            <!-- 能量曲线 -->
+            <line id="lineEk" stroke="#3b82f6" stroke-width="3" marker-end="url(#mkA)"/>
+            <line id="lineEp" stroke="#16a34a" stroke-width="3"/>
+            <line id="lineE"  stroke="#f59e0b" stroke-width="3" stroke-dasharray="7 5"/>
+
+            <!-- 高度滑块标记（可拖动） -->
+            <line id="marker" stroke="#1e293b" stroke-width="2" stroke-dasharray="4 5"/>
+            <circle id="dotEk" r="7" fill="#3b82f6" stroke="#fff" stroke-width="2.5" style="cursor:grab"/>
+            <circle id="dotEp" r="7" fill="#16a34a" stroke="#fff" stroke-width="2.5"/>
+            <circle id="dotE"  r="6" fill="#f59e0b" stroke="#fff" stroke-width="2"/>
+            <text id="tEk" font-size="12" font-weight="800" fill="#3b82f6"></text>
+            <text id="tEp" font-size="12" font-weight="800" fill="#16a34a"></text>
+            <text id="tE"  font-size="12" font-weight="800" fill="#f59e0b"></text>
+
+            <!-- 斜坡斜率标注 -->
+            <text id="tSlope" font-size="13" font-weight="800" fill="#1e293b" x="120" y="470"></text>
+
+            <!-- 无人机受力图（右区） -->
+            <g id="fbd" transform="translate(0,0)">
+              <rect x="628" y="120" width="92" height="70" rx="8" fill="#eef2ff" stroke="#c7d2fe" stroke-width="2"/>
+              <text x="632" y="142" font-size="12" font-weight="800" fill="#3b82f6" opacity="0.7">升力 F升=5N</text>
+              <line id="flift" stroke="#3b82f6" stroke-width="6" marker-end="url(#mkA)"/>
+              <text x="632" y="212" font-size="12" font-weight="800" fill="#dc2626" opacity="0.7">重力 mg=10N</text>
+              <line id="fmg" stroke="#dc2626" stroke-width="6" marker-end="url(#mgA)"/>
+              <line id="fnet" stroke="#16a34a" stroke-width="6" marker-end="url(#mnA)"/>
+              <text id="tNet" x="632" y="310" font-size="13" font-weight="800" fill="#16a34a"></text>
+            </g>
+            <text id="txtState" font-size="16" font-weight="800" text-anchor="middle" x="330" y="36"></text>
+
+            <!-- 选项绿/灰判定条 -->
+            <g font-size="13" font-weight="800">
+              <text id="vbA" x="70" y="470"></text>
+              <text id="vbB" x="70" y="490"></text>
+            </g>
+          </svg>
+          <div class="legend">
+            <span><i style="background:#3b82f6"></i>动能 Ek = 50 − 5h</span>
+            <span><i style="background:#16a34a"></i>重力势能 Ep = mgh</span>
+            <span><i style="border-top:3px dashed #f59e0b"></i>总机械能 E = Ek + Ep</span>
+          </div>
+        </div>
+        <p class="note">读数示例：因 e₀=50 J ⇒ v₀=√(2e₀/m)=10 m/s；斜率 dEk/dh=−5 N 即 F合=mg−F升 ⇒ F升=5 N。</p>
+      </section>
+    </div><!-- /sim-panel -->
+
+    <div class="param-panel">
+      <section class="card">
+        <h2><span class="dot"></span>参数控制台 · 实时读数</h2>
+        <div class="readouts">
+          <div class="ro"><div class="k">高度 h</div><div class="v" id="rH">5.0</div><div class="u">m</div></div>
+          <div class="ro"><div class="k">速度 v</div><div class="v" id="rV">0.0</div><div class="u">m/s</div></div>
+          <div class="ro r1"><div class="k">动能 Ek</div><div class="v" id="rEk">0.0</div><div class="u">J</div></div>
+          <div class="ro r2"><div class="k">重力势能 Ep</div><div class="v" id="rEp">0.0</div><div class="u">J</div></div>
+          <div class="ro r3"><div class="k">总机械能 E</div><div class="v" id="rE">0.0</div><div class="u">J</div></div>
+          <div class="ro"><div class="k">合力 F合（=斜率）</div><div class="v" id="rF">-5</div><div class="u">N 向下</div></div>
+          <div class="ro"><div class="k">加速度 a</div><div class="v" id="rA">-5</div><div class="u">m/s²</div></div>
+          <div class="ro full"><div class="k">升力功率 P = F升·v</div><div class="v" id="rP">0.0</div><div class="u">W</div></div>
+        </div>
+
+        <div class="ctrl" style="margin-top:14px">
+          <label>探测高度 h（m）<b id="v_h">5.0</b></label>
+          <input id="s_h" type="range" min="0" max="10" step="0.1" value="5">
+        </div>
+
+        <div class="btns">
+          <button class="btn go" id="btnPlay">播放 / 暂停</button>
+          <button class="btn" id="btnReset">回到 h=0</button>
+        </div>
+
+        <div class="highlight">
+          <b>判定对照（多选）：</b>
+          <br><span class="no-p">A ✗</span> 减速上升 ⇒ a 向下 ⇒ <b>失重</b>（非超重）。
+          <br><span class="ok-p">B ✓</span> E = Ek+Ep 由 50 J → 100 J，机械能<b>增加 50 J</b>。
+          <br><span class="no-p">C ✗</span> v₀=10 m/s 匀减速到 0（a=−5）用时 <b>t = 2 s</b>，非 4 s。
+          <br><span class="ok-p">D ✓</span> P=F升·v，最大在初刻 P=5×10=<b>50 W</b>。
+        </div>
+      </section>
+    </div><!-- /param-panel -->
+  </div><!-- /wrk -->
+
+  <!-- 记忆卡对碰 -->
+  <section class="card">
+    <h2><span class="dot"></span>记忆卡对碰 · 契合分析</h2>
+    <div class="legend" style="margin-bottom:8px">
+      <span><i style="background:#16a34a"></i>已命中记忆卡</span>
+      <span><i style="background:#f59e0b"></i>新补卡</span>
+    </div>
+    <div style="font-size:13px;line-height:1.8">
+      <p><b>总评：</b>本品命中「图像与动能定理」(phy0857)、「动能定理地位」(phy0828)、「由图像分析机械能」(phy0899) 与「电梯升降超失重」(phy0354)，契合度高（4 张）。核心缺口在「Ek–h 图的几何斜率即合外力做功」这一可直接读图的信号，已补卡一张。</p>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:10px">
+      <div class="ro r1"><div class="k">⚠ 信号（sig）</div><div class="v" style="font-size:14px;line-height:1.7" id="mapSig">读取中…</div></div>
+      <div class="ro r2"><div class="k">⚙ 功法（conc）</div><div class="v" style="font-size:14px;line-height:1.7" id="mapConc">读取中…</div></div>
+    </div>
+    <div class="ctrl" style="margin-top:12px">
+      <label>切换记忆卡 <b id="v_map">1</b></label>
+      <input id="s_map" type="range" min="0" max="3" step="1" value="0">
+    </div>
+    <table class="tbl">
+      <thead><tr><th>卡</th><th>知识点</th><th>契合</th></tr></thead>
+      <tbody id="mapTab"></tbody>
+    </table>
+  </section>
+
+  <!-- 分步讲解 -->
+  <section class="card">
+    <h2><span class="dot"></span>分步讲解</h2>
+    <div class="step"><div class="hd"><i>①</i>读 Ek–h 图：斜率 = 合外力</div><div class="bd">由动能定理 W合 = ΔEk，而 ΔEk = F合·Δh ⇒ <span class="formula">F合 = ΔEk/Δh = (0 − 50)/10 = − 5 N</span>斜率即合外力（恒力时成直线，符号带方向；向上为正，故合力<b>向下 5 N</b>）。</div></div>
+    <div class="step"><div class="hd"><i>②</i>定升力与加速度 → 判超失重</div><div class="bd">F合 = F升 − mg = −5 ⇒ <b>F升 = mg − 5 = 10 − 5 = 5 N</b>；a = F合/m = −5 m/s²（<b>a 向下</b>）。上升且减速 ⇒ <b>失重</b>（非超重），故 <span class="no-p">A ✗</span>。</div></div>
+    <div class="step"><div class="hd"><i>③</i>初速与时间</div><div class="bd">h=0 时 Ek=50 J ⇒ v₀=√(2Ek/m)=√(100)=10 m/s。末速 v=0、a=−5，则 <span class="formula">t = (v−v₀)/a = (0−10)/(−5) = 2 s</span>，非 4 s ⇒ <span class="no-p">C ✗</span>。</div></div>
+    <div class="step"><div class="hd"><i>④</i>机械能变化</div><div class="bd">底部 E=Ek+Ep=50+0=50 J；顶部 Ek=0、Ep=mgh=1×10×10=100 J ⇒ E=100 J。机械能<b>增加 50 J</b> ⇒ <span class="ok-p">B ✓</span>。</div></div>
+    <div class="step"><div class="hd"><i>⑤</i>升力功率</div><div class="bd">P = F升·v 与 v 同步变化，v 最大在初始 10 m/s ⇒ Pmax = 5×10=<b>50 W</b> ⇒ <span class="ok-p">D ✓</span>。故正确项为 <b>B、D</b>。</div></div>
+  </section>
+
+  <div class="footer">互动课件 · 物理《动能定理 / 功能关系》 · 纯 SVG + 原生 JS · 由错题本网站生成</div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  var NS="http://www.w3.org/2000/svg", svg=document.getElementById('stage');
+  function $(id){return document.getElementById(id);}
+  // 能量图坐标映射
+  var X0=90, HMAX=10, PX=44;         // h=0->px, per-m px
+  var Y0=420, EMAX=120, PY=3;        // E=0->py(420), per-J px
+  function Hx(h){return X0+h*PX;}
+  function Ey(e){return Y0-e*PY;}
+  var m=1.0, g=10, Ek0=50;           // 动能初值 / 质量 / g
+  function FnetVal(){return -5;}      // 合力 = dEk/dh = -5 N
+  var Fl=5, tTot=2.0;                // 升力5N, 时间2s
+
+  // 静态曲线端点
+  var EK0={x:Hx(0),y:Ey(Ek0)}, EK1={x:Hx(10),y:Ey(0)};
+  var EP0={x:Hx(0),y:Ey(0)}, EP1={x:Hx(10),y:Ey(m*g*10)};
+  var E0v={x:Hx(0),y:Ey(Ek0)}, E1v={x:Hx(10),y:Ey(m*g*10)};
+
+  function setL(id,p1,p2){var L=$(id);L.setAttribute('x1',p1.x);L.setAttribute('y1',p1.y);L.setAttribute('x2',p2.x);L.setAttribute('y2',p2.y);}
+
+  /* 网格 */
+  (function(){
+    var g=$('grid');
+    for(var i=0;i<=10;i++){var h=i;var line=document.createElementNS(NS,'line');line.setAttribute('class','grid-l');line.setAttribute('x1',Hx(h));line.setAttribute('y1',40);line.setAttribute('x2',Hx(h));line.setAttribute('y2',500);g.appendChild(line);}
+    for(var j=0;j<=6;j++){var e=j*20;var line2=document.createElementNS(NS,'line');line2.setAttribute('class','grid-l');line2.setAttribute('x1',70);line2.setAttribute('y1',Ey(e));line2.setAttribute('x2',560);line2.setAttribute('y2',Ey(e));g.appendChild(line2);}
+  })();
+
+  var h=5.0, playing=false, animId=null;
+  function render(){
+    var Ek=Math.max(0,Ek0-5*h), Ep=m*g*h, E=Ek+Ep;
+    var v=Math.sqrt(2*Ek/m);
+    // 标记线
+    var hx=Hx(h);
+    $('marker').setAttribute('x1',hx);$('marker').setAttribute('y1',Ey(120));$('marker').setAttribute('x2',hx);$('marker').setAttribute('y2',Ey(0));
+    $('dotEk').setAttribute('cx',hx);$('dotEk').setAttribute('cy',Ey(Ek));
+    $('dotEp').setAttribute('cx',hx);$('dotEp').setAttribute('cy',Ey(Ep));
+    $('dotE').setAttribute('cx',hx);$('dotE').setAttribute('cy',Ey(E));
+    pos('tEk',hx-4,Ey(Ek)-10);$('tEk').textContent='Ek='+Ek.toFixed(0);
+    pos('tEp',hx-4,Ey(Ep)+16);$('tEp').textContent='Ep='+Ep.toFixed(0);
+    pos('tE',hx+6,Ey(E)-10);$('tE').textContent='E='+E.toFixed(0);
+    // 受力图：mg 10N(下)、升力5N(上)、合力5N(下)
+    var ox=628, oy=175, SCn=6;   // per-N px (10N->60px)
+    $('fmg').setAttribute('x1',ox);$('fmg').setAttribute('y1',oy);$('fmg').setAttribute('x2',ox);$('fmg').setAttribute('y2',oy+10*SCn);
+    $('flift').setAttribute('x1',ox);$('flift').setAttribute('y1',oy);$('flift').setAttribute('x2',ox);$('flift').setAttribute('y2',oy-5*SCn);
+    $('fnet').setAttribute('x1',ox);$('fnet').setAttribute('y1',oy);$('fnet').setAttribute('x2',ox);$('fnet').setAttribute('y2',oy+5*SCn);
+    $('txtState').setAttribute('y',oy+8);
+    $('txtState').textContent='F合=F升−mg=−5 N（a向下→失重）';
+    // 读数
+    $('rH').textContent=h.toFixed(1); $('v_h').textContent=h.toFixed(1);
+    $('rV').textContent=v.toFixed(1); $('rEk').textContent=Ek.toFixed(1);
+    $('rEp').textContent=Ep.toFixed(1); $('rE').textContent=E.toFixed(1);
+    $('rF').textContent=FnetVal(); $('rA').textContent='-5';
+    $('rP').textContent=(Fl*v).toFixed(1);
+    // 选项判定
+    $('vbA').textContent='A 超重 ⇒ ✗（a 向下 = 失重）';
+    $('vbB').textContent=''
+  }
+  function pos(id,x,y){var t=$(id);t.setAttribute('x',x);t.setAttribute('y',y);}
+
+  /* 交互：在图上点按拖 h */
+  var drag=null;
+  svg.addEventListener('pointerdown',function(ev){
+    var rect=svg.getBoundingClientRect();
+    var px=(ev.clientX-rect.left)*(760/svg.clientWidth);
+    if(px>=Hx(0)&&px<=Hx(10)){ drag=true; svg.setPointerCapture&&svg.setPointerCapture(ev.pointerId); moveTo(px); }
+  });
+  svg.addEventListener('pointermove',function(ev){
+    if(!drag)return;
+    var rect=svg.getBoundingClientRect();
+    var px=(ev.clientX-rect.left)*(760/svg.clientWidth);
+    moveTo(px);
+  });
+  ['pointerup','pointercancel'].forEach(function(evt){ svg.addEventListener(evt,function(){drag=null;stopAnim();}); });
+  function moveTo(px){ var nh=Math.min(10,Math.max(0,(px-Hx(0))/PX)); h=Math.round(nh*10)/10; $('s_h').value=h; $('v_h').textContent=h.toFixed(1); render(); }
+
+  $('s_h').addEventListener('input',function(){stopAnim();h=parseFloat(this.value);$('v_h').textContent=h.toFixed(1);render();});
+
+  function stopAnim(){ if(animId){cancelAnimationFrame(animId);animId=null;} playing=false; $('btnPlay').textContent='播放 / 暂停'; }
+  $('btnPlay').addEventListener('click',function(){
+    if(playing){stopAnim();return;}
+    playing=true; $('btnPlay').textContent='暂停';
+    var t0=performance.now();
+    function step(now){
+      if(!playing)return;
+      var dt=(now-t0)/1000; h=(h+1.0*dt)%10.2; if(h>10)h=0; $('s_h').value=Math.min(10,h);$('v_h').textContent=Math.min(10,h).toFixed(1); render();
+      animId=requestAnimationFrame(step);
+    }
+    animId=requestAnimationFrame(step);
+  });
+  $('btnReset').addEventListener('click',function(){stopAnim();h=0;$('s_h').value=0;$('v_h').textContent='0.0';render();});
+
+  /* 记忆卡面板 */
+  var cards=[
+    {id:'phy0857',kp:'图像与动能定理结合',sig:'给出 F-x、v-t 等图像并要求结合动能定理',conc:'先从图像提取功（面积）/位移/速度，再代入动能定理；勿忽略横纵坐标单位换算',fit:'强契合'},
+    {id:'phy0828',kp:'动能定理地位',sig:'求速度/位移而不求时间、加速度',conc:'优先用合力功等于动能变化量；动能定理不涉及时间与加速度',fit:'强契合'},
+    {id:'phy0899',kp:'由图像分析机械能',sig:'由 v-t 图像或运动阶段分析机械能变化',conc:'看 a 是否等于 g：仅重力作功才守恒；不能仅凭动能变化判机械能',fit:'强契合'},
+    {id:'phy0354',kp:'电梯升降的超失重',sig:'逐段判断超失重',conc:'加速上升/减速下降超重；减速上升/加速下降失重；匀速既不超也不失',fit:'强契合'}
+  ];
+  var newCard=[{id:'new·1',kp:'Ek–h 图像几何意义',sig:'给出动能-位移(Ek–x/Ek–h)直线/折线，求合力功/加速度/某点速度',conc:'斜率=B点合外力=ΔEk/Δx（恒力成直线）；v=√(2Ek/m)开方得速率',fit:'新卡'}];
+  var all=cards.concat(newCard);
+  function fillMap(){
+    var tab=$('mapTab'); tab.innerHTML='';
+    cards.forEach(function(c){
+      var tr=document.createElement('tr'); tr.innerHTML='<td>'+c.id+'</td><td>'+c.kp+'</td><td class="ok-p">'+c.fit+'</td>'; tab.appendChild(tr);
+    });
+    var tr2=document.createElement('tr');tr2.innerHTML='<td>new</td><td>'+newCard[0].kp+'</td><td class="no-p">新卡</td>';tab.appendChild(tr2);
+  }
+  function renderMap(i){
+    var c=all[i];
+    $('mapSig').textContent=c.sig;
+    $('mapConc').textContent=c.conc;
+    $('v_map').textContent=(i+1)+' / '+all.length;
+  }
+  var _im=0;
+  $('s_map').addEventListener('input',function(){renderMap(parseInt(this.value));});
+  /* 曲线初始化 */
+  setL('lineEk',EK0,EK1); setL('lineEp',EP0,EP1); setL('lineE',E0v,E1v);
+  fillMap(); renderMap(0); render();
+})();
+</script>
+<script src="shared/engine.js"></script>
+<script>if(window.SimKit && SimKit.revealSteps) SimKit.revealSteps();</script>
+</body>
+</html>
