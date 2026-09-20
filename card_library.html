@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>昕言的记忆卡库</title>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" id="MathJax-script" async></script>
-<script src="cards_data.js?v=9"></script>
+<!-- 记忆卡数据改为「本地优先」：先读 localStorage 缓存，未命中才加载 cards_data.js（见 getCardsData()） -->
 <style>
 :root {
   --primary: #6366f1;
@@ -437,12 +437,49 @@ let state = {
   trainSession: { total: 0, correct: 0, ratings: [] }
 };
 
+// ==================== 本地优先数据加载 (localStorage) ====================
+// cards_data.js 增改后：把 DATA_VERSION 数字 +1，旧缓存自动作废并重新拉取
+const DATA_VERSION = 10;
+const CARDS_CACHE_KEY = 'mcq_cards_data_v' + DATA_VERSION;
+
+function loadCardsRemote() {
+  return new Promise((res, rej) => {
+    const sc = document.createElement('script');
+    sc.src = 'cards_data.js?v=' + DATA_VERSION;
+    sc.onload = () => res(window.CARDS_DATA || []);
+    sc.onerror = () => rej(new Error('卡片数据 cards_data.js 加载失败'));
+    document.head.appendChild(sc);
+  });
+}
+
+async function getCardsData() {
+  // 本地优先：先从 localStorage 读缓存，命中即用（更快、可离线）
+  try {
+    const raw = localStorage.getItem(CARDS_CACHE_KEY);
+    if (raw) {
+      const arr = JSON.parse(raw);
+      if (Array.isArray(arr) && arr.length) {
+        return arr.map(c => ({ ...c, origin: 'excel' }));
+      }
+    }
+  } catch (e) { console.warn('本地缓存读取失败', e); }
+  // 未命中 → 动态加载 cards_data.js 并写入本地缓存（写失败说明超配额/被禁用，不影响使用）
+  try {
+    const arr = await loadCardsRemote();
+    try { localStorage.setItem(CARDS_CACHE_KEY, JSON.stringify(arr)); }
+    catch (e) { console.warn('本地缓存写入失败', e); }
+    return arr.map(c => ({ ...c, origin: 'excel' }));
+  } catch (e) {
+    console.warn('cards_data.js 加载失败，回退内联数据', e);
+    const fb = (typeof CARDS_DATA !== 'undefined') ? CARDS_DATA : [];
+    return fb.map(c => ({ ...c, origin: 'excel' }));
+  }
+}
+
 // ==================== Init ====================
 async function init() {
-  // Load Excel cards
-  if (typeof CARDS_DATA !== 'undefined') {
-    state.cards = CARDS_DATA.map(c => ({ ...c, origin: 'excel' }));
-  }
+  // 记忆卡数据：本地优先（localStorage 缓存 → 动态拉取 cards_data.js → 内联回退）
+  state.cards = await getCardsData();
   // Load SRS state
   loadSRS();
   // 固定同步指示器：进入「同步中」
