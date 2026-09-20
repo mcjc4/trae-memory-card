@@ -770,8 +770,9 @@ async function refreshFromCloud() {
       const migrated = await migrateOldFormat();
       if (!migrated && state.errors.length === 0) {
         state.errors = seedData();
-        await cloudPushAll();
+        writeLocalSolution(state.errors);          // 先落本地缓存，立即渲染
         showToast('已初始化14道错题数据');
+        cloudPushAll();                             // 后台推送云端，不阻塞本地渲染
       } else if (migrated) {
         writeLocalSolution(state.errors);
         showToast('已从旧格式迁移为每题独立存储');
