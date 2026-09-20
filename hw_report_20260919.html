@@ -141,14 +141,14 @@ async function ensureTrain(cardId, isNew, silent){
     return res.ok;
   }
   let ok=false;
-  // 3 次递增退避重试，抵御 Supabase 偶发瞬断
-  for(let i=0;i<3 && !ok;i++){
+  // 指数退避重试(共5次:0.4s/0.8s/1.6s/3.2s)，抵御 Supabase 偶发 ERR_ABORTED 瞬断
+  for(let i=0;i<5 && !ok;i++){
     try{ ok=await doPost(); }catch(e){ ok=false; }
-    if(!ok && i<2) await new Promise(r=>setTimeout(r, 500*(i+1)));
+    if(!ok && i<4) await new Promise(r=>setTimeout(r, 400*Math.pow(2,i)));
   }
   // localStorage 双写（本机兜底）
   try{const m=JSON.parse(localStorage.getItem('card_train_tags')||'{}');m[cardId]=Object.assign({},m[cardId],{train_tag:'待训练',last_viewed:new Date().toISOString()});localStorage.setItem('card_train_tags',JSON.stringify(m));}catch(e){}
-  if(!ok && !silent) toast('⚠️ 已加入本机，云端同步失败（换设备可能看不到）');
+  if(!ok && !silent) toast('⚠️ 网络抖动，云端同步失败，可点「重试」或刷新页面自动补推');
   return ok;
 }
 
@@ -164,7 +164,7 @@ function toggleTrain(cardId,isNew,btn){
   toast('⏳ 加入中…');
   ensureTrain(cardId, !!isNew, true).then(ok=>{
     trainStates[cardId] = ok ? 'done' : 'fail'; saveStates(); renderCards();
-    toast(ok ? '✅ 已加入待训练：'+cardId : '⚠️ 云端同步失败，点击「重试」');
+    toast(ok ? '✅ 已加入待训练：'+cardId : '⚠️ 网络抖动云端同步失败，点「重试」或刷新自动补推');
   });
 }
 function retryTrain(cardId,isNew,btn){
@@ -172,7 +172,7 @@ function retryTrain(cardId,isNew,btn){
   trainStates[cardId]='pending'; saveStates(); renderCards();
   ensureTrain(cardId, !!isNew, true).then(ok=>{
     trainStates[cardId] = ok ? 'done' : 'fail'; saveStates(); renderCards();
-    toast(ok ? '✅ 已加入待训练：'+cardId : '⚠️ 云端同步仍失败');
+    toast(ok ? '✅ 已加入待训练：'+cardId : '⚠️ 云端同步仍失败，可刷新页面自动补推');
   });
 }
 function renderCards(){
