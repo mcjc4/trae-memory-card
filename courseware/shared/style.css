@@ -108,4 +108,5 @@ a.back:hover{text-decoration:underline}
 .prob-img-empty{color:var(--text-light);text-align:center;font-size:13px;line-height:1.7;padding:22px}
 .prob-img-empty svg{margin:0 auto 8px;display:block;opacity:.5}
 .prob-img-img{width:100%;max-height:520px;object-fit:contain;display:block;background:#fff}
+.prob-img-img.zoom{max-height:none;cursor:zoom-out}
 .prob-img.pasting{border-color:var(--success);box-shadow:0 0 0 3px rgba(22,163,74,.15)}
