@@ -114,7 +114,7 @@ let trainQueue=[]; try{ trainQueue=JSON.parse(localStorage.getItem(QUEUE_KEY)||'
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove('show'),1800);}
 
 // 云端有行→打标签；无行→新建待训练卡（本地新卡 che0535~ 等），并降级写 localStorage
-async function ensureTrain(cardId, isNew){
+async function ensureTrain(cardId, isNew, silent){
   async function doPost(){
     let rowId=null, existing=null;
     try{
@@ -129,11 +129,14 @@ async function ensureTrain(cardId, isNew){
     return res.ok;
   }
   let ok=false;
-  try{ ok=await doPost(); if(!ok){ await new Promise(r=>setTimeout(r,600)); ok=await doPost(); } }
-  catch(e){ ok=false; }
+  // 3 次递增退避重试，抵御 Supabase 偶发瞬断
+  for(let i=0;i<3 && !ok;i++){
+    try{ ok=await doPost(); }catch(e){ ok=false; }
+    if(!ok && i<2) await new Promise(r=>setTimeout(r, 500*(i+1)));
+  }
   // localStorage 双写（本机兜底）
   try{const m=JSON.parse(localStorage.getItem('card_train_tags')||'{}');m[cardId]=Object.assign({},m[cardId],{train_tag:'待训练',last_viewed:new Date().toISOString()});localStorage.setItem('card_train_tags',JSON.stringify(m));}catch(e){}
-  if(!ok) toast('⚠️ 已加入本机，云端同步失败（换设备可能看不到）');
+  if(!ok && !silent) toast('⚠️ 已加入本机，云端同步失败（换设备可能看不到）');
   return ok;
 }
 
@@ -274,6 +277,13 @@ document.getElementById('list').innerHTML = QUESTIONS.map(p=>`
     <div class="shot-cap">原题截图 · 题目 ${p.q}</div>
   </div>
 `).join('');
+
+// ==================== 自愈：页面加载时把本地队列的卡静默补推云端 ====================
+// 防某次「加入训练」推送遇 Supabase 瞬断失败导致跨设备丢失；幂等，失败不弹窗。
+(async function autoRepair(){
+  const ids = trainQueue.slice();
+  await Promise.all(ids.map(id => ensureTrain(id, !CARD_MAP[id], true)));
+})();
 </script>
 </body>
 </html>
