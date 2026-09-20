@@ -453,12 +453,21 @@ async function cloudPull() {
     const rows = await res.json();
     if (rows.length > 0) {
       const userCards = rows.map(r => r.data).filter(d => d && d.id);
-      // Merge: user cards override Excel cards with same id
-      const excelIds = new Set(state.cards.map(c => c.id));
+      // Merge: user cards override Excel cards with same id. 对已在本地库的卡只并入标签/元数据，
+      // 避免「裸待训练行」(card-lib-* 仅带 train_tag) 覆盖掉 cards_data.js 里的完整内容。
       userCards.forEach(uc => {
         const idx = state.cards.findIndex(c => c.id === uc.id);
-        if (idx >= 0) { state.cards[idx] = { ...uc, origin: 'error' }; }
-        else { state.cards.push({ ...uc, origin: 'error' }); }
+        if (idx >= 0) {
+          const existing = state.cards[idx];
+          const merged = { ...existing, origin: existing.origin || 'error' };
+          if (uc.train_tag !== undefined) merged.train_tag = uc.train_tag;
+          if (uc.last_viewed !== undefined) merged.last_viewed = uc.last_viewed;
+          if (uc.new_flag !== undefined) merged.new_flag = uc.new_flag;
+          if (uc.homework_qid !== undefined) merged.homework_qid = uc.homework_qid;
+          state.cards[idx] = merged;
+        } else {
+          state.cards.push({ ...uc, origin: 'error' });
+        }
       });
     }
   } catch(e) { console.warn('cloudPull error:', e); }
